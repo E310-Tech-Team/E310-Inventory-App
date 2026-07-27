@@ -34,10 +34,10 @@ Mock login emails:
 4. Copy `.env.example` to `.env.local`.
 5. Fill in:
    - `NEXT_PUBLIC_SUPABASE_URL`
-   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY` or `SUPABASE_SECRET_KEY`
 6. Restart `npm run dev`.
 
-The service-role key is used only by server-side route handlers. Do not expose it in client components.
+The service-role/secret key is used only by server-side route handlers. Do not expose it in client components.
 
 ## Building for production
 
