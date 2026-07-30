@@ -9,6 +9,8 @@ The app can run in two data modes:
 - **Local mock mode**: if Supabase env vars are missing, it uses `src/mock-data-store/db.json`.
 - **Supabase mode**: if Supabase env vars are present, it uses Postgres tables in Supabase.
 
+In production without Supabase env vars, mock mode uses temporary server storage. That is useful for a deployment smoke test, but it is not persistent enough for real inventory records.
+
 Access is managed by a **super-admin**. Active department team members can add, edit, delete, assign, and check in inventory. Only a super-admin can add, edit, deactivate, or remove users.
 
 ## Running locally

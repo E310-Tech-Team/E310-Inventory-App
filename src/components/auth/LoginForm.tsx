@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import { Package } from "lucide-react";
 import { DepartmentUser } from "@/types";
 
-export function LoginForm({ users }: { users: DepartmentUser[] }) {
+export function LoginForm({
+  users,
+  setupError,
+}: {
+  users: DepartmentUser[];
+  setupError?: string | null;
+}) {
   const router = useRouter();
   const [email, setEmail] = useState(users[0]?.email ?? "");
   const [loading, setLoading] = useState(false);
@@ -68,17 +74,18 @@ export function LoginForm({ users }: { users: DepartmentUser[] }) {
           </div>
 
           {error && <p className="text-sm text-status-overdue">{error}</p>}
+          {setupError && <p className="text-sm text-status-overdue">{setupError}</p>}
 
           <button
             type="submit"
-            disabled={loading || users.length === 0}
+            disabled={loading || users.length === 0 || Boolean(setupError)}
             className="pressable w-full py-2.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium transition-colors disabled:opacity-50"
           >
             {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
 
-        {users.length === 0 && (
+        {users.length === 0 && !setupError && (
           <p className="text-xs text-status-overdue text-center mt-5">
             No active users are configured.
           </p>

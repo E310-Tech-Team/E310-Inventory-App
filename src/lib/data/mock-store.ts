@@ -1,11 +1,18 @@
 import fs from "fs/promises";
+import os from "os";
 import path from "path";
 import { v4 as uuid } from "uuid";
 import { Category, DepartmentUser, Item, Checkout } from "@/types";
+import seedData from "@/mock-data-store/seed.json";
 import { DataStore } from "./types";
 
-const DB_PATH = path.join(process.cwd(), "src/mock-data-store/db.json");
-const SEED_PATH = path.join(process.cwd(), "src/mock-data-store/seed.json");
+const LOCAL_DB_PATH = path.join(process.cwd(), "src/mock-data-store/db.json");
+const SERVERLESS_DB_PATH = path.join(os.tmpdir(), "ethree10-inventory-db.json");
+const DB_PATH =
+  process.env.MOCK_DB_PATH ||
+  (process.env.VERCEL || process.env.NODE_ENV === "production"
+    ? SERVERLESS_DB_PATH
+    : LOCAL_DB_PATH);
 
 interface Db {
   users: DepartmentUser[];
@@ -78,13 +85,14 @@ async function readDb(): Promise<Db> {
     const raw = await fs.readFile(DB_PATH, "utf-8");
     return normalizeDb(JSON.parse(raw));
   } catch {
-    const seed = await fs.readFile(SEED_PATH, "utf-8");
-    await fs.writeFile(DB_PATH, seed);
-    return normalizeDb(JSON.parse(seed));
+    const seed = normalizeDb(seedData as Partial<Db>);
+    await writeDb(seed).catch(() => undefined);
+    return seed;
   }
 }
 
 async function writeDb(db: Db): Promise<void> {
+  await fs.mkdir(path.dirname(DB_PATH), { recursive: true });
   await fs.writeFile(DB_PATH, JSON.stringify(db, null, 2));
 }
 
