@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ClipboardCheck, Pencil, Plus, Trash2 } from "lucide-react";
-import { Category, Checkout, Item } from "@/types";
+import { Category, Checkout, DepartmentUser, Item } from "@/types";
 import { getEffectiveStatus } from "@/lib/checkout-status";
 import { getItemIdentifierLabel } from "@/lib/items";
 import { CheckoutModal } from "@/components/checkouts/CheckoutModal";
@@ -16,10 +16,14 @@ export function CategoryDetailView({
   category,
   items,
   checkouts,
+  assigners,
+  currentAdmin,
 }: {
   category: Category;
   items: Item[];
   checkouts: Checkout[];
+  assigners: DepartmentUser[];
+  currentAdmin: DepartmentUser;
 }) {
   const router = useRouter();
   const [showCreate, setShowCreate] = useState(false);
@@ -238,6 +242,8 @@ export function CategoryDetailView({
         <CheckoutModal
           items={[assigning]}
           categories={[category]}
+          assigners={assigners}
+          defaultAssignedBy={currentAdmin.name}
           onClose={() => setAssigning(null)}
         />
       )}

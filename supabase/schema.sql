@@ -98,8 +98,7 @@ grant select, insert, update, delete on public.checkouts to service_role;
 insert into public.department_users (name, email, role, status, invited_by)
 values
   ('Department Lead', 'boss@department.local', 'super-admin', 'active', null),
-  ('Second Admin', 'goodnessezekiel@theincubatorhub.org', 'super-admin', 'active', 'Department Lead'),
-  ('Admin 1', 'admin1@department.local', 'team-member', 'active', 'Department Lead'),
+  ('Goodness', 'goodnessezekiel@theincubatorhub.org', 'super-admin', 'active', 'Department Lead'),
   ('Admin 2', 'admin2@department.local', 'team-member', 'active', 'Department Lead')
 on conflict (email) do update set
   name = excluded.name,
@@ -109,8 +108,8 @@ on conflict (email) do update set
 
 insert into public.categories (id, name, tracking_type, return_type, low_stock_threshold, created_by, created_at)
 values
-  ('00000000-0000-4000-8000-000000000001', 'Laptops', 'individual', 'open-ended', null, 'Admin 1', '2026-01-10T09:00:00.000Z'),
-  ('00000000-0000-4000-8000-000000000002', 'Cameras', 'individual', 'fixed-date', null, 'Admin 1', '2026-01-10T09:05:00.000Z'),
+  ('00000000-0000-4000-8000-000000000001', 'Laptops', 'individual', 'open-ended', null, 'Goodness', '2026-01-10T09:00:00.000Z'),
+  ('00000000-0000-4000-8000-000000000002', 'Cameras', 'individual', 'fixed-date', null, 'Goodness', '2026-01-10T09:05:00.000Z'),
   ('00000000-0000-4000-8000-000000000003', 'Cables & Extensions', 'individual', 'fixed-date', null, 'Admin 2', '2026-01-10T09:10:00.000Z'),
   ('00000000-0000-4000-8000-000000000004', 'Office Supplies', 'quantity', 'open-ended', 5, 'Admin 2', '2026-01-10T09:15:00.000Z')
 on conflict (id) do nothing;
@@ -158,10 +157,10 @@ values
     '00000000-0000-4000-8000-000000000201',
     '00000000-0000-4000-8000-000000000101',
     null,
-    'Admin 1',
-    'Admin 1',
+    'Goodness',
+    'Goodness',
     '+234 800 000 0001',
-    'admin1@department.local',
+    'goodnessezekiel@theincubatorhub.org',
     'good',
     null,
     '2026-06-01T10:00:00.000Z',

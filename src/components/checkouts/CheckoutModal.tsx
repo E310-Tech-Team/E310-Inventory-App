@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Item, Category, ItemCondition } from "@/types";
+import { Category, DepartmentUser, Item, ItemCondition } from "@/types";
 import { Modal } from "@/components/ui/Modal";
 import { FormField, inputClass } from "@/components/ui/FormField";
 import { getItemIdentifierLabel } from "@/lib/items";
@@ -10,10 +10,14 @@ import { getItemIdentifierLabel } from "@/lib/items";
 export function CheckoutModal({
   items,
   categories,
+  assigners,
+  defaultAssignedBy,
   onClose,
 }: {
   items: Item[];
   categories: Category[];
+  assigners: DepartmentUser[];
+  defaultAssignedBy: string;
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -29,6 +33,7 @@ export function CheckoutModal({
   const [assignedToName, setAssignedToName] = useState("");
   const [assignedToPhone, setAssignedToPhone] = useState("");
   const [assignedToEmail, setAssignedToEmail] = useState("");
+  const [assignedBy, setAssignedBy] = useState(defaultAssignedBy ?? assigners[0]?.name ?? "");
   const [condition, setCondition] = useState<ItemCondition>("good");
   const [notes, setNotes] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -48,6 +53,7 @@ export function CheckoutModal({
     const payload = {
       itemId,
       quantity: isQuantityTracked ? Number(quantity) : null,
+      collectedBy: assignedBy,
       assignedToName,
       assignedToPhone,
       assignedToEmail,
@@ -141,6 +147,24 @@ export function CheckoutModal({
             placeholder="name@company.com"
             required
           />
+        </FormField>
+
+        <FormField label="Assigned by">
+          <select
+            className={inputClass}
+            value={assignedBy}
+            onChange={(e) => setAssignedBy(e.target.value)}
+            required
+          >
+            <option value="" disabled>
+              Select the assigning admin
+            </option>
+            {assigners.map((user) => (
+              <option key={user.id} value={user.name}>
+                {user.name} — {user.email}
+              </option>
+            ))}
+          </select>
         </FormField>
 
         <FormField label="Condition on collection">

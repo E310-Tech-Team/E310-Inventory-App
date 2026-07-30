@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
   const assignedToName = cleanString(body.assignedToName);
   const assignedToPhone = cleanString(body.assignedToPhone);
   const assignedToEmail = cleanString(body.assignedToEmail).toLowerCase();
+  const collectedBy = cleanString(body.collectedBy) || auth.user.name;
   const collectionNotes = cleanOptionalString(body.collectionNotes);
   const dueDate = toIsoDate(body.dueDate);
 
@@ -84,7 +85,7 @@ export async function POST(request: NextRequest) {
   const checkout = await dataStore.createCheckout({
     itemId,
     quantity: checkoutQuantity,
-    collectedBy: auth.user.name,
+    collectedBy,
     assignedToName,
     assignedToPhone,
     assignedToEmail,

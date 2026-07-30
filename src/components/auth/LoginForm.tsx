@@ -13,7 +13,7 @@ export function LoginForm({
   setupError?: string | null;
 }) {
   const router = useRouter();
-  const [email, setEmail] = useState(users[0]?.email ?? "");
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,23 +54,22 @@ export function LoginForm({
             <label className="block text-sm font-medium mb-1.5" htmlFor="email">
               Email
             </label>
-            <input
+            <select
               id="email"
-              type="email"
-              list="active-users"
               className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent-ring/45"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@department.com"
               required
-            />
-            <datalist id="active-users">
+            >
+              <option value="" disabled>
+                Select your account
+              </option>
               {users.map((user) => (
                 <option key={user.id} value={user.email}>
-                  {user.name}
+                  {user.name} — {user.email}
                 </option>
               ))}
-            </datalist>
+            </select>
           </div>
 
           {error && <p className="text-sm text-status-overdue">{error}</p>}
