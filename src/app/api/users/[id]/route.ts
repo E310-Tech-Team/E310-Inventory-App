@@ -117,6 +117,14 @@ export async function DELETE(
     );
   }
 
-  await dataStore.deleteUser(id);
-  return NextResponse.json({ success: true });
+  try {
+    await dataStore.deleteUser(id);
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Failed to delete user", error);
+    return NextResponse.json(
+      { error: "Couldn't remove access. Try again or check Supabase permissions." },
+      { status: 500 }
+    );
+  }
 }

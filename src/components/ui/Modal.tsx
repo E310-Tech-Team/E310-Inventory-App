@@ -27,7 +27,7 @@ export function Modal({
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="modal-panel relative w-full md:max-w-md bg-surface rounded-t-2xl md:rounded-2xl border border-border max-h-[90vh] overflow-y-auto">
+      <div className="modal-panel relative w-full md:max-w-md bg-surface rounded-t-2xl md:rounded-2xl border border-border max-h-[90dvh] overflow-y-auto">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border sticky top-0 bg-surface">
           <h2 className="font-semibold text-sm">{title}</h2>
           <button

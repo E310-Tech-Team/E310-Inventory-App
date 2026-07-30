@@ -238,7 +238,9 @@ function toCheckoutUpdateRow(data: Partial<Checkout>): Partial<CheckoutRow> {
 }
 
 export class SupabaseStore implements DataStore {
-  private supabase = getSupabaseAdminClient();
+  private get supabase() {
+    return getSupabaseAdminClient();
+  }
 
   async getUsers(): Promise<DepartmentUser[]> {
     const { data, error } = await this.supabase
@@ -348,27 +350,6 @@ export class SupabaseStore implements DataStore {
   }
 
   async deleteCategory(id: string): Promise<void> {
-    const { data: items, error: itemReadError } = await this.supabase
-      .from("items")
-      .select("id")
-      .eq("category_id", id);
-    throwOnError(itemReadError);
-
-    const itemIds = ((items ?? []) as Array<{ id: string }>).map((item) => item.id);
-    if (itemIds.length > 0) {
-      const { error: checkoutError } = await this.supabase
-        .from("checkouts")
-        .delete()
-        .in("item_id", itemIds);
-      throwOnError(checkoutError);
-    }
-
-    const { error: itemDeleteError } = await this.supabase
-      .from("items")
-      .delete()
-      .eq("category_id", id);
-    throwOnError(itemDeleteError);
-
     const { error } = await this.supabase.from("categories").delete().eq("id", id);
     throwOnError(error);
   }
@@ -424,12 +405,6 @@ export class SupabaseStore implements DataStore {
   }
 
   async deleteItem(id: string): Promise<void> {
-    const { error: checkoutError } = await this.supabase
-      .from("checkouts")
-      .delete()
-      .eq("item_id", id);
-    throwOnError(checkoutError);
-
     const { error } = await this.supabase.from("items").delete().eq("id", id);
     throwOnError(error);
   }

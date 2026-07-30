@@ -9,6 +9,7 @@ import {
   ArrowLeftRight,
   LogOut,
   UserRoundCog,
+  FileSpreadsheet,
 } from "lucide-react";
 import { Admin } from "@/types";
 
@@ -16,6 +17,7 @@ const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/categories", label: "Categories", icon: Boxes },
   { href: "/checkouts", label: "Checkouts", icon: ArrowLeftRight },
+  { href: "/exports", label: "Exports", icon: FileSpreadsheet },
 ];
 
 export function Sidebar({ admin }: { admin: Admin }) {

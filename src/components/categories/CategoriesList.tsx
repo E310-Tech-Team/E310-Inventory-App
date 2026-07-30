@@ -18,11 +18,24 @@ export function CategoriesList({
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<Category | null>(null);
   const [deleting, setDeleting] = useState<Category | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   async function confirmDelete() {
     if (!deleting) return;
-    await fetch(`/api/categories/${deleting.id}`, { method: "DELETE" });
+    setDeleteError(null);
+    setDeletingId(deleting.id);
+
+    const response = await fetch(`/api/categories/${deleting.id}`, { method: "DELETE" });
+    if (!response.ok) {
+      const data = await response.json().catch(() => null);
+      setDeleteError(data?.error ?? "Couldn't delete category.");
+      setDeletingId(null);
+      return;
+    }
+
     setDeleting(null);
+    setDeletingId(null);
     router.refresh();
   }
 
@@ -49,7 +62,7 @@ export function CategoriesList({
           </div>
         ) : (
           <div className="interactive-card border border-border rounded-xl overflow-hidden bg-surface overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[760px] text-sm">
               <thead>
                 <tr className="border-b border-border bg-background text-left text-xs text-muted uppercase tracking-wide">
                   <th className="px-4 py-3 font-medium">Name</th>
@@ -106,6 +119,7 @@ export function CategoriesList({
                         <button
                           onClick={(event) => {
                             event.stopPropagation();
+                            setDeleteError(null);
                             setDeleting(category);
                           }}
                           className="pressable p-1.5 rounded hover:bg-background text-muted hover:text-status-overdue"
@@ -135,18 +149,25 @@ export function CategoriesList({
             <p className="text-sm text-muted mb-4">
               This deletes &ldquo;{deleting.name}&rdquo; and all items in it, including their checkout history. This can&apos;t be undone.
             </p>
+            {deleteError && (
+              <p className="text-sm text-status-overdue mb-3">{deleteError}</p>
+            )}
             <div className="flex gap-2">
               <button
-                onClick={() => setDeleting(null)}
+                onClick={() => {
+                  setDeleting(null);
+                  setDeleteError(null);
+                }}
                 className="pressable flex-1 py-2 rounded-lg border border-border text-sm font-medium"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDelete}
-                className="pressable flex-1 py-2 rounded-lg bg-status-overdue text-white text-sm font-medium"
+                disabled={deletingId === deleting.id}
+                className="pressable flex-1 py-2 rounded-lg bg-status-overdue text-white text-sm font-medium disabled:opacity-50"
               >
-                Delete
+                {deletingId === deleting.id ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>

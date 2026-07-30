@@ -65,7 +65,7 @@ export function AccessList({
 
       <div className="px-4 md:px-8 pb-8 animate-enter">
         <div className="interactive-card border border-border rounded-xl overflow-hidden bg-surface overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[820px] text-sm">
             <thead>
               <tr className="border-b border-border bg-background text-left text-xs text-muted uppercase tracking-wide">
                 <th className="px-4 py-3 font-medium">Name</th>

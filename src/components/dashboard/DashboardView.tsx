@@ -292,7 +292,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Table({ headers, children }: { headers: string[]; children: React.ReactNode }) {
   return (
     <div className="interactive-card border border-border rounded-xl overflow-hidden bg-surface overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="w-full min-w-[760px] text-sm">
         <thead>
           <tr className="border-b border-border bg-background text-left text-xs text-muted uppercase tracking-wide">
             {headers.map((h) => (

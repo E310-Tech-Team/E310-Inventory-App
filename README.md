@@ -4,12 +4,7 @@ Internal equipment and supplies inventory system for department-managed equipmen
 
 ## Current state
 
-The app can run in two data modes:
-
-- **Local mock mode**: if Supabase env vars are missing, it uses `src/mock-data-store/db.json`.
-- **Supabase mode**: if Supabase env vars are present, it uses Postgres tables in Supabase.
-
-In production without Supabase env vars, mock mode uses temporary server storage. That is useful for a deployment smoke test, but it is not persistent enough for real inventory records.
+The app uses Supabase Postgres as its only data source. Supabase environment variables are required locally and in production.
 
 Access is managed by a **super-admin**. Active department team members can add, edit, delete, assign, and check in inventory. Only a super-admin can add, edit, deactivate, or remove users.
 
@@ -22,7 +17,7 @@ npm run dev
 
 Open http://localhost:3000 — you'll land on the login screen.
 
-Mock login emails:
+Initial seeded login emails:
 
 - `boss@department.local` — super-admin
 - `admin1@department.local` — team member
@@ -32,12 +27,13 @@ Mock login emails:
 
 1. Create a Supabase project.
 2. In Supabase, open the SQL editor and run `supabase/schema.sql`.
-3. Replace the placeholder super-admin email (`boss@department.local`) in `department_users` with your boss's real email.
-4. Copy `.env.example` to `.env.local`.
-5. Fill in:
+3. Run `supabase/import-google-sheet.sql` to populate the current R4C EliteBook laptop inventory.
+4. Replace the placeholder super-admin email (`boss@department.local`) in `department_users` with your boss's real email.
+5. Copy `.env.example` to `.env.local`.
+6. Fill in:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `SUPABASE_SERVICE_ROLE_KEY` or `SUPABASE_SECRET_KEY`
-6. Restart `npm run dev`.
+7. Restart `npm run dev`.
 
 The service-role/secret key is used only by server-side route handlers. Do not expose it in client components.
 
@@ -57,6 +53,7 @@ Note: `build`/`start`/`dev` are pinned to `--webpack` rather than Turbopack — 
 - **Items**: full CRUD from category detail pages, with identifier type/value fields for serial numbers, asset tags, service tags, IMEI, model numbers, or other details
 - **Checkouts**: assign an item to a recipient with full name, phone number, and official email; check items back in with condition + notes
 - **Dashboard**: assigned items, overdue items, low-stock supplies, category breakdown, history by recipient, history by item
+- **Exports**: generate filtered CSV reports for inventory and assignment records
 - **PWA**: installable on phones, manifest + service worker configured
 
 ## What's not built yet
@@ -87,7 +84,7 @@ src/
 │   ├── layout/              # Sidebar, MobileNav, AppShell
 │   ├── categories/ items/ checkouts/ dashboard/
 ├── lib/
-│   ├── data/                # DataStore interface + MockStore implementation
+│   ├── data/                # DataStore interface + Supabase implementation
 │   ├── auth/                # session helpers
 │   ├── dashboard.ts         # dashboard view aggregation
 │   └── checkout-status.ts   # overdue detection

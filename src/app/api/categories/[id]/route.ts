@@ -86,6 +86,14 @@ export async function DELETE(
   if ("response" in auth) return auth.response;
 
   const { id } = await params;
-  await dataStore.deleteCategory(id);
-  return NextResponse.json({ success: true });
+  try {
+    await dataStore.deleteCategory(id);
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Failed to delete category", error);
+    return NextResponse.json(
+      { error: "Couldn't delete category. Try again or check Supabase permissions." },
+      { status: 500 }
+    );
+  }
 }

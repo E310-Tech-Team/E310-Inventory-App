@@ -14,7 +14,7 @@ export function AppShell({
       <div className="hidden md:block">
         <Sidebar admin={admin} />
       </div>
-      <main className="flex-1 min-w-0 pb-16 md:pb-0">{children}</main>
+      <main className="flex-1 min-w-0 pb-24 md:pb-0">{children}</main>
       <MobileNav admin={admin} />
     </div>
   );
