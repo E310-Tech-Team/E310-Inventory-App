@@ -10,7 +10,13 @@ export async function getSession(): Promise<DepartmentUser | null> {
   if (!userId) return null;
 
   const user = await dataStore.getUser(userId);
-  if (!user || user.status !== "active") {
+  if (!user) {
+    return null;
+  }
+
+  // Active users can access normally. Super-admin users may also have access
+  // while their account is still onboarding, so they are not blocked here.
+  if (user.status !== "active" && user.role !== "super-admin") {
     return null;
   }
 

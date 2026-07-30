@@ -15,7 +15,11 @@ export async function POST(request: NextRequest) {
   }
 
   const user = await dataStore.getUserByEmail(email.trim().toLowerCase());
-  if (!user || user.status !== "active" || !user.passwordHash) {
+  if (
+    !user ||
+    !user.passwordHash ||
+    (user.status !== "active" && user.role !== "super-admin")
+  ) {
     return NextResponse.json(
       { error: "No active access for this email. Set your password on the sign-up page if needed." },
       { status: 403 }
