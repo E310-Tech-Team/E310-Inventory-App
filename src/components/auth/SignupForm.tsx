@@ -7,12 +7,15 @@ import { Package } from "lucide-react";
 export function SignupForm({
   initialName,
   initialEmail,
+  requiresTemporaryPassword = false,
 }: {
   initialName: string;
   initialEmail: string;
+  requiresTemporaryPassword?: boolean;
 }) {
   const router = useRouter();
   const [name, setName] = useState(initialName);
+  const [temporaryPassword, setTemporaryPassword] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -27,6 +30,11 @@ export function SignupForm({
       return;
     }
 
+    if (requiresTemporaryPassword && !temporaryPassword) {
+      setError("Temporary password is required to complete signup.");
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
@@ -37,7 +45,12 @@ export function SignupForm({
     const response = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email: initialEmail, password }),
+      body: JSON.stringify({
+        name,
+        email: initialEmail,
+        password,
+        temporaryPassword: requiresTemporaryPassword ? temporaryPassword : undefined,
+      }),
     });
 
     const data = await response.json().catch(() => null);
@@ -91,6 +104,26 @@ export function SignupForm({
               className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm text-muted opacity-70 cursor-not-allowed"
             />
           </div>
+
+          {requiresTemporaryPassword && (
+            <div>
+              <label className="block text-sm font-medium mb-1.5" htmlFor="temporaryPassword">
+                Temporary password
+              </label>
+              <input
+                id="temporaryPassword"
+                type="password"
+                value={temporaryPassword}
+                onChange={(e) => setTemporaryPassword(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent-ring/45"
+                placeholder="Enter your temporary password"
+                required
+              />
+              <p className="text-xs text-muted mt-2">
+                Use the temporary password sent to your email to complete signup.
+              </p>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium mb-1.5" htmlFor="password">

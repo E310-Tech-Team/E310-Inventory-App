@@ -214,12 +214,14 @@ function UserFormModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [temporaryPassword, setTemporaryPassword] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     setError(null);
     setInviteLink(null);
+    setTemporaryPassword(null);
 
     const response = await fetch(isEdit ? `/api/users/${user?.id}` : "/api/users", {
       method: isEdit ? "PATCH" : "POST",
@@ -241,6 +243,10 @@ function UserFormModal({
 
     if (!isEdit && typeof data?.inviteUrl === "string") {
       setInviteLink(data.inviteUrl);
+      setTemporaryPassword(typeof data?.temporaryPassword === "string" ? data.temporaryPassword : null);
+      router.refresh();
+      setSaving(false);
+      return;
     }
 
     router.refresh();
@@ -311,17 +317,39 @@ function UserFormModal({
         {error && <p className="text-sm text-status-overdue mb-3">{error}</p>}
         {inviteLink && (
           <div className="rounded-lg border border-border bg-surface p-3 mb-3 text-sm text-muted break-all">
-            Invite link created: <a href={inviteLink} className="text-accent hover:underline" target="_blank" rel="noreferrer">{inviteLink}</a>
+            <p className="font-medium text-foreground mb-2">Invite created</p>
+            <p>
+              Invite link: <a href={inviteLink} className="text-accent hover:underline" target="_blank" rel="noreferrer">{inviteLink}</a>
+            </p>
+            {temporaryPassword && (
+              <div className="mt-3">
+                <p className="font-medium text-foreground">Temporary password</p>
+                <p className="font-mono text-sm text-foreground break-all">{temporaryPassword}</p>
+                <p className="text-xs text-muted mt-1">
+                  Share this temporary password with the invited user so they can complete signup.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
-        <button
-          type="submit"
-          disabled={saving}
-          className="pressable w-full py-2.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium transition-colors disabled:opacity-50"
-        >
-          {saving ? "Saving..." : isEdit ? "Save changes" : "Add member"}
-        </button>
+        {inviteLink ? (
+          <button
+            type="button"
+            onClick={onClose}
+            className="pressable w-full py-2.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium transition-colors"
+          >
+            Close
+          </button>
+        ) : (
+          <button
+            type="submit"
+            disabled={saving}
+            className="pressable w-full py-2.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium transition-colors disabled:opacity-50"
+          >
+            {saving ? "Saving..." : isEdit ? "Save changes" : "Add member"}
+          </button>
+        )}
       </form>
     </Modal>
   );

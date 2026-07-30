@@ -20,5 +20,11 @@ export default async function SignupPage({
     return <SignupStartForm initialEmail={email} invalidEmail />;
   }
 
-  return <SignupForm initialName={user.name} initialEmail={user.email} />;
+  return (
+    <SignupForm
+      initialName={user.name}
+      initialEmail={user.email}
+      requiresTemporaryPassword={Boolean(user.passwordHash)}
+    />
+  );
 }

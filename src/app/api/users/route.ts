@@ -3,6 +3,7 @@ import { requireSuperAdmin } from "@/lib/auth/permissions";
 import { dataStore } from "@/lib/data";
 import { cleanString, isUserRole, isUserStatus } from "@/lib/validation";
 import { getInviteUrl, sendInviteEmail } from "@/lib/email";
+import { generateTemporaryPassword, hashPassword } from "@/lib/auth/password";
 
 export async function GET() {
   const auth = await requireSuperAdmin();
@@ -30,6 +31,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "A user with this email already exists" }, { status: 409 });
   }
 
+  let temporaryPassword: string | null = null;
+  let passwordHash: string | undefined;
+  if (status === "pending") {
+    temporaryPassword = generateTemporaryPassword();
+    passwordHash = hashPassword(temporaryPassword);
+  }
+
   try {
     const user = await dataStore.createUser({
       name,
@@ -37,11 +45,12 @@ export async function POST(request: NextRequest) {
       role,
       status,
       invitedBy: auth.user.name,
+      passwordHash,
     });
 
-    if (status === "pending") {
+    if (status === "pending" && temporaryPassword) {
       try {
-        await sendInviteEmail(email, auth.user.name);
+        await sendInviteEmail(email, auth.user.name, temporaryPassword);
       } catch (error) {
         console.error("Failed to send invite email", error);
       }
@@ -51,6 +60,7 @@ export async function POST(request: NextRequest) {
       {
         ...user,
         inviteUrl: status === "pending" ? getInviteUrl(email) : undefined,
+        temporaryPassword: status === "pending" ? temporaryPassword : undefined,
       },
       { status: 201 }
     );

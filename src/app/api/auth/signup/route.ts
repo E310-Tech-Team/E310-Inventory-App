@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { hashPassword } from "@/lib/auth/password";
+import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { dataStore } from "@/lib/data";
 
 export async function POST(request: NextRequest) {
   const body = (await request.json()) as Record<string, unknown>;
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const password = typeof body.password === "string" ? body.password : "";
+  const temporaryPassword = typeof body.temporaryPassword === "string" ? body.temporaryPassword : "";
 
   if (!email || !password) {
-    return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
+    return NextResponse.json({ error: "Email and new password are required" }, { status: 400 });
   }
 
   const user = await dataStore.getUserByEmail(email);
@@ -21,7 +22,16 @@ export async function POST(request: NextRequest) {
   }
 
   if (user.passwordHash) {
-    return NextResponse.json({ error: "Password already set for this account" }, { status: 409 });
+    if (!temporaryPassword) {
+      return NextResponse.json(
+        { error: "Temporary password is required to complete signup" },
+        { status: 400 }
+      );
+    }
+
+    if (!verifyPassword(temporaryPassword, user.passwordHash)) {
+      return NextResponse.json({ error: "Invalid temporary password" }, { status: 401 });
+    }
   }
 
   const passwordHash = hashPassword(password);

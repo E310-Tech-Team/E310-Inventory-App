@@ -9,7 +9,12 @@ function inviteUrlFor(email: string): string {
   return `${getBaseAppUrl()}/signup?email=${encodeURIComponent(email.toLowerCase())}`;
 }
 
-async function sendSendGridInvite(email: string, invitedBy: string, inviteUrl: string) {
+async function sendSendGridInvite(
+  email: string,
+  invitedBy: string,
+  inviteUrl: string,
+  temporaryPassword?: string
+) {
   const apiKey = process.env.SENDGRID_API_KEY;
   const fromEmail = process.env.SENDGRID_FROM_EMAIL;
   const fromName = process.env.SENDGRID_FROM_NAME || "Inventory Admin";
@@ -17,6 +22,19 @@ async function sendSendGridInvite(email: string, invitedBy: string, inviteUrl: s
   if (!apiKey || !fromEmail) {
     throw new Error("SendGrid is not configured");
   }
+
+  const contentText = `You were invited by ${invitedBy} to join the inventory app.\n\n` +
+    `Complete signup: ${inviteUrl}\n` +
+    (temporaryPassword
+      ? `Temporary password: ${temporaryPassword}\n\n` +
+        `Use the temporary password to complete signup and then choose a new password.`
+      : `If you did not expect this invitation, ignore this email.`);
+
+  const contentHtml = `<p>You were invited by ${invitedBy} to join the inventory app.</p>` +
+    `<p><a href="${inviteUrl}">Complete signup</a></p>` +
+    (temporaryPassword
+      ? `<p><strong>Temporary password:</strong> ${temporaryPassword}</p><p>Use it to complete signup, then choose a new password.</p>`
+      : `<p>If you did not expect this invitation, ignore this email.</p>`);
 
   const payload = {
     personalizations: [
@@ -32,11 +50,11 @@ async function sendSendGridInvite(email: string, invitedBy: string, inviteUrl: s
     content: [
       {
         type: "text/plain",
-        value: `You were invited by ${invitedBy} to join the inventory app.\n\nComplete signup: ${inviteUrl}\n\nIf you did not expect this invitation, ignore this email.`,
+        value: contentText,
       },
       {
         type: "text/html",
-        value: `<p>You were invited by ${invitedBy} to join the inventory app.</p><p><a href="${inviteUrl}">Complete signup</a></p><p>If you did not expect this invitation, ignore this email.</p>`,
+        value: contentHtml,
       },
     ],
   };
@@ -56,7 +74,12 @@ async function sendSendGridInvite(email: string, invitedBy: string, inviteUrl: s
   }
 }
 
-async function sendMailgunInvite(email: string, invitedBy: string, inviteUrl: string) {
+async function sendMailgunInvite(
+  email: string,
+  invitedBy: string,
+  inviteUrl: string,
+  temporaryPassword?: string
+) {
   const apiKey = process.env.MAILGUN_API_KEY;
   const domain = process.env.MAILGUN_DOMAIN;
   const fromEmail = process.env.MAILGUN_FROM_EMAIL;
@@ -65,18 +88,24 @@ async function sendMailgunInvite(email: string, invitedBy: string, inviteUrl: st
     throw new Error("Mailgun is not configured");
   }
 
+  const textBody = `You were invited by ${invitedBy} to join the inventory app.\n\n` +
+    `Complete signup: ${inviteUrl}\n` +
+    (temporaryPassword
+      ? `Temporary password: ${temporaryPassword}\n\nUse it to complete signup and then choose a new password.`
+      : `If you did not expect this invitation, ignore this email.`);
+
+  const htmlBody = `<p>You were invited by ${invitedBy} to join the inventory app.</p>` +
+    `<p><a href="${inviteUrl}">Complete signup</a></p>` +
+    (temporaryPassword
+      ? `<p><strong>Temporary password:</strong> ${temporaryPassword}</p><p>Use it to complete signup, then choose a new password.</p>`
+      : `<p>If you did not expect this invitation, ignore this email.</p>`);
+
   const form = new URLSearchParams();
   form.append("from", fromEmail);
   form.append("to", email);
   form.append("subject", "Your inventory access invitation");
-  form.append(
-    "text",
-    `You were invited by ${invitedBy} to join the inventory app.\n\nComplete signup: ${inviteUrl}\n\nIf you did not expect this invitation, ignore this email.`
-  );
-  form.append(
-    "html",
-    `<p>You were invited by ${invitedBy} to join the inventory app.</p><p><a href="${inviteUrl}">Complete signup</a></p><p>If you did not expect this invitation, ignore this email.</p>`
-  );
+  form.append("text", textBody);
+  form.append("html", htmlBody);
 
   const response = await fetch(`https://api.mailgun.net/v3/${domain}/messages`, {
     method: "POST",
@@ -93,11 +122,15 @@ async function sendMailgunInvite(email: string, invitedBy: string, inviteUrl: st
   }
 }
 
-export async function sendInviteEmail(email: string, invitedBy: string): Promise<void> {
+export async function sendInviteEmail(
+  email: string,
+  invitedBy: string,
+  temporaryPassword?: string
+): Promise<void> {
   const inviteUrl = inviteUrlFor(email);
 
   if (process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL) {
-    await sendSendGridInvite(email, invitedBy, inviteUrl);
+    await sendSendGridInvite(email, invitedBy, inviteUrl, temporaryPassword);
     return;
   }
 
@@ -106,7 +139,7 @@ export async function sendInviteEmail(email: string, invitedBy: string): Promise
     process.env.MAILGUN_DOMAIN &&
     process.env.MAILGUN_FROM_EMAIL
   ) {
-    await sendMailgunInvite(email, invitedBy, inviteUrl);
+    await sendMailgunInvite(email, invitedBy, inviteUrl, temporaryPassword);
     return;
   }
 
