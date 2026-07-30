@@ -6,6 +6,7 @@ interface DepartmentUserRow {
   id: string;
   name: string;
   email: string;
+  password_hash: string | null;
   role: DepartmentUser["role"];
   status: DepartmentUser["status"];
   invited_by: string | null;
@@ -78,6 +79,7 @@ function toUserInsertRow(
   return {
     name: data.name,
     email: data.email.toLowerCase(),
+    password_hash: data.passwordHash ?? null,
     role: data.role,
     status: data.status,
     invited_by: data.invitedBy,

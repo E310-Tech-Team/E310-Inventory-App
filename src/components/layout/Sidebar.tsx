@@ -12,6 +12,7 @@ import {
   FileSpreadsheet,
 } from "lucide-react";
 import { Admin } from "@/types";
+import { ThemeToggle } from "./ThemeToggle";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -66,11 +67,12 @@ export function Sidebar({ admin }: { admin: Admin }) {
         })}
       </nav>
 
-      <div className="px-3 py-4 border-t border-border">
-        <div className="px-3 py-2 mb-1">
+      <div className="px-3 py-4 border-t border-border space-y-3">
+        <div className="px-3 py-2">
           <p className="text-sm font-medium">{admin.name}</p>
           <p className="text-xs text-muted capitalize">{admin.role.replace("-", " ")}</p>
         </div>
+        <ThemeToggle />
         <button
           onClick={handleLogout}
           className="pressable w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-muted hover:bg-background hover:text-foreground transition-colors"

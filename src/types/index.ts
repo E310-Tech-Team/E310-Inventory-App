@@ -10,13 +10,14 @@ export type ItemIdentifierType =
   | "imei"
   | "model-number"
   | "other";
-export type UserRole = "super-admin" | "team-member";
-export type UserStatus = "active" | "inactive";
+export type UserRole = "super-admin" | "team-member" | "viewer";
+export type UserStatus = "active" | "inactive" | "pending";
 
 export interface DepartmentUser {
   id: string;
   name: string;
   email: string;
+  passwordHash?: string | null;
   role: UserRole;
   status: UserStatus;
   invitedBy: string | null;

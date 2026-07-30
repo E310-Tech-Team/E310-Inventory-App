@@ -21,6 +21,27 @@
   --status-low-stock-bg: #fff7ed;
 }
 
+.dark {
+  --background: #0f172a;
+  --surface: #111827;
+  --border: #334155;
+  --foreground: #e2e8f0;
+  --muted: #94a3b8;
+  --accent: #22c55e;
+  --accent-hover: #16a34a;
+  --accent-soft: #164e63;
+  --accent-ring: #86efac;
+
+  --status-available: #22c55e;
+  --status-available-bg: #062e16;
+  --status-checked-out: #f97316;
+  --status-checked-out-bg: #422006;
+  --status-overdue: #f87171;
+  --status-overdue-bg: #4f1d1d;
+  --status-low-stock: #fb923c;
+  --status-low-stock-bg: #4b270e;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-surface: var(--surface);

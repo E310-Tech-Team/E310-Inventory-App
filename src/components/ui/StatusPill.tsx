@@ -8,6 +8,7 @@ const LABELS: Record<Status, string> = {
   "low-stock": "LOW STOCK",
   active: "ACTIVE",
   inactive: "INACTIVE",
+  pending: "PENDING",
   returned: "RETURNED",
   overdue: "OVERDUE",
 };
@@ -18,6 +19,7 @@ const STYLES: Record<Status, string> = {
   "low-stock": "text-status-low-stock bg-status-low-stock-bg",
   active: "text-status-checked-out bg-status-checked-out-bg",
   inactive: "text-muted bg-background",
+  pending: "text-accent bg-accent-soft",
   returned: "text-status-available bg-status-available-bg",
   overdue: "text-status-overdue bg-status-overdue-bg",
 };

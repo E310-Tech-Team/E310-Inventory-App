@@ -5,8 +5,9 @@ create table if not exists public.department_users (
   id uuid primary key default gen_random_uuid(),
   name text not null check (char_length(trim(name)) > 0),
   email citext not null unique,
-  role text not null check (role in ('super-admin', 'team-member')),
-  status text not null default 'active' check (status in ('active', 'inactive')),
+  password_hash text,
+  role text not null check (role in ('super-admin', 'team-member', 'viewer')),
+  status text not null default 'active' check (status in ('active', 'inactive', 'pending')),
   invited_by text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

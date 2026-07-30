@@ -3,17 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Package } from "lucide-react";
-import { DepartmentUser } from "@/types";
 
-export function LoginForm({
-  users,
-  setupError,
-}: {
-  users: DepartmentUser[];
-  setupError?: string | null;
-}) {
+export function LoginForm({ setupError }: { setupError?: string | null }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,12 +19,12 @@ export function LoginForm({
     const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, password }),
     });
 
     if (!response.ok) {
       const data = await response.json().catch(() => null);
-      setError(data?.error ?? "Couldn't sign in. Check that access is active.");
+      setError(data?.error ?? "Couldn't sign in. Check your credentials.");
       setLoading(false);
       return;
     }
@@ -54,22 +48,30 @@ export function LoginForm({
             <label className="block text-sm font-medium mb-1.5" htmlFor="email">
               Email
             </label>
-            <select
+            <input
               id="email"
-              className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent-ring/45"
+              type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent-ring/45"
+              placeholder="you@department.local"
               required
-            >
-              <option value="" disabled>
-                Select your account
-              </option>
-              {users.map((user) => (
-                <option key={user.id} value={user.email}>
-                  {user.name} — {user.email}
-                </option>
-              ))}
-            </select>
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5" htmlFor="password">
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent-ring/45"
+              placeholder="Enter your password"
+              required
+            />
           </div>
 
           {error && <p className="text-sm text-status-overdue">{error}</p>}
@@ -77,21 +79,15 @@ export function LoginForm({
 
           <button
             type="submit"
-            disabled={loading || users.length === 0 || Boolean(setupError)}
+            disabled={loading}
             className="pressable w-full py-2.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium transition-colors disabled:opacity-50"
           >
             {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
 
-        {users.length === 0 && !setupError && (
-          <p className="text-xs text-status-overdue text-center mt-5">
-            No active users are configured.
-          </p>
-        )}
-
         <p className="text-xs text-muted text-center mt-8">
-          Temporary sign-in. Access is controlled by the department user list.
+          Use your invited department email and password. Only onboarded users can finish signup via the link sent to their email.
         </p>
       </div>
     </div>

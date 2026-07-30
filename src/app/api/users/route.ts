@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
   const name = cleanString(body.name);
   const email = cleanString(body.email).toLowerCase();
   const role = isUserRole(body.role) ? body.role : "team-member";
-  const status = isUserStatus(body.status) ? body.status : "active";
+  const status = isUserStatus(body.status) ? body.status : "pending";
 
   if (!name || !email) {
     return NextResponse.json({ error: "Name and email are required" }, { status: 400 });

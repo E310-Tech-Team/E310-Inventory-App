@@ -10,6 +10,7 @@ import {
   FileSpreadsheet,
 } from "lucide-react";
 import { Admin } from "@/types";
+import { ThemeToggle } from "./ThemeToggle";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -26,23 +27,28 @@ export function MobileNav({ admin }: { admin: Admin }) {
       : NAV_ITEMS;
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-border bg-surface flex items-stretch overflow-x-auto z-10 pb-[env(safe-area-inset-bottom)]">
-      {navItems.map((item) => {
-        const isActive = pathname.startsWith(item.href);
-        const Icon = item.icon;
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`pressable flex-1 min-w-[72px] flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium ${
-              isActive ? "text-accent" : "text-muted"
-            }`}
-          >
-            <Icon className="w-5 h-5" strokeWidth={2} />
-            {item.label}
-          </Link>
-        );
-      })}
-    </nav>
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-10">
+      <nav className="border-t border-border bg-surface flex items-stretch overflow-x-auto">
+        {navItems.map((item) => {
+          const isActive = pathname.startsWith(item.href);
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`pressable flex-1 min-w-[72px] flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium ${
+                isActive ? "text-accent" : "text-muted"
+              }`}
+            >
+              <Icon className="w-5 h-5" strokeWidth={2} />
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
+      <div className="border-t border-border bg-surface px-3 py-2 pb-[env(safe-area-inset-bottom)]">
+        <ThemeToggle />
+      </div>
+    </div>
   );
 }

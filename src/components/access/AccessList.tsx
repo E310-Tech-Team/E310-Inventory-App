@@ -83,11 +83,17 @@ export function AccessList({
                   className="table-row cursor-pointer border-b border-border last:border-0"
                   role="button"
                   tabIndex={0}
-                  onClick={() => setEditing(user)}
+                  onClick={() => {
+                    if (!(user.role === "super-admin" && user.id !== currentUser.id)) {
+                      setEditing(user);
+                    }
+                  }}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
-                      setEditing(user);
+                      if (!(user.role === "super-admin" && user.id !== currentUser.id)) {
+                        setEditing(user);
+                      }
                     }
                   }}
                 >
@@ -110,10 +116,18 @@ export function AccessList({
                       <button
                         onClick={(event) => {
                           event.stopPropagation();
-                          setEditing(user);
+                          if (!(user.role === "super-admin" && user.id !== currentUser.id)) {
+                            setEditing(user);
+                          }
                         }}
                         className="pressable p-1.5 rounded hover:bg-background text-muted hover:text-foreground"
                         aria-label={`Edit ${user.name}`}
+                        disabled={user.role === "super-admin" && user.id !== currentUser.id}
+                        title={
+                          user.role === "super-admin" && user.id !== currentUser.id
+                            ? "Cannot edit another super-admin"
+                            : undefined
+                        }
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
@@ -260,6 +274,7 @@ function UserFormModal({
           >
             <option value="team-member">Team member - can manage inventory</option>
             <option value="super-admin">Super-admin - can manage access</option>
+            <option value="viewer">Viewer - can only view inventory</option>
           </select>
         </FormField>
 
@@ -272,6 +287,7 @@ function UserFormModal({
           >
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
+            <option value="pending">Pending</option>
           </select>
         </FormField>
 

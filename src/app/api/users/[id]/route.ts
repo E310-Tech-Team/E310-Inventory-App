@@ -25,6 +25,13 @@ export async function PATCH(
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
+  if (target.role === "super-admin" && target.id !== auth.user.id) {
+    return NextResponse.json(
+      { error: "Only the original super-admin can edit another super-admin account." },
+      { status: 403 }
+    );
+  }
+
   const body = (await request.json()) as Record<string, unknown>;
   const name = body.name !== undefined ? cleanString(body.name) : undefined;
   const email =
