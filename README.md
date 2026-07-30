@@ -19,7 +19,7 @@ Open http://localhost:3000 — you'll land on the login screen.
 
 Initial seeded login emails:
 
-- `boss@department.local` — super-admin
+- `boss@department.local` — super-ad
 - `goodnessezekiel@theincubatorhub.org` — super-admin
 - `admin1@department.local` — team member
 - `admin2@department.local` — team member
@@ -91,3 +91,10 @@ src/
 │   └── checkout-status.ts   # overdue detection
 └── types/                   # shared TypeScript types
 ```
+
+## Developer notes
+
+- The app keeps business logic in `src/app/api/*` and shared helpers in `src/lib/*`.
+- Feature UI is grouped into component folders by area (`auth`, `categories`, `items`, `checkouts`, `dashboard`).
+- No hidden agent watermark comments or third-party AI signatures were added to the source files.
+- `src/app/signup/page.tsx` now gates signup access to invited pending users only.
