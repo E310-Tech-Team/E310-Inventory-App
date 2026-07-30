@@ -213,14 +213,12 @@ function UserFormModal({
   const [status, setStatus] = useState<UserStatus>(user?.status ?? "pending");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [temporaryPassword, setTemporaryPassword] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     setError(null);
-    setInviteLink(null);
     setTemporaryPassword(null);
 
     const response = await fetch(isEdit ? `/api/users/${user?.id}` : "/api/users", {
@@ -241,10 +239,8 @@ function UserFormModal({
       return;
     }
 
-    if (!isEdit && typeof data?.inviteUrl === "string") {
-      setInviteLink(data.inviteUrl);
-      setTemporaryPassword(typeof data?.temporaryPassword === "string" ? data.temporaryPassword : null);
-      router.refresh();
+    if (!isEdit && typeof data?.temporaryPassword === "string") {
+      setTemporaryPassword(data.temporaryPassword);
       setSaving(false);
       return;
     }
@@ -315,25 +311,18 @@ function UserFormModal({
         )}
 
         {error && <p className="text-sm text-status-overdue mb-3">{error}</p>}
-        {inviteLink && (
-          <div className="rounded-lg border border-border bg-surface p-3 mb-3 text-sm text-muted break-all">
-            <p className="font-medium text-foreground mb-2">Invite created</p>
-            <p>
-              Invite link: <a href={inviteLink} className="text-accent hover:underline" target="_blank" rel="noreferrer">{inviteLink}</a>
+        {temporaryPassword && (
+          <div className="rounded-lg border border-border bg-surface p-3 mb-3 text-sm text-muted">
+            <p className="font-medium text-foreground mb-2">Account created</p>
+            <p className="font-medium text-foreground">Temporary password</p>
+            <p className="font-mono text-sm text-foreground break-all">{temporaryPassword}</p>
+            <p className="text-xs text-muted mt-1">
+              Share this temporary password with the invited user so they can finish onboarding through the app.
             </p>
-            {temporaryPassword && (
-              <div className="mt-3">
-                <p className="font-medium text-foreground">Temporary password</p>
-                <p className="font-mono text-sm text-foreground break-all">{temporaryPassword}</p>
-                <p className="text-xs text-muted mt-1">
-                  Share this temporary password with the invited user so they can complete signup.
-                </p>
-              </div>
-            )}
           </div>
         )}
 
-        {inviteLink ? (
+        {temporaryPassword ? (
           <button
             type="button"
             onClick={onClose}

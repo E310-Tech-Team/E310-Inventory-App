@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireSuperAdmin } from "@/lib/auth/permissions";
 import { dataStore } from "@/lib/data";
 import { cleanString, isUserRole, isUserStatus } from "@/lib/validation";
-import { getInviteUrl, sendInviteEmail } from "@/lib/email";
 import { generateTemporaryPassword, hashPassword } from "@/lib/auth/password";
 
 export async function GET() {
@@ -48,18 +47,9 @@ export async function POST(request: NextRequest) {
       passwordHash,
     });
 
-    if (status === "pending" && temporaryPassword) {
-      try {
-        await sendInviteEmail(email, auth.user.name, temporaryPassword);
-      } catch (error) {
-        console.error("Failed to send invite email", error);
-      }
-    }
-
     return NextResponse.json(
       {
         ...user,
-        inviteUrl: status === "pending" ? getInviteUrl(email) : undefined,
         temporaryPassword: status === "pending" ? temporaryPassword : undefined,
       },
       { status: 201 }
