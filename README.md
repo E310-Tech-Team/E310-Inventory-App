@@ -20,6 +20,7 @@ Open http://localhost:3000 — you'll land on the login screen.
 Initial seeded login emails:
 
 - `boss@department.local` — super-admin
+- `goodnessezekiel@theincubatorhub.org` — super-admin
 - `admin1@department.local` — team member
 - `admin2@department.local` — team member
 

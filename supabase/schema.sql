@@ -98,6 +98,7 @@ grant select, insert, update, delete on public.checkouts to service_role;
 insert into public.department_users (name, email, role, status, invited_by)
 values
   ('Department Lead', 'boss@department.local', 'super-admin', 'active', null),
+  ('Second Admin', 'goodnessezekiel@theincubatorhub.org', 'super-admin', 'active', 'Department Lead'),
   ('Admin 1', 'admin1@department.local', 'team-member', 'active', 'Department Lead'),
   ('Admin 2', 'admin2@department.local', 'team-member', 'active', 'Department Lead')
 on conflict (email) do update set
