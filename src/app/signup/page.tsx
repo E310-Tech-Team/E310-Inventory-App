@@ -11,9 +11,10 @@ function isAllowedEmail(email: string): boolean {
 export default async function SignupPage({
   searchParams,
 }: {
-  searchParams: { email?: string };
+  searchParams?: Promise<{ email?: string }>;
 }) {
-  const email = typeof searchParams.email === "string" ? searchParams.email.trim().toLowerCase() : "";
+  const params = searchParams ? await searchParams : undefined;
+  const email = typeof params?.email === "string" ? params.email.trim().toLowerCase() : "";
 
   if (!email || !isAllowedEmail(email)) {
     redirect("/");
