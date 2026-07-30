@@ -69,11 +69,8 @@ export function LoginForm({ setupError }: { setupError?: string | null }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-sm outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent-ring/45"
-              placeholder="Enter your password (optional for super-admins)"
+              placeholder="Enter your password"
             />
-            <p className="text-xs text-muted mt-1">
-              If you are a super-admin, just enter your email and click Sign in.
-            </p>
           </div>
 
           {error && <p className="text-sm text-status-overdue">{error}</p>}
@@ -88,7 +85,7 @@ export function LoginForm({ setupError }: { setupError?: string | null }) {
           </button>
         </form>
 
-        <div className="mt-4 space-y-3">
+        <div className="mt-4">
           <button
             type="button"
             onClick={() => router.push("/signup")}
@@ -96,12 +93,6 @@ export function LoginForm({ setupError }: { setupError?: string | null }) {
           >
             Go to sign up
           </button>
-          <p className="text-xs text-muted text-center">
-            If you do not have access yet, complete onboarding on the signup page.
-          </p>
-          <p className="text-xs text-center text-accent font-medium cursor-pointer" onClick={() => router.push("/signup")}>
-            Sign up page: /signup
-          </p>
         </div>
       </div>
     </div>
