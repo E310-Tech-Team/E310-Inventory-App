@@ -210,14 +210,16 @@ function UserFormModal({
   const [name, setName] = useState(user?.name ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
   const [role, setRole] = useState<UserRole>(user?.role ?? "team-member");
-  const [status, setStatus] = useState<UserStatus>(user?.status ?? "active");
+  const [status, setStatus] = useState<UserStatus>(user?.status ?? "pending");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     setError(null);
+    setInviteLink(null);
 
     const response = await fetch(isEdit ? `/api/users/${user?.id}` : "/api/users", {
       method: isEdit ? "PATCH" : "POST",
@@ -230,11 +232,15 @@ function UserFormModal({
       }),
     });
 
+    const data = await response.json().catch(() => null);
     if (!response.ok) {
-      const data = await response.json().catch(() => null);
       setError(data?.error ?? "Couldn't save access.");
       setSaving(false);
       return;
+    }
+
+    if (!isEdit && typeof data?.inviteUrl === "string") {
+      setInviteLink(data.inviteUrl);
     }
 
     router.refresh();
@@ -285,10 +291,15 @@ function UserFormModal({
             onChange={(e) => setStatus(e.target.value as UserStatus)}
             disabled={editingSelf}
           >
+            <option value="pending">Pending</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
-            <option value="pending">Pending</option>
           </select>
+          {!user && (
+            <p className="text-xs text-muted mt-2">
+              New members are invited in pending state and must finish signup with a password.
+            </p>
+          )}
         </FormField>
 
         {editingSelf && (
@@ -298,6 +309,11 @@ function UserFormModal({
         )}
 
         {error && <p className="text-sm text-status-overdue mb-3">{error}</p>}
+        {inviteLink && (
+          <div className="rounded-lg border border-border bg-surface p-3 mb-3 text-sm text-muted break-all">
+            Invite link created: <a href={inviteLink} className="text-accent hover:underline" target="_blank" rel="noreferrer">{inviteLink}</a>
+          </div>
+        )}
 
         <button
           type="submit"

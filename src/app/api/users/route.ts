@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireSuperAdmin } from "@/lib/auth/permissions";
 import { dataStore } from "@/lib/data";
 import { cleanString, isUserRole, isUserStatus } from "@/lib/validation";
+import { getInviteUrl, sendInviteEmail } from "@/lib/email";
 
 export async function GET() {
   const auth = await requireSuperAdmin();
@@ -37,7 +38,22 @@ export async function POST(request: NextRequest) {
       status,
       invitedBy: auth.user.name,
     });
-    return NextResponse.json(user, { status: 201 });
+
+    if (status === "pending") {
+      try {
+        await sendInviteEmail(email, auth.user.name);
+      } catch (error) {
+        console.error("Failed to send invite email", error);
+      }
+    }
+
+    return NextResponse.json(
+      {
+        ...user,
+        inviteUrl: status === "pending" ? getInviteUrl(email) : undefined,
+      },
+      { status: 201 }
+    );
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Couldn't create user" },

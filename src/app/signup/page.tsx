@@ -1,12 +1,7 @@
 import { redirect } from "next/navigation";
 import { SignupForm } from "@/components/auth/SignupForm";
+import { SignupStartForm } from "@/components/auth/SignupStartForm";
 import { dataStore } from "@/lib/data";
-
-const ALLOWED_SIGNUP_DOMAIN = "@theincubatorhub.org";
-
-function isAllowedEmail(email: string): boolean {
-  return email.toLowerCase().endsWith(ALLOWED_SIGNUP_DOMAIN);
-}
 
 export default async function SignupPage({
   searchParams,
@@ -16,13 +11,13 @@ export default async function SignupPage({
   const params = searchParams ? await searchParams : undefined;
   const email = typeof params?.email === "string" ? params.email.trim().toLowerCase() : "";
 
-  if (!email || !isAllowedEmail(email)) {
-    redirect("/");
+  if (!email) {
+    return <SignupStartForm />;
   }
 
   const user = await dataStore.getUserByEmail(email);
   if (!user || user.status !== "pending") {
-    redirect("/");
+    return <SignupStartForm initialEmail={email} invalidEmail />;
   }
 
   return <SignupForm initialName={user.name} initialEmail={user.email} />;

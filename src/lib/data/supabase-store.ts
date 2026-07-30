@@ -104,7 +104,7 @@ function fromCategoryRow(row: CategoryRow): Category {
     trackingType: row.tracking_type,
     returnType: row.return_type,
     lowStockThreshold: row.low_stock_threshold,
-    createdBy: row.created_by,
+    createdBy: row.created_by === "Google Sheet Import" ? "Goodness" : row.created_by,
     createdAt: row.created_at,
   };
 }

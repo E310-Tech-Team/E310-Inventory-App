@@ -59,7 +59,7 @@ export function SignupForm({
           </div>
           <h1 className="text-xl font-semibold text-foreground">Complete Your Invitation</h1>
           <p className="text-sm text-muted text-center mt-2">
-            Only invited department members with a @theincubatorhub.org email can finish signup.
+            Complete your account setup with a password after being invited by your administrator.
           </p>
         </div>
 

@@ -2,12 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { hashPassword } from "@/lib/auth/password";
 import { dataStore } from "@/lib/data";
 
-const ALLOWED_SIGNUP_DOMAIN = "@theincubatorhub.org";
-
-function isAllowedEmail(email: string): boolean {
-  return email.toLowerCase().endsWith(ALLOWED_SIGNUP_DOMAIN);
-}
-
 export async function POST(request: NextRequest) {
   const body = (await request.json()) as Record<string, unknown>;
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
@@ -15,13 +9,6 @@ export async function POST(request: NextRequest) {
 
   if (!email || !password) {
     return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
-  }
-
-  if (!isAllowedEmail(email)) {
-    return NextResponse.json(
-      { error: `Only ${ALLOWED_SIGNUP_DOMAIN} email addresses can sign up.` },
-      { status: 403 }
-    );
   }
 
   const user = await dataStore.getUserByEmail(email);

@@ -87,7 +87,7 @@ export function LoginForm({ setupError }: { setupError?: string | null }) {
         </form>
 
         <p className="text-xs text-muted text-center mt-8">
-          Use your invited department email and password. Only onboarded users can finish signup via the link sent to their email.
+          Use your invited department email and password. If you haven’t set a password yet, start at <a href="/signup" className="text-accent hover:underline">/signup</a>.
         </p>
       </div>
     </div>
