@@ -86,9 +86,18 @@ export function LoginForm({ setupError }: { setupError?: string | null }) {
           </button>
         </form>
 
-        <p className="text-xs text-muted text-center mt-8">
-          Use your invited department email and password. If you haven’t set a password yet, start at <a href="/signup" className="text-accent hover:underline">/signup</a>.
-        </p>
+        <div className="mt-4 space-y-3">
+          <button
+            type="button"
+            onClick={() => router.push("/signup")}
+            className="pressable w-full py-2.5 rounded-lg border border-border bg-surface text-sm font-medium text-foreground transition-colors hover:bg-background"
+          >
+            Create an invited account
+          </button>
+          <p className="text-xs text-muted text-center">
+            Use your invited department email and password. If you haven’t set a password yet, start at the sign up button above.
+          </p>
+        </div>
       </div>
     </div>
   );
