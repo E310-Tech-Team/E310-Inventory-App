@@ -92,6 +92,7 @@ function toUserUpdateRow(data: Partial<DepartmentUser>): Partial<DepartmentUserR
     ...(data.email !== undefined ? { email: data.email.toLowerCase() } : {}),
     ...(data.role !== undefined ? { role: data.role } : {}),
     ...(data.status !== undefined ? { status: data.status } : {}),
+    ...(data.passwordHash !== undefined ? { password_hash: data.passwordHash } : {}),
     ...(data.invitedBy !== undefined ? { invited_by: data.invitedBy } : {}),
     updated_at: new Date().toISOString(),
   };

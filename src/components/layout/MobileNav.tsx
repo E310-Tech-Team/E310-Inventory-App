@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Boxes,
   ArrowLeftRight,
-  LogOut,
   UserRoundCog,
   FileSpreadsheet,
 } from "lucide-react";
@@ -21,17 +20,10 @@ const NAV_ITEMS = [
 
 export function MobileNav({ admin }: { admin: Admin }) {
   const pathname = usePathname();
-  const router = useRouter();
   const navItems =
     admin.role === "super-admin"
       ? [...NAV_ITEMS, { href: "/access", label: "Access", icon: UserRoundCog }]
       : NAV_ITEMS;
-
-  async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
-    router.refresh();
-  }
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-10">
@@ -52,13 +44,6 @@ export function MobileNav({ admin }: { admin: Admin }) {
             </Link>
           );
         })}
-        <button
-          onClick={handleLogout}
-          className="pressable flex-1 min-w-[72px] flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium text-muted"
-        >
-          <LogOut className="w-5 h-5" strokeWidth={2} />
-          Sign out
-        </button>
       </nav>
     </div>
   );
