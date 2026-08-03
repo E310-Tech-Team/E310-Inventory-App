@@ -22,7 +22,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (user.role === "super-admin" && user.status === "active") {
+  // Super-admins are trusted bootstrap users. They can sign in directly
+  // regardless of their status or whether a password has been set yet.
+  if (user.role === "super-admin") {
     await createSession(user.id);
     return NextResponse.json({ success: true });
   }
