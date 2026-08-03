@@ -231,7 +231,7 @@ textarea {
 }
 
 .table-row:hover {
-  background: color-mix(in srgb, var(--accent-soft) 40%, white);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 /* ─── Typography refinements ─── */
