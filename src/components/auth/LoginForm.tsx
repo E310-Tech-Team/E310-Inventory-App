@@ -78,7 +78,7 @@ export function LoginForm({ setupError }: { setupError?: string | null }) {
               autoComplete="current-password"
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              Super-admins can sign in with just their email. New onboarded users use the temporary password once.
+              Super-admins and bootstrap accounts can sign in without a password. New onboarded users use the temporary password once.
             </p>
           </div>
 

@@ -22,11 +22,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Super-admins are trusted bootstrap users. They can sign in directly
-  // regardless of their status or whether a password has been set yet.
-  if (user.role === "super-admin") {
+  // Super-admins and bootstrap accounts without a password hash can sign in
+  // directly. Onboarded users still need their temporary password once.
+  const passwordlessAccess = user.role === "super-admin" || (user.status === "active" && !user.passwordHash);
+  if (passwordlessAccess) {
     await createSession(user.id);
-    return NextResponse.json({ success: true, isSuperAdmin: true });
+    return NextResponse.json({ success: true, isPasswordless: true });
   }
 
   if (user.status === "inactive" || !user.passwordHash) {
