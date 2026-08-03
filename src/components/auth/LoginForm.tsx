@@ -77,9 +77,6 @@ export function LoginForm({ setupError }: { setupError?: string | null }) {
               placeholder="Enter your password"
               autoComplete="current-password"
             />
-            <p className="mt-1 text-xs text-muted-foreground">
-              Super-admins and bootstrap accounts can sign in without a password. New onboarded users use the temporary password once.
-            </p>
           </div>
 
           {error && <p className="text-sm text-status-overdue">{error}</p>}
