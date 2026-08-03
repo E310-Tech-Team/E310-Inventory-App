@@ -20,7 +20,7 @@ export function CheckoutsList({
   categories: Category[];
 }) {
   const router = useRouter();
-  const [filter, setFilter] = useState<"all" | "active" | "overdue" | "returned">("all");
+  const [filter, setFilter] = useState<"all" | "active" | "overdue" | "returned">("active");
   const [query, setQuery] = useState("");
   const [checkingIn, setCheckingIn] = useState<Checkout | null>(null);
   const [selectedCheckout, setSelectedCheckout] = useState<Checkout | null>(null);
@@ -110,19 +110,19 @@ export function CheckoutsList({
             />
           </div>
           <div className="flex gap-1 overflow-x-auto">
-          {(["all", "active", "overdue", "returned"] as const).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`pressable px-3 py-1.5 rounded-lg text-sm font-medium capitalize transition-colors ${
-                filter === f
-                  ? "bg-accent text-white"
-                  : "bg-surface border border-border text-muted hover:text-foreground"
-              }`}
-            >
-              {f}
-            </button>
-          ))}
+            {(["all", "active", "overdue", "returned"] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`pressable px-3 py-1.5 rounded-lg text-sm font-medium capitalize transition-colors ${
+                  filter === f
+                    ? "bg-accent text-white"
+                    : "bg-surface border border-border text-muted hover:text-foreground"
+                }`}
+              >
+                {f}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -137,70 +137,62 @@ export function CheckoutsList({
             <p className="text-sm text-muted">No checkouts found.</p>
           </div>
         ) : (
-          <div className="interactive-card border border-border rounded-xl overflow-hidden bg-surface overflow-x-auto">
-            <table className="w-full table-fixed text-sm">
-              <thead>
-                <tr className="border-b border-border bg-background text-left text-xs text-muted uppercase tracking-wide">
-                  <th className="px-3 py-2.5 font-medium w-[24%]">Item</th>
-                  <th className="px-3 py-2.5 font-medium w-[16%]">Assigned to</th>
-                  <th className="px-3 py-2.5 font-medium w-[15%]">Processed by</th>
-                  <th className="px-3 py-2.5 font-medium w-[12%]">Collected</th>
-                  <th className="px-3 py-2.5 font-medium w-[10%]">Due</th>
-                  <th className="px-3 py-2.5 font-medium w-[10%]">Returned</th>
-                  <th className="px-3 py-2.5 font-medium w-[10%]">Status</th>
-                  <th className="px-3 py-2.5 font-medium w-[12%]"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((checkout) => {
-                  const item = itemById.get(checkout.itemId);
-                  const status = getEffectiveStatus(checkout);
-                  return (
-                    <tr
-                      key={checkout.id}
-                      className="table-row border-b border-border last:border-0 cursor-pointer hover:bg-accent-soft/70 text-foreground"
-                      role="button"
-                      tabIndex={0}
-                      onClick={(event) => {
-                        if ((event.target as HTMLElement).closest("button")) return;
-                        setSelectedCheckout(checkout);
-                      }}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          setSelectedCheckout(checkout);
-                        }
-                      }}
-                    >
-                      <td className="px-3 py-2.5 font-medium whitespace-normal break-words">
-                        {item?.name ?? "Unknown item"}
-                        {checkout.quantity !== null && (
-                          <span className="text-muted font-normal"> ({checkout.quantity})</span>
-                        )}
-                      </td>
-                      <td className="px-3 py-2.5 text-foreground font-mono text-xs">
-                        {checkout.assignedToName}
-                      </td>
-                      <td className="px-3 py-2.5 text-foreground font-mono text-xs">
-                        {checkout.collectedBy}
-                      </td>
-                      <td className="px-3 py-2.5 text-foreground">
-                        {new Date(checkout.dateCollected).toLocaleDateString()}
-                      </td>
-                      <td className="px-3 py-2.5 text-foreground">
-                        {checkout.dueDate
-                          ? new Date(checkout.dueDate).toLocaleDateString()
-                          : "—"}
-                      </td>
-                      <td className="px-3 py-2.5 text-foreground">
-                        {checkout.dateReturned
-                          ? new Date(checkout.dateReturned).toLocaleDateString()
-                          : "—"}
-                      </td>
-                      <td className="px-3 py-2.5">
+          <div className="space-y-3 md:space-y-0">
+            {/* Mobile: stacked cards */}
+            <ul className="md:hidden space-y-3">
+              {filtered.map((checkout) => {
+                const item = itemById.get(checkout.itemId);
+                const status = getEffectiveStatus(checkout);
+                return (
+                  <li
+                    key={checkout.id}
+                    className="interactive-card rounded-xl border border-border bg-surface p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm text-foreground break-words">
+                          {item?.name ?? "Unknown item"}
+                          {checkout.quantity !== null && (
+                            <span className="text-muted font-normal"> ({checkout.quantity})</span>
+                          )}
+                        </p>
+                        <p className="text-xs text-muted mt-0.5 break-words">
+                          {checkout.assignedToName}
+                        </p>
+                      </div>
+                      <div className="shrink-0">
                         <StatusPill status={status} />
-                      </td>
-                      <td className="px-3 py-2.5 whitespace-nowrap" onClick={(event) => event.stopPropagation()}>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+                      <div className="min-w-0">
+                        <p className="text-muted">Collected</p>
+                        <p className="text-foreground">
+                          {new Date(checkout.dateCollected).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-muted">Due</p>
+                        <p className="text-foreground">
+                          {checkout.dueDate
+                            ? new Date(checkout.dueDate).toLocaleDateString()
+                            : "—"}
+                        </p>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-muted">Returned</p>
+                        <p className="text-foreground">
+                          {checkout.dateReturned
+                            ? new Date(checkout.dateReturned).toLocaleDateString()
+                            : "—"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-between gap-2 border-t border-border pt-3">
+                      <p className="text-xs text-muted truncate min-w-0">by {checkout.collectedBy}</p>
+                      <div className="shrink-0" onClick={(event) => event.stopPropagation()}>
                         {status === "returned" ? (
                           <button
                             onClick={() => handleUndoCheckout(checkout)}
@@ -217,12 +209,101 @@ export function CheckoutsList({
                             Check in
                           </button>
                         )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+
+            {/* Desktop: full table */}
+            <div className="hidden md:block interactive-card border border-border rounded-xl overflow-hidden bg-surface overflow-x-auto">
+              <table className="w-full table-fixed text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-background text-left text-xs text-muted uppercase tracking-wide">
+                    <th className="px-3 py-2.5 font-medium w-[24%]">Item</th>
+                    <th className="px-3 py-2.5 font-medium w-[16%]">Assigned to</th>
+                    <th className="px-3 py-2.5 font-medium w-[15%]">Processed by</th>
+                    <th className="px-3 py-2.5 font-medium w-[12%]">Collected</th>
+                    <th className="px-3 py-2.5 font-medium w-[10%]">Due</th>
+                    <th className="px-3 py-2.5 font-medium w-[10%]">Returned</th>
+                    <th className="px-3 py-2.5 font-medium w-[10%]">Status</th>
+                    <th className="px-3 py-2.5 font-medium w-[12%]"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((checkout) => {
+                    const item = itemById.get(checkout.itemId);
+                    const status = getEffectiveStatus(checkout);
+                    return (
+                      <tr
+                        key={checkout.id}
+                        className="table-row border-b border-border last:border-0 cursor-pointer hover:bg-accent-soft/70 text-foreground"
+                        role="button"
+                        tabIndex={0}
+                        onClick={(event) => {
+                          if ((event.target as HTMLElement).closest("button")) return;
+                          setSelectedCheckout(checkout);
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            setSelectedCheckout(checkout);
+                          }
+                        }}
+                      >
+                        <td className="px-3 py-2.5 font-medium whitespace-normal break-words">
+                          {item?.name ?? "Unknown item"}
+                          {checkout.quantity !== null && (
+                            <span className="text-muted font-normal"> ({checkout.quantity})</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2.5 text-foreground font-mono text-xs">
+                          {checkout.assignedToName}
+                        </td>
+                        <td className="px-3 py-2.5 text-foreground font-mono text-xs">
+                          {checkout.collectedBy}
+                        </td>
+                        <td className="px-3 py-2.5 text-foreground">
+                          {new Date(checkout.dateCollected).toLocaleDateString()}
+                        </td>
+                        <td className="px-3 py-2.5 text-foreground">
+                          {checkout.dueDate
+                            ? new Date(checkout.dueDate).toLocaleDateString()
+                            : "—"}
+                        </td>
+                        <td className="px-3 py-2.5 text-foreground">
+                          {checkout.dateReturned
+                            ? new Date(checkout.dateReturned).toLocaleDateString()
+                            : "—"}
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <StatusPill status={status} />
+                        </td>
+                        <td className="px-3 py-2.5 whitespace-nowrap" onClick={(event) => event.stopPropagation()}>
+                          {status === "returned" ? (
+                            <button
+                              onClick={() => handleUndoCheckout(checkout)}
+                              disabled={undoingCheckoutId === checkout.id}
+                              className="pressable px-2.5 py-1 rounded-lg border border-border text-xs font-medium hover:bg-background disabled:opacity-50"
+                            >
+                              {undoingCheckoutId === checkout.id ? "Undoing…" : "Undo"}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setCheckingIn(checkout)}
+                              className="pressable px-2.5 py-1 rounded-lg border border-border text-xs font-medium hover:bg-background"
+                            >
+                              Check in
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>

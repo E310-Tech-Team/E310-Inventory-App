@@ -6,12 +6,14 @@ import {
   LayoutDashboard,
   Boxes,
   ArrowLeftRight,
+  Home,
   UserRoundCog,
   FileSpreadsheet,
 } from "lucide-react";
 import { Admin } from "@/types";
 
 const NAV_ITEMS = [
+  { href: "/", label: "Home", icon: Home },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/categories", label: "Categories", icon: Boxes },
   { href: "/checkouts", label: "Checkouts", icon: ArrowLeftRight },
@@ -27,20 +29,21 @@ export function MobileNav({ admin }: { admin: Admin }) {
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-10">
-      <nav className="border-t border-border bg-surface flex items-stretch overflow-x-auto">
+      <nav className="border-t border-border bg-surface flex items-stretch">
         {navItems.map((item) => {
-          const isActive = pathname.startsWith(item.href);
+          const isActive =
+            item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
           const Icon = item.icon;
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`pressable flex-1 min-w-[72px] flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium ${
+              className={`pressable flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-semibold leading-none ${
                 isActive ? "text-accent" : "text-muted"
               }`}
             >
-              <Icon className="w-5 h-5" strokeWidth={2} />
-              {item.label}
+              <Icon className="w-[18px] h-[18px]" strokeWidth={2} />
+              <span className="truncate max-w-full px-0.5">{item.label}</span>
             </Link>
           );
         })}
@@ -48,3 +51,4 @@ export function MobileNav({ admin }: { admin: Admin }) {
     </div>
   );
 }
+

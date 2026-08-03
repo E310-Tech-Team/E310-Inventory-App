@@ -33,7 +33,7 @@ export function LoginForm({ setupError }: { setupError?: string | null }) {
     if (data?.mustChangePassword) {
       router.push("/change-password");
     } else {
-      router.push("/dashboard");
+      router.push("/");
     }
     router.refresh();
   }
