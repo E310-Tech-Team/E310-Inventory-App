@@ -6,7 +6,10 @@ export default async function LoginPage() {
   const user = await getSession();
 
   if (user) {
-    redirect(user.status === "pending" ? "/change-password" : "/dashboard");
+    // Super-admins are trusted bootstrap users and never need the forced
+    // password-change flow. Regular pending users are sent to change-password.
+    const isSuperAdmin = user.role === "super-admin";
+    redirect(!isSuperAdmin && user.status === "pending" ? "/change-password" : "/dashboard");
   }
 
   return <LoginForm />;

@@ -9,7 +9,9 @@ export default async function ChangePasswordPage() {
     redirect("/login");
   }
 
-  if (user.status === "active") {
+  // Super-admins are trusted bootstrap users and never need the forced
+  // password-change flow. Send them straight to the dashboard.
+  if (user.role === "super-admin" || user.status === "active") {
     redirect("/dashboard");
   }
 

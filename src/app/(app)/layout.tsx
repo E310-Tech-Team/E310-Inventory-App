@@ -13,7 +13,7 @@ export default async function AppLayout({
     redirect("/login");
   }
 
-  if (admin.status === "pending") {
+  if (admin.role !== "super-admin" && admin.status === "pending") {
     redirect("/change-password");
   }
 
