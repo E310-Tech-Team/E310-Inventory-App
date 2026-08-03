@@ -17,4 +17,12 @@
 - [x] 6. LoginForm + ChangePasswordForm: redirect to "/" after sign in / password change.
 - [x] 7. Build/verify (npm run lint / tsc).
 - [x] 8. Checkouts: responsive layout so mobile cards fit the screen (mobile cards, desktop table).
+- [x] 8a. Checkouts: cards are clickable (open details modal).
+- [x] 9. AccessList: stacked clickable cards on mobile.
+- [x] 10. ItemsList: stacked clickable cards on mobile.
+- [x] 11. CategoriesList: stacked clickable cards on mobile.
+- [x] 12. CategoryDetailView: stacked clickable cards on mobile.
+- [x] 13. DashboardView: stacked clickable cards on mobile for all tables.
+- [x] 14. Build/verify (tsc + eslint).
+
 

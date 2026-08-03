@@ -18,7 +18,7 @@ const HOME_ACTIONS = [
   { href: "/checkouts", label: "Checkouts", icon: ArrowLeftRight },
 ];
 
-const REVEAL_DELAY_MS = 2500;
+const REVEAL_DELAY_MS = 1500;
 
 export function HomePage({ admin }: { admin: Admin }) {
   const [revealed, setRevealed] = useState(false);

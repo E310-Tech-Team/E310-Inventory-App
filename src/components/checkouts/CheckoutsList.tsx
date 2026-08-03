@@ -146,7 +146,19 @@ export function CheckoutsList({
                 return (
                   <li
                     key={checkout.id}
-                    className="interactive-card rounded-xl border border-border bg-surface p-4"
+                    className="interactive-card cursor-pointer rounded-xl border border-border bg-surface p-4"
+                    role="button"
+                    tabIndex={0}
+                    onClick={(event) => {
+                      if ((event.target as HTMLElement).closest("button")) return;
+                      setSelectedCheckout(checkout);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setSelectedCheckout(checkout);
+                      }
+                    }}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">

@@ -64,26 +64,16 @@ export function CategoriesList({
             <p className="text-sm text-muted">No categories yet. Create one to get started.</p>
           </div>
         ) : (
-          <div className="interactive-card border border-border rounded-xl overflow-hidden bg-surface overflow-x-auto">
-            <table className="w-full min-w-[760px] text-sm">
-              <thead>
-                <tr className="border-b border-border bg-background text-left text-xs text-muted uppercase tracking-wide">
-                  <th className="px-4 py-3 font-medium">Name</th>
-                  <th className="px-4 py-3 font-medium">Items</th>
-                  <th className="px-4 py-3 font-medium">Tracking</th>
-                  <th className="px-4 py-3 font-medium">Return</th>
-                  <th className="px-4 py-3 font-medium">Created by</th>
-                  <th className="px-4 py-3 font-medium w-20"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {categories.map((category) => {
-                  const itemCount = items.filter((item) => item.categoryId === category.id).length;
+          <div className="space-y-3 md:space-y-0">
+            {/* Mobile: stacked cards */}
+            <ul className="md:hidden space-y-3">
+              {categories.map((category) => {
+                const itemCount = items.filter((item) => item.categoryId === category.id).length;
 
-                  return (
-                  <tr
+                return (
+                  <li
                     key={category.id}
-                    className="table-row cursor-pointer border-b border-border last:border-0 hover:bg-accent-soft/70 text-foreground"
+                    className="interactive-card cursor-pointer rounded-xl border border-border bg-surface p-4"
                     role="button"
                     tabIndex={0}
                     onClick={() => setSelectedCategory(category)}
@@ -94,49 +84,140 @@ export function CategoriesList({
                       }
                     }}
                   >
-                    <td className="px-4 py-3 font-medium">{category.name}</td>
-                    <td className="px-4 py-3 text-muted font-mono text-xs">
-                      {itemCount}
-                    </td>
-                    <td className="px-4 py-3 text-muted capitalize">
-                      {category.trackingType}
-                    </td>
-                    <td className="px-4 py-3 text-muted capitalize">
-                      {category.returnType.replace("-", " ")}
-                    </td>
-                    <td className="px-4 py-3 text-muted font-mono text-xs">
-                      {category.createdBy}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1 justify-end">
-                        <button
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setEditing(category);
-                          }}
-                          className="pressable p-1.5 rounded hover:bg-background text-muted hover:text-foreground"
-                          aria-label="Edit"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setDeleteError(null);
-                            setDeleting(category);
-                          }}
-                          className="pressable p-1.5 rounded hover:bg-background text-muted hover:text-status-overdue"
-                          aria-label="Delete"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm text-foreground break-words">
+                          {category.name}
+                        </p>
+                        <p className="text-xs text-muted mt-0.5 truncate">
+                          {category.createdBy}
+                        </p>
                       </div>
-                    </td>
+                      <div className="shrink-0 text-right">
+                        <p className="text-lg font-semibold font-mono text-foreground leading-none">
+                          {itemCount}
+                        </p>
+                        <p className="text-[10px] text-muted uppercase tracking-wide mt-1">
+                          items
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                      <div className="min-w-0">
+                        <p className="text-muted">Tracking</p>
+                        <p className="text-foreground capitalize">{category.trackingType}</p>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-muted">Return</p>
+                        <p className="text-foreground capitalize">
+                          {category.returnType.replace("-", " ")}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div
+                      className="mt-3 flex items-center justify-end gap-1 border-t border-border pt-3"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <button
+                        onClick={() => setEditing(category)}
+                        className="pressable p-2 rounded-lg hover:bg-background text-muted hover:text-foreground"
+                        aria-label="Edit"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDeleteError(null);
+                          setDeleting(category);
+                        }}
+                        className="pressable p-2 rounded-lg hover:bg-background text-muted hover:text-status-overdue"
+                        aria-label="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+
+            {/* Desktop: full table */}
+            <div className="hidden md:block interactive-card border border-border rounded-xl overflow-hidden bg-surface overflow-x-auto">
+              <table className="w-full min-w-[760px] text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-background text-left text-xs text-muted uppercase tracking-wide">
+                    <th className="px-4 py-3 font-medium">Name</th>
+                    <th className="px-4 py-3 font-medium">Items</th>
+                    <th className="px-4 py-3 font-medium">Tracking</th>
+                    <th className="px-4 py-3 font-medium">Return</th>
+                    <th className="px-4 py-3 font-medium">Created by</th>
+                    <th className="px-4 py-3 font-medium w-20"></th>
                   </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {categories.map((category) => {
+                    const itemCount = items.filter((item) => item.categoryId === category.id).length;
+
+                    return (
+                    <tr
+                      key={category.id}
+                      className="table-row cursor-pointer border-b border-border last:border-0 hover:bg-accent-soft/70 text-foreground"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setSelectedCategory(category)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          setSelectedCategory(category);
+                        }
+                      }}
+                    >
+                      <td className="px-4 py-3 font-medium">{category.name}</td>
+                      <td className="px-4 py-3 text-muted font-mono text-xs">
+                        {itemCount}
+                      </td>
+                      <td className="px-4 py-3 text-muted capitalize">
+                        {category.trackingType}
+                      </td>
+                      <td className="px-4 py-3 text-muted capitalize">
+                        {category.returnType.replace("-", " ")}
+                      </td>
+                      <td className="px-4 py-3 text-muted font-mono text-xs">
+                        {category.createdBy}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1 justify-end">
+                          <button
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setEditing(category);
+                            }}
+                            className="pressable p-1.5 rounded hover:bg-background text-muted hover:text-foreground"
+                            aria-label="Edit"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setDeleteError(null);
+                              setDeleting(category);
+                            }}
+                            className="pressable p-1.5 rounded hover:bg-background text-muted hover:text-status-overdue"
+                            aria-label="Delete"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>

@@ -121,130 +121,245 @@ export function CategoryDetailView({
             </button>
           </div>
         ) : (
-          <div className="interactive-card border border-border rounded-xl overflow-hidden bg-surface overflow-x-auto">
-            <table className="w-full min-w-[1120px] text-sm">
-              <thead>
-                <tr className="border-b border-border bg-background text-left text-xs text-muted uppercase tracking-wide">
-                  <th className="px-4 py-3 font-medium">Item</th>
-                  <th className="px-4 py-3 font-medium">Identifier / Qty</th>
-                  <th className="px-4 py-3 font-medium">Condition</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Assigned to</th>
-                  <th className="px-4 py-3 font-medium">Contact</th>
-                  <th className="px-4 py-3 font-medium">Assigned by</th>
-                  <th className="px-4 py-3 font-medium w-36"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => {
-                  const activeCheckouts = activeCheckoutsByItemId.get(item.id) ?? [];
-                  const primaryAssignment = activeCheckouts[0];
-                  const canAssign =
-                    item.status !== "checked-out" && (item.quantity === null || item.quantity > 0);
+          <div className="space-y-3 md:space-y-0">
+            {/* Mobile: stacked cards */}
+            <ul className="md:hidden space-y-3">
+              {items.map((item) => {
+                const activeCheckouts = activeCheckoutsByItemId.get(item.id) ?? [];
+                const primaryAssignment = activeCheckouts[0];
+                const canAssign =
+                  item.status !== "checked-out" && (item.quantity === null || item.quantity > 0);
 
-                  return (
-                    <tr
-                      key={item.id}
-                      className="table-row border-b border-border last:border-0 cursor-pointer hover:bg-accent-soft/70 text-foreground"
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => setSelectedItem(item)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          setSelectedItem(item);
-                        }
-                      }}
-                    >
-                      <td className="px-4 py-3">
-                        <div className="font-medium">{item.name}</div>
+                return (
+                  <li
+                    key={item.id}
+                    className="interactive-card cursor-pointer rounded-xl border border-border bg-surface p-4"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setSelectedItem(item)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setSelectedItem(item);
+                      }
+                    }}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm text-foreground break-words">
+                          {item.name}
+                        </p>
                         {item.notes && (
-                          <div className="text-xs text-muted mt-0.5">{item.notes}</div>
+                          <p className="text-xs text-muted mt-0.5 break-words">{item.notes}</p>
                         )}
-                      </td>
-                      <td className="px-4 py-3 text-muted font-mono text-xs">
-                        {item.quantity !== null
-                          ? `${item.quantity} units`
-                          : getItemIdentifierLabel(item)}
-                      </td>
-                      <td className="px-4 py-3 text-muted capitalize">{item.condition}</td>
-                      <td className="px-4 py-3">
+                      </div>
+                      <div className="shrink-0">
                         <StatusPill status={item.status} />
-                      </td>
-                      <td className="px-4 py-3">
-                        {activeCheckouts.length === 0 ? (
-                          <span className="text-muted">-</span>
-                        ) : (
-                          <div>
-                            <div>{primaryAssignment.assignedToName}</div>
-                            {activeCheckouts.length > 1 && (
-                              <div className="text-xs text-muted">
-                                +{activeCheckouts.length - 1} more active
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-muted">
-                        {primaryAssignment ? (
-                          <div>
-                            <div>{primaryAssignment.assignedToPhone || "-"}</div>
-                            <div className="font-mono text-xs">
-                              {primaryAssignment.assignedToEmail || "-"}
+                      </div>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                      <div className="min-w-0">
+                        <p className="text-muted">Identifier / Qty</p>
+                        <p className="text-foreground font-mono break-words">
+                          {item.quantity !== null
+                            ? `${item.quantity} units`
+                            : getItemIdentifierLabel(item)}
+                        </p>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-muted">Condition</p>
+                        <p className="text-foreground capitalize">{item.condition}</p>
+                      </div>
+                    </div>
+
+                    {primaryAssignment && (
+                      <div className="mt-3 rounded-lg bg-background border border-border p-3 text-xs">
+                        <p className="text-muted">Assigned to</p>
+                        <p className="text-foreground font-medium break-words">
+                          {primaryAssignment.assignedToName}
+                          {activeCheckouts.length > 1 && (
+                            <span className="text-muted font-normal">
+                              {" "}
+                              +{activeCheckouts.length - 1} more
+                            </span>
+                          )}
+                        </p>
+                        <p className="text-muted mt-1">Contact</p>
+                        <p className="text-foreground">{primaryAssignment.assignedToPhone || "-"}</p>
+                        <p className="text-foreground font-mono break-words">
+                          {primaryAssignment.assignedToEmail || "-"}
+                        </p>
+                        <p className="text-muted mt-1">Assigned by</p>
+                        <p className="text-foreground font-mono">
+                          {primaryAssignment.collectedBy ?? "-"}
+                        </p>
+                      </div>
+                    )}
+
+                    <div
+                      className="mt-3 flex items-center justify-end gap-1.5 border-t border-border pt-3"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      {canAssign && (
+                        <button
+                          onClick={() => setAssigning(item)}
+                          className="pressable inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-border text-xs font-medium hover:bg-background"
+                        >
+                          <ClipboardCheck className="w-3.5 h-3.5" />
+                          Assign
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setEditing(item)}
+                        className="pressable p-2 rounded-lg hover:bg-background text-muted hover:text-foreground"
+                        aria-label={`Edit ${item.name}`}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDeleteError(null);
+                          setDeleting(item);
+                        }}
+                        className="pressable p-2 rounded-lg hover:bg-background text-muted hover:text-status-overdue"
+                        aria-label={`Delete ${item.name}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+
+            {/* Desktop: full table */}
+            <div className="hidden md:block interactive-card border border-border rounded-xl overflow-hidden bg-surface overflow-x-auto">
+              <table className="w-full min-w-[1120px] text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-background text-left text-xs text-muted uppercase tracking-wide">
+                    <th className="px-4 py-3 font-medium">Item</th>
+                    <th className="px-4 py-3 font-medium">Identifier / Qty</th>
+                    <th className="px-4 py-3 font-medium">Condition</th>
+                    <th className="px-4 py-3 font-medium">Status</th>
+                    <th className="px-4 py-3 font-medium">Assigned to</th>
+                    <th className="px-4 py-3 font-medium">Contact</th>
+                    <th className="px-4 py-3 font-medium">Assigned by</th>
+                    <th className="px-4 py-3 font-medium w-36"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item) => {
+                    const activeCheckouts = activeCheckoutsByItemId.get(item.id) ?? [];
+                    const primaryAssignment = activeCheckouts[0];
+                    const canAssign =
+                      item.status !== "checked-out" && (item.quantity === null || item.quantity > 0);
+
+                    return (
+                      <tr
+                        key={item.id}
+                        className="table-row border-b border-border last:border-0 cursor-pointer hover:bg-accent-soft/70 text-foreground"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setSelectedItem(item)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            setSelectedItem(item);
+                          }
+                        }}
+                      >
+                        <td className="px-4 py-3">
+                          <div className="font-medium">{item.name}</div>
+                          {item.notes && (
+                            <div className="text-xs text-muted mt-0.5">{item.notes}</div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-muted font-mono text-xs">
+                          {item.quantity !== null
+                            ? `${item.quantity} units`
+                            : getItemIdentifierLabel(item)}
+                        </td>
+                        <td className="px-4 py-3 text-muted capitalize">{item.condition}</td>
+                        <td className="px-4 py-3">
+                          <StatusPill status={item.status} />
+                        </td>
+                        <td className="px-4 py-3">
+                          {activeCheckouts.length === 0 ? (
+                            <span className="text-muted">-</span>
+                          ) : (
+                            <div>
+                              <div>{primaryAssignment.assignedToName}</div>
+                              {activeCheckouts.length > 1 && (
+                                <div className="text-xs text-muted">
+                                  +{activeCheckouts.length - 1} more active
+                                </div>
+                              )}
                             </div>
-                          </div>
-                        ) : (
-                          "-"
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-muted font-mono text-xs">
-                        {primaryAssignment?.collectedBy ?? "-"}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1 justify-end">
-                          {canAssign && (
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-muted">
+                          {primaryAssignment ? (
+                            <div>
+                              <div>{primaryAssignment.assignedToPhone || "-"}</div>
+                              <div className="font-mono text-xs">
+                                {primaryAssignment.assignedToEmail || "-"}
+                              </div>
+                            </div>
+                          ) : (
+                            "-"
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-muted font-mono text-xs">
+                          {primaryAssignment?.collectedBy ?? "-"}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1 justify-end">
+                            {canAssign && (
+                              <button
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  setAssigning(item);
+                                }}
+                                className="pressable inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-border text-xs font-medium hover:bg-background"
+                              >
+                                <ClipboardCheck className="w-3.5 h-3.5" />
+                                Assign
+                              </button>
+                            )}
                             <button
                               onClick={(event) => {
                                 event.stopPropagation();
-                                setAssigning(item);
+                                setEditing(item);
                               }}
-                              className="pressable inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-border text-xs font-medium hover:bg-background"
+                              className="pressable p-1.5 rounded hover:bg-background text-muted hover:text-foreground"
+                              aria-label={`Edit ${item.name}`}
                             >
-                              <ClipboardCheck className="w-3.5 h-3.5" />
-                              Assign
+                              <Pencil className="w-3.5 h-3.5" />
                             </button>
-                          )}
-                          <button
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setEditing(item);
-                            }}
-                            className="pressable p-1.5 rounded hover:bg-background text-muted hover:text-foreground"
-                            aria-label={`Edit ${item.name}`}
-                          >
-                            <Pencil className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setDeleteError(null);
-                              setDeleting(item);
-                            }}
-                            className="pressable p-1.5 rounded hover:bg-background text-muted hover:text-status-overdue"
-                            aria-label={`Delete ${item.name}`}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                            <button
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setDeleteError(null);
+                                setDeleting(item);
+                              }}
+                              className="pressable p-1.5 rounded hover:bg-background text-muted hover:text-status-overdue"
+                              aria-label={`Delete ${item.name}`}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
+
 
       {selectedItem && (
         <ItemDetailsModal

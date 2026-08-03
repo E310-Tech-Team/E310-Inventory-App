@@ -99,7 +99,48 @@ export function DashboardView({
               {checkedOut.length === 0 ? (
                 <EmptyRow text="Nothing assigned right now." />
               ) : (
-                <Table headers={["Item", "Assigned to", "Since", "Due", "Status"]}>
+                <Table
+                  headers={["Item", "Assigned to", "Since", "Due", "Status"]}
+                  mobileCards={
+                    <ul className="space-y-3">
+                      {checkedOut.map(({ checkout, item }) => (
+                        <li
+                          key={checkout.id}
+                          className="interactive-card rounded-xl border border-border bg-surface p-4"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="font-semibold text-sm text-foreground break-words">
+                                {item?.name ?? "Unknown"}
+                              </p>
+                              <p className="text-xs text-muted mt-0.5 break-words">
+                                {checkout.assignedToName || checkout.collectedBy}
+                              </p>
+                            </div>
+                            <div className="shrink-0">
+                              <StatusPill status={checkout.dueDate && new Date(checkout.dueDate) < new Date() ? "overdue" : "active"} />
+                            </div>
+                          </div>
+                          <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                            <div className="min-w-0">
+                              <p className="text-muted">Since</p>
+                              <p className="text-foreground">{new Date(checkout.dateCollected).toLocaleDateString()}</p>
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-muted">Due</p>
+                              <p className="text-foreground">{checkout.dueDate ? new Date(checkout.dueDate).toLocaleDateString() : "—"}</p>
+                            </div>
+                          </div>
+                          {checkout.assignedToEmail && (
+                            <p className="mt-2 text-xs text-muted font-mono break-words">
+                              {checkout.assignedToEmail}
+                            </p>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  }
+                >
                   {checkedOut.map(({ checkout, item }) => (
                     <tr key={checkout.id} className="table-row border-b border-border last:border-0">
                       <Td>{item?.name ?? "Unknown"}</Td>
@@ -124,7 +165,62 @@ export function DashboardView({
               {overdue.length === 0 ? (
                 <EmptyRow text="Nothing overdue. Good news." />
               ) : (
-                <Table headers={["Item", "Assigned to", "Due date", "Days overdue"]}>
+                <Table
+                  headers={["Item", "Assigned to", "Due date", "Days overdue"]}
+                  mobileCards={
+                    <ul className="space-y-3">
+                      {overdue.map(({ checkout, item }) => {
+                        const daysOverdue = Math.floor(
+                          (now - new Date(checkout.dueDate!).getTime()) / 86400000
+                        );
+                        return (
+                          <li
+                            key={checkout.id}
+                            className="interactive-card cursor-pointer rounded-xl border border-border bg-surface p-4"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setSelectedCheckout(checkout)}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault();
+                                setSelectedCheckout(checkout);
+                              }
+                            }}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="font-semibold text-sm text-foreground break-words">
+                                  {item?.name ?? "Unknown"}
+                                </p>
+                                <p className="text-xs text-muted mt-0.5 break-words">
+                                  {checkout.assignedToName || checkout.collectedBy}
+                                </p>
+                              </div>
+                              <div className="shrink-0 text-status-overdue font-semibold text-sm">
+                                {daysOverdue}d
+                              </div>
+                            </div>
+                            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                              <div className="min-w-0">
+                                <p className="text-muted">Due date</p>
+                                <p className="text-foreground">{new Date(checkout.dueDate!).toLocaleDateString()}</p>
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-muted">Overdue</p>
+                                <p className="text-status-overdue font-medium">{daysOverdue}d</p>
+                              </div>
+                            </div>
+                            {checkout.assignedToEmail && (
+                              <p className="mt-2 text-xs text-muted font-mono break-words">
+                                {checkout.assignedToEmail}
+                              </p>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  }
+                >
                   {overdue.map(({ checkout, item }) => {
                     const daysOverdue = Math.floor(
                       (now - new Date(checkout.dueDate!).getTime()) / 86400000
@@ -163,7 +259,53 @@ export function DashboardView({
               {lowStock.length === 0 ? (
                 <EmptyRow text="All supplies are above threshold." />
               ) : (
-                <Table headers={["Item", "Category", "Remaining", "Threshold"]}>
+                <Table
+                  headers={["Item", "Category", "Remaining", "Threshold"]}
+                  mobileCards={
+                    <ul className="space-y-3">
+                      {lowStock.map(({ item, category }) => (
+                        <li
+                          key={item.id}
+                          className="interactive-card cursor-pointer rounded-xl border border-border bg-surface p-4"
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => setSelectedItem(item)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              setSelectedItem(item);
+                            }
+                          }}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="font-semibold text-sm text-foreground break-words">
+                                {item.name}
+                              </p>
+                              <p className="text-xs text-muted mt-0.5 truncate">
+                                {category?.name ?? "—"}
+                              </p>
+                            </div>
+                            <div className="shrink-0 text-right">
+                              <p className="text-lg font-semibold font-mono text-status-low-stock leading-none">
+                                {item.quantity}
+                              </p>
+                              <p className="text-[10px] text-muted uppercase tracking-wide mt-1">
+                                left
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-3 rounded-lg bg-background border border-border p-3 text-xs">
+                            <p className="text-muted">Threshold</p>
+                            <p className="text-foreground font-mono">
+                              {category?.lowStockThreshold ?? "—"}
+                            </p>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  }
+                >
                   {lowStock.map(({ item, category }) => (
                     <tr
                       key={item.id}
@@ -193,7 +335,62 @@ export function DashboardView({
         )}
 
         {tab === "By category" && (
-          <Table headers={["Category", "Total items", "Assigned", "Available", "Low stock"]}>
+          <Table
+            headers={["Category", "Total items", "Assigned", "Available", "Low stock"]}
+            mobileCards={
+              <ul className="space-y-3">
+                {breakdown.map(({ category, totalItems, checkedOut, available, lowStock }) => (
+                  <li
+                    key={category.id}
+                    className="interactive-card cursor-pointer rounded-xl border border-border bg-surface p-4"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setSelectedCategory(category)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setSelectedCategory(category);
+                      }
+                    }}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm text-foreground break-words">
+                          {category.name}
+                        </p>
+                        <p className="text-xs text-muted mt-0.5">
+                          {totalItems} total {totalItems === 1 ? "item" : "items"}
+                        </p>
+                      </div>
+                      <div className="shrink-0">
+                        {lowStock > 0 ? (
+                          <span className="inline-flex items-center rounded-full bg-status-low-stock-bg px-2.5 py-1 text-xs font-medium text-status-low-stock">
+                            {lowStock} low
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+                    <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                      <div className="rounded-lg bg-background border border-border p-2">
+                        <p className="text-sm font-semibold font-mono text-foreground">{checkedOut}</p>
+                        <p className="text-[10px] text-muted uppercase tracking-wide mt-0.5">Assigned</p>
+                      </div>
+                      <div className="rounded-lg bg-background border border-border p-2">
+                        <p className="text-sm font-semibold font-mono text-foreground">{available}</p>
+                        <p className="text-[10px] text-muted uppercase tracking-wide mt-0.5">Available</p>
+                      </div>
+                      <div className="rounded-lg bg-background border border-border p-2">
+                        <p className={`text-sm font-semibold font-mono ${lowStock > 0 ? "text-status-low-stock" : "text-muted"}`}>
+                          {lowStock}
+                        </p>
+                        <p className="text-[10px] text-muted uppercase tracking-wide mt-0.5">Low stock</p>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            }
+          >
             {breakdown.map(({ category, totalItems, checkedOut, available, lowStock }) => (
               <tr
                 key={category.id}
@@ -267,7 +464,56 @@ export function DashboardView({
                 {personHistory.length === 0 ? (
                   <EmptyRow text="No checkout history for this person." />
                 ) : (
-                  <Table headers={["Item", "Assigned", "Returned", "Processed by", "Condition", "Status"]}>
+                  <Table
+                    headers={["Item", "Assigned", "Returned", "Processed by", "Condition", "Status"]}
+                    mobileCards={
+                      <ul className="space-y-3">
+                        {personHistory.map((c) => (
+                          <li
+                            key={c.id}
+                            className="interactive-card cursor-pointer rounded-xl border border-border bg-surface p-4"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setSelectedCheckout({ ...c, itemId: c.itemId } as Checkout)}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault();
+                                setSelectedCheckout({ ...c, itemId: c.itemId } as Checkout);
+                              }
+                            }}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="font-semibold text-sm text-foreground break-words">
+                                  {itemById.get(c.itemId)?.name ?? "Unknown"}
+                                </p>
+                                <p className="text-xs text-muted mt-0.5 truncate">
+                                  Processed by {c.collectedBy}
+                                </p>
+                              </div>
+                              <div className="shrink-0">
+                                <StatusPill status={c.status === "returned" ? "returned" : (c.dueDate && new Date(c.dueDate) < new Date() ? "overdue" : "active")} />
+                              </div>
+                            </div>
+                            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                              <div className="min-w-0">
+                                <p className="text-muted">Assigned</p>
+                                <p className="text-foreground">{new Date(c.dateCollected).toLocaleDateString()}</p>
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-muted">Returned</p>
+                                <p className="text-foreground">{c.dateReturned ? new Date(c.dateReturned).toLocaleDateString() : "—"}</p>
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-muted">Condition</p>
+                                <p className="text-foreground capitalize">{c.conditionOnReturn ?? c.conditionOnCollection}</p>
+                              </div>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    }
+                  >
                     {personHistory.map((c) => (
                       <tr
                         key={c.id}
@@ -308,10 +554,59 @@ export function DashboardView({
                     </option>
                   ))}
                 </select>
-                {itemHistory.length === 0 ? (
+{itemHistory.length === 0 ? (
                   <EmptyRow text="No checkout history for this item." />
                 ) : (
-                  <Table headers={["Assigned to", "Assigned", "Returned", "Processed by", "Condition", "Status"]}>
+                  <Table
+                    headers={["Assigned to", "Assigned", "Returned", "Processed by", "Condition", "Status"]}
+                    mobileCards={
+                      <ul className="space-y-3">
+                        {itemHistory.map((c) => (
+                          <li
+                            key={c.id}
+                            className="interactive-card cursor-pointer rounded-xl border border-border bg-surface p-4"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setSelectedCheckout(c)}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault();
+                                setSelectedCheckout(c);
+                              }
+                            }}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="font-semibold text-sm text-foreground break-words">
+                                  {c.assignedToName || c.collectedBy}
+                                </p>
+                                <p className="text-xs text-muted mt-0.5 truncate">
+                                  Processed by {c.collectedBy}
+                                </p>
+                              </div>
+                              <div className="shrink-0">
+                                <StatusPill status={c.status === "returned" ? "returned" : (c.dueDate && new Date(c.dueDate) < new Date() ? "overdue" : "active")} />
+                              </div>
+                            </div>
+                            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                              <div className="min-w-0">
+                                <p className="text-muted">Assigned</p>
+                                <p className="text-foreground">{new Date(c.dateCollected).toLocaleDateString()}</p>
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-muted">Returned</p>
+                                <p className="text-foreground">{c.dateReturned ? new Date(c.dateReturned).toLocaleDateString() : "—"}</p>
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-muted">Condition</p>
+                                <p className="text-foreground capitalize">{c.conditionOnReturn ?? c.conditionOnCollection}</p>
+                              </div>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    }
+                  >
                     {itemHistory.map((c) => (
                       <tr
                         key={c.id}
@@ -388,21 +683,32 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Table({ headers, children }: { headers: string[]; children: React.ReactNode }) {
+function Table({
+  headers,
+  children,
+  mobileCards,
+}: {
+  headers: string[];
+  children: React.ReactNode;
+  mobileCards?: React.ReactNode;
+}) {
   return (
-    <div className="interactive-card border border-border rounded-xl overflow-hidden bg-surface overflow-x-auto">
-      <table className="w-full min-w-[760px] text-sm">
-        <thead>
-          <tr className="border-b border-border bg-background text-left text-xs text-muted uppercase tracking-wide">
-            {headers.map((h) => (
-              <th key={h} className="px-4 py-3 font-medium whitespace-nowrap">
-                {h}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>{children}</tbody>
-      </table>
+    <div className="space-y-3 md:space-y-0">
+      {mobileCards && <div className="md:hidden space-y-3">{mobileCards}</div>}
+      <div className="hidden md:block interactive-card border border-border rounded-xl overflow-hidden bg-surface overflow-x-auto">
+        <table className="w-full min-w-[760px] text-sm">
+          <thead>
+            <tr className="border-b border-border bg-background text-left text-xs text-muted uppercase tracking-wide">
+              {headers.map((h) => (
+                <th key={h} className="px-4 py-3 font-medium whitespace-nowrap">
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>{children}</tbody>
+        </table>
+      </div>
     </div>
   );
 }

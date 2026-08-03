@@ -67,7 +67,85 @@ export function AccessList({
       />
 
       <div className="px-4 md:px-8 pb-8 animate-enter">
-        <div className="interactive-card border border-border rounded-xl overflow-hidden bg-surface overflow-x-auto">
+        {/* Mobile: stacked cards */}
+        <ul className="md:hidden space-y-3">
+          {sortedUsers.map((user) => {
+            const isOtherSuperAdmin = user.role === "super-admin" && user.id !== currentUser.id;
+            return (
+              <li
+                key={user.id}
+                className="interactive-card cursor-pointer rounded-xl border border-border bg-surface p-4"
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                  if (!isOtherSuperAdmin) setSelectedUser(user);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    if (!isOtherSuperAdmin) setSelectedUser(user);
+                  }
+                }}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm text-foreground break-words">
+                      {user.name}
+                      {user.id === currentUser.id && (
+                        <span className="ml-2 text-xs text-muted font-normal">(you)</span>
+                      )}
+                    </p>
+                    <p className="text-xs text-muted mt-0.5 break-words font-mono">{user.email}</p>
+                  </div>
+                  <div className="shrink-0">
+                    <StatusPill status={user.status} />
+                  </div>
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                  <div className="min-w-0">
+                    <p className="text-muted">Role</p>
+                    <p className="text-foreground capitalize">{user.role.replace("-", " ")}</p>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-muted">Invited by</p>
+                    <p className="text-foreground truncate">{user.invitedBy ?? "-"}</p>
+                  </div>
+                </div>
+
+                <div
+                  className="mt-3 flex items-center justify-end gap-1 border-t border-border pt-3"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <button
+                    onClick={() => {
+                      if (!isOtherSuperAdmin) setEditing(user);
+                    }}
+                    className="pressable p-2 rounded-lg hover:bg-background text-muted hover:text-foreground"
+                    aria-label={`Edit ${user.name}`}
+                    disabled={isOtherSuperAdmin}
+                    title={
+                      isOtherSuperAdmin ? "Cannot edit another super-admin" : undefined
+                    }
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setDeleting(user)}
+                    className="pressable p-2 rounded-lg hover:bg-background text-muted hover:text-status-overdue disabled:opacity-40 disabled:hover:text-muted"
+                    aria-label={`Remove ${user.name}`}
+                    disabled={user.id === currentUser.id}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+
+        {/* Desktop: full table */}
+        <div className="hidden md:block interactive-card border border-border rounded-xl overflow-hidden bg-surface overflow-x-auto">
           <table className="w-full min-w-[820px] text-sm">
             <thead>
               <tr className="border-b border-border bg-background text-left text-xs text-muted uppercase tracking-wide">

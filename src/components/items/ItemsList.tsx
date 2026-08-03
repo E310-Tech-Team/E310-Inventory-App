@@ -122,25 +122,15 @@ export function ItemsList({
             <p className="text-sm text-muted">No items found.</p>
           </div>
         ) : (
-          <div className="interactive-card border border-border rounded-xl overflow-hidden bg-surface overflow-x-auto">
-            <table className="w-full min-w-[820px] text-sm">
-              <thead>
-                <tr className="border-b border-border bg-background text-left text-xs text-muted uppercase tracking-wide">
-                  <th className="px-4 py-3 font-medium">Name</th>
-                  <th className="px-4 py-3 font-medium">Category</th>
-                  <th className="px-4 py-3 font-medium">Identifier / Qty</th>
-                  <th className="px-4 py-3 font-medium">Condition</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium w-20"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredItems.map((item) => {
-                  const category = categoryById.get(item.categoryId);
-                  return (
-                  <tr
+          <div className="space-y-3 md:space-y-0">
+            {/* Mobile: stacked cards */}
+            <ul className="md:hidden space-y-3">
+              {filteredItems.map((item) => {
+                const category = categoryById.get(item.categoryId);
+                return (
+                  <li
                     key={item.id}
-                    className="table-row border-b border-border last:border-0 cursor-pointer hover:bg-accent-soft/70 text-foreground"
+                    className="interactive-card cursor-pointer rounded-xl border border-border bg-surface p-4"
                     role="button"
                     tabIndex={0}
                     onClick={() => setSelectedItem(item)}
@@ -151,44 +141,131 @@ export function ItemsList({
                       }
                     }}
                   >
-                    <td className="px-4 py-3 font-medium">{item.name}</td>
-                    <td className="px-4 py-3 text-foreground">
-                      {category?.name ?? "—"}
-                    </td>
-                    <td className="px-4 py-3 text-foreground font-mono text-xs">
-                      {item.quantity !== null
-                        ? `${item.quantity} units`
-                        : getItemIdentifierLabel(item)}
-                    </td>
-                    <td className="px-4 py-3 text-foreground capitalize">{item.condition}</td>
-                    <td className="px-4 py-3">
-                      <StatusPill status={item.status} />
-                    </td>
-                    <td className="px-4 py-3" onClick={(event) => event.stopPropagation()}>
-                      <div className="flex items-center gap-1 justify-end">
-                        <button
-                          onClick={() => setEditing(item)}
-                          className="pressable p-1.5 rounded hover:bg-background text-muted hover:text-foreground"
-                          aria-label="Edit"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            setDeleteError(null);
-                            setDeleting(item);
-                          }}
-                          className="pressable p-1.5 rounded hover:bg-background text-muted hover:text-status-overdue"
-                          aria-label="Delete"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm text-foreground break-words">
+                          {item.name}
+                        </p>
+                        <p className="text-xs text-muted mt-0.5 truncate">
+                          {category?.name ?? "—"}
+                        </p>
                       </div>
-                    </td>
+                      <div className="shrink-0">
+                        <StatusPill status={item.status} />
+                      </div>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                      <div className="min-w-0">
+                        <p className="text-muted">Identifier / Qty</p>
+                        <p className="text-foreground font-mono break-words">
+                          {item.quantity !== null
+                            ? `${item.quantity} units`
+                            : getItemIdentifierLabel(item)}
+                        </p>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-muted">Condition</p>
+                        <p className="text-foreground capitalize">{item.condition}</p>
+                      </div>
+                    </div>
+
+                    <div
+                      className="mt-3 flex items-center justify-end gap-1 border-t border-border pt-3"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <button
+                        onClick={() => setEditing(item)}
+                        className="pressable p-2 rounded-lg hover:bg-background text-muted hover:text-foreground"
+                        aria-label="Edit"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDeleteError(null);
+                          setDeleting(item);
+                        }}
+                        className="pressable p-2 rounded-lg hover:bg-background text-muted hover:text-status-overdue"
+                        aria-label="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+
+            {/* Desktop: full table */}
+            <div className="hidden md:block interactive-card border border-border rounded-xl overflow-hidden bg-surface overflow-x-auto">
+              <table className="w-full min-w-[820px] text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-background text-left text-xs text-muted uppercase tracking-wide">
+                    <th className="px-4 py-3 font-medium">Name</th>
+                    <th className="px-4 py-3 font-medium">Category</th>
+                    <th className="px-4 py-3 font-medium">Identifier / Qty</th>
+                    <th className="px-4 py-3 font-medium">Condition</th>
+                    <th className="px-4 py-3 font-medium">Status</th>
+                    <th className="px-4 py-3 font-medium w-20"></th>
                   </tr>
-                );})}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredItems.map((item) => {
+                    const category = categoryById.get(item.categoryId);
+                    return (
+                    <tr
+                      key={item.id}
+                      className="table-row border-b border-border last:border-0 cursor-pointer hover:bg-accent-soft/70 text-foreground"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setSelectedItem(item)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          setSelectedItem(item);
+                        }
+                      }}
+                    >
+                      <td className="px-4 py-3 font-medium">{item.name}</td>
+                      <td className="px-4 py-3 text-foreground">
+                        {category?.name ?? "—"}
+                      </td>
+                      <td className="px-4 py-3 text-foreground font-mono text-xs">
+                        {item.quantity !== null
+                          ? `${item.quantity} units`
+                          : getItemIdentifierLabel(item)}
+                      </td>
+                      <td className="px-4 py-3 text-foreground capitalize">{item.condition}</td>
+                      <td className="px-4 py-3">
+                        <StatusPill status={item.status} />
+                      </td>
+                      <td className="px-4 py-3" onClick={(event) => event.stopPropagation()}>
+                        <div className="flex items-center gap-1 justify-end">
+                          <button
+                            onClick={() => setEditing(item)}
+                            className="pressable p-1.5 rounded hover:bg-background text-muted hover:text-foreground"
+                            aria-label="Edit"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setDeleteError(null);
+                              setDeleting(item);
+                            }}
+                            className="pressable p-1.5 rounded hover:bg-background text-muted hover:text-status-overdue"
+                            aria-label="Delete"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );})}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
