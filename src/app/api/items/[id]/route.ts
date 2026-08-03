@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dataStore } from "@/lib/data";
-import { requireActiveUser } from "@/lib/auth/permissions";
+import { requireActiveUser, requireInventoryOwnerAccess } from "@/lib/auth/permissions";
 import {
   cleanOptionalString,
   cleanString,
@@ -38,6 +38,9 @@ export async function PATCH(
   if (!existing) {
     return NextResponse.json({ error: "Item not found" }, { status: 404 });
   }
+
+  const ownerAuth = await requireInventoryOwnerAccess(existing.createdBy);
+  if ("response" in ownerAuth) return ownerAuth.response;
 
   const category = await dataStore.getCategory(existing.categoryId);
   if (!category) {

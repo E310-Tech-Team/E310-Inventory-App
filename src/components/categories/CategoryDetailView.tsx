@@ -9,6 +9,7 @@ import { getEffectiveStatus } from "@/lib/checkout-status";
 import { getItemIdentifierLabel } from "@/lib/items";
 import { CheckoutModal } from "@/components/checkouts/CheckoutModal";
 import { ItemFormModal } from "@/components/items/ItemFormModal";
+import { ItemDetailsModal } from "@/components/items/ItemDetailsModal";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusPill } from "@/components/ui/StatusPill";
 
@@ -29,6 +30,7 @@ export function CategoryDetailView({
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
   const [assigning, setAssigning] = useState<Item | null>(null);
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [deleting, setDeleting] = useState<Item | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -141,7 +143,19 @@ export function CategoryDetailView({
                     item.status !== "checked-out" && (item.quantity === null || item.quantity > 0);
 
                   return (
-                    <tr key={item.id} className="table-row border-b border-border last:border-0">
+                    <tr
+                      key={item.id}
+                      className="table-row border-b border-border last:border-0 cursor-pointer hover:bg-accent-soft/70 text-foreground"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setSelectedItem(item)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          setSelectedItem(item);
+                        }
+                      }}
+                    >
                       <td className="px-4 py-3">
                         <div className="font-medium">{item.name}</div>
                         {item.notes && (
@@ -190,7 +204,10 @@ export function CategoryDetailView({
                         <div className="flex items-center gap-1 justify-end">
                           {canAssign && (
                             <button
-                              onClick={() => setAssigning(item)}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setAssigning(item);
+                              }}
                               className="pressable inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-border text-xs font-medium hover:bg-background"
                             >
                               <ClipboardCheck className="w-3.5 h-3.5" />
@@ -198,14 +215,18 @@ export function CategoryDetailView({
                             </button>
                           )}
                           <button
-                            onClick={() => setEditing(item)}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setEditing(item);
+                            }}
                             className="pressable p-1.5 rounded hover:bg-background text-muted hover:text-foreground"
                             aria-label={`Edit ${item.name}`}
                           >
                             <Pencil className="w-3.5 h-3.5" />
                           </button>
                           <button
-                            onClick={() => {
+                            onClick={(event) => {
+                              event.stopPropagation();
                               setDeleteError(null);
                               setDeleting(item);
                             }}
@@ -224,6 +245,14 @@ export function CategoryDetailView({
           </div>
         )}
       </div>
+
+      {selectedItem && (
+        <ItemDetailsModal
+          item={selectedItem}
+          category={category}
+          onClose={() => setSelectedItem(null)}
+        />
+      )}
 
       {showCreate && (
         <ItemFormModal

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dataStore } from "@/lib/data";
-import { requireActiveUser } from "@/lib/auth/permissions";
+import { requireActiveUser, requireInventoryOwnerAccess } from "@/lib/auth/permissions";
 import { Category } from "@/types";
 import {
   cleanString,
@@ -34,6 +34,14 @@ export async function PATCH(
   if ("response" in auth) return auth.response;
 
   const { id } = await params;
+  const existing = await dataStore.getCategory(id);
+  if (!existing) {
+    return NextResponse.json({ error: "Category not found" }, { status: 404 });
+  }
+
+  const ownerAuth = await requireInventoryOwnerAccess(existing.createdBy);
+  if ("response" in ownerAuth) return ownerAuth.response;
+
   const body = (await request.json()) as Record<string, unknown>;
   const update: Partial<Category> = {
     ...(body.name !== undefined ? { name: cleanString(body.name) } : {}),
@@ -86,6 +94,14 @@ export async function DELETE(
   if ("response" in auth) return auth.response;
 
   const { id } = await params;
+  const existing = await dataStore.getCategory(id);
+  if (!existing) {
+    return NextResponse.json({ error: "Category not found" }, { status: 404 });
+  }
+
+  const ownerAuth = await requireInventoryOwnerAccess(existing.createdBy);
+  if ("response" in ownerAuth) return ownerAuth.response;
+
   try {
     await dataStore.deleteCategory(id);
     return NextResponse.json({ success: true });

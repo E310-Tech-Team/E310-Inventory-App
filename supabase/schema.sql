@@ -37,6 +37,7 @@ create table if not exists public.items (
   status text not null check (status in ('available', 'checked-out', 'low-stock')),
   condition text not null check (condition in ('new', 'good', 'fair', 'damaged')),
   notes text,
+  created_by text not null,
   created_at timestamptz not null default now()
 );
 
@@ -126,14 +127,15 @@ insert into public.items (
   status,
   condition,
   notes,
+  created_by,
   created_at
 )
 values
-  ('00000000-0000-4000-8000-000000000101', '00000000-0000-4000-8000-000000000001', 'MacBook Pro 14"', 'C02FX1234ABC', 'serial-number', 'C02FX1234ABC', null, 'checked-out', 'good', null, '2026-01-10T09:20:00.000Z'),
-  ('00000000-0000-4000-8000-000000000102', '00000000-0000-4000-8000-000000000001', 'Dell XPS 15', 'DXP15-9922', 'service-tag', 'DXP15-9922', null, 'available', 'good', null, '2026-01-10T09:22:00.000Z'),
-  ('00000000-0000-4000-8000-000000000103', '00000000-0000-4000-8000-000000000002', 'Canon EOS R6', 'CN-R6-0451', 'serial-number', 'CN-R6-0451', null, 'checked-out', 'good', null, '2026-01-10T09:25:00.000Z'),
-  ('00000000-0000-4000-8000-000000000104', '00000000-0000-4000-8000-000000000003', 'HDMI Cable 2m', 'HDMI-002', 'asset-tag', 'HDMI-002', null, 'available', 'fair', null, '2026-01-10T09:30:00.000Z'),
-  ('00000000-0000-4000-8000-000000000105', '00000000-0000-4000-8000-000000000004', 'A4 Notebooks', null, null, null, 3, 'low-stock', 'new', null, '2026-01-10T09:35:00.000Z')
+  ('00000000-0000-4000-8000-000000000101', '00000000-0000-4000-8000-000000000001', 'MacBook Pro 14"', 'C02FX1234ABC', 'serial-number', 'C02FX1234ABC', null, 'checked-out', 'good', null, 'Goodness', '2026-01-10T09:20:00.000Z'),
+  ('00000000-0000-4000-8000-000000000102', '00000000-0000-4000-8000-000000000001', 'Dell XPS 15', 'DXP15-9922', 'service-tag', 'DXP15-9922', null, 'available', 'good', null, 'Goodness', '2026-01-10T09:22:00.000Z'),
+  ('00000000-0000-4000-8000-000000000103', '00000000-0000-4000-8000-000000000002', 'Canon EOS R6', 'CN-R6-0451', 'serial-number', 'CN-R6-0451', null, 'checked-out', 'good', null, 'Admin 2', '2026-01-10T09:25:00.000Z'),
+  ('00000000-0000-4000-8000-000000000104', '00000000-0000-4000-8000-000000000003', 'HDMI Cable 2m', 'HDMI-002', 'asset-tag', 'HDMI-002', null, 'available', 'fair', null, 'Admin 2', '2026-01-10T09:30:00.000Z'),
+  ('00000000-0000-4000-8000-000000000105', '00000000-0000-4000-8000-000000000004', 'A4 Notebooks', null, null, null, 3, 'low-stock', 'new', null, 'Admin 2', '2026-01-10T09:35:00.000Z')
 on conflict (id) do nothing;
 
 insert into public.checkouts (

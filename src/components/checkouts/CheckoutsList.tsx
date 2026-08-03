@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import { Checkout, Item, Category } from "@/types";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -18,10 +19,13 @@ export function CheckoutsList({
   items: Item[];
   categories: Category[];
 }) {
+  const router = useRouter();
   const [filter, setFilter] = useState<"all" | "active" | "overdue" | "returned">("all");
   const [query, setQuery] = useState("");
   const [checkingIn, setCheckingIn] = useState<Checkout | null>(null);
   const [selectedCheckout, setSelectedCheckout] = useState<Checkout | null>(null);
+  const [undoingCheckoutId, setUndoingCheckoutId] = useState<string | null>(null);
+  const [undoError, setUndoError] = useState<string | null>(null);
 
   const itemById = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
   const categoryById = useMemo(
@@ -36,6 +40,25 @@ export function CheckoutsList({
       ),
     [checkouts]
   );
+
+  async function handleUndoCheckout(checkout: Checkout) {
+    setUndoingCheckoutId(checkout.id);
+    setUndoError(null);
+
+    const response = await fetch(`/api/checkouts/${checkout.id}/undo`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      setUndoError("Couldn't undo the check-in. Try again.");
+      setUndoingCheckoutId(null);
+      return;
+    }
+
+    setUndoingCheckoutId(null);
+    router.refresh();
+  }
 
   const filtered = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -103,6 +126,12 @@ export function CheckoutsList({
           </div>
         </div>
 
+        {undoError && (
+          <div className="mb-4 rounded-lg border border-status-overdue/30 bg-status-overdue/10 px-3 py-2 text-sm text-status-overdue">
+            {undoError}
+          </div>
+        )}
+
         {filtered.length === 0 ? (
           <div className="animate-enter border border-dashed border-border rounded-xl py-16 text-center">
             <p className="text-sm text-muted">No checkouts found.</p>
@@ -132,7 +161,10 @@ export function CheckoutsList({
                       className="table-row border-b border-border last:border-0 cursor-pointer hover:bg-accent-soft/70 text-foreground"
                       role="button"
                       tabIndex={0}
-                      onClick={() => setSelectedCheckout(checkout)}
+                      onClick={(event) => {
+                        if ((event.target as HTMLElement).closest("button")) return;
+                        setSelectedCheckout(checkout);
+                      }}
                       onKeyDown={(event) => {
                         if (event.key === "Enter" || event.key === " ") {
                           event.preventDefault();
@@ -169,7 +201,15 @@ export function CheckoutsList({
                         <StatusPill status={status} />
                       </td>
                       <td className="px-3 py-2.5 whitespace-nowrap" onClick={(event) => event.stopPropagation()}>
-                        {status !== "returned" && (
+                        {status === "returned" ? (
+                          <button
+                            onClick={() => handleUndoCheckout(checkout)}
+                            disabled={undoingCheckoutId === checkout.id}
+                            className="pressable px-2.5 py-1 rounded-lg border border-border text-xs font-medium hover:bg-background disabled:opacity-50"
+                          >
+                            {undoingCheckoutId === checkout.id ? "Undoing…" : "Undo"}
+                          </button>
+                        ) : (
                           <button
                             onClick={() => setCheckingIn(checkout)}
                             className="pressable px-2.5 py-1 rounded-lg border border-border text-xs font-medium hover:bg-background"

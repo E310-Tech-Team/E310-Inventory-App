@@ -46,3 +46,44 @@ export async function requireSuperAdmin(): Promise<AuthResult> {
 export function isSuperAdmin(user: DepartmentUser): boolean {
   return user.role === "super-admin";
 }
+
+function normalizeOwnerName(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const normalized = value.trim().toLowerCase();
+  return normalized.length > 0 ? normalized : null;
+}
+
+export function canEditInventoryRecord(user: DepartmentUser, ownerName: string | null | undefined): boolean {
+  if (isSuperAdmin(user)) {
+    return true;
+  }
+
+  const normalizedUserName = normalizeOwnerName(user.name);
+  const normalizedOwnerName = normalizeOwnerName(ownerName);
+
+  if (!normalizedUserName || !normalizedOwnerName) {
+    return false;
+  }
+
+  return normalizedUserName === normalizedOwnerName;
+}
+
+export async function requireInventoryOwnerAccess(
+  ownerName: string | null | undefined
+): Promise<AuthResult> {
+  const auth = await requireActiveUser();
+  if ("response" in auth) {
+    return auth;
+  }
+
+  if (!canEditInventoryRecord(auth.user, ownerName)) {
+    return {
+      response: NextResponse.json(
+        { error: "You can only edit records you created." },
+        { status: 403 }
+      ),
+    };
+  }
+
+  return auth;
+}

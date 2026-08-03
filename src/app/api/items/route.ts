@@ -72,6 +72,7 @@ export async function POST(request: NextRequest) {
     status,
     condition,
     notes,
+    createdBy: auth.user.name,
   });
 
   return NextResponse.json(item, { status: 201 });

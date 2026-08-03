@@ -48,6 +48,7 @@ export interface Item {
   status: ItemStatus;
   condition: ItemCondition;
   notes: string | null;
+  createdBy: string;
   createdAt: string;
 }
 

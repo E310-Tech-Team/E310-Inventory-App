@@ -5,6 +5,9 @@ import { Category, Item, Checkout } from "@/types";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { StatCard } from "./StatCard";
+import { CheckoutDetailsModal } from "@/components/checkouts/CheckoutDetailsModal";
+import { CategoryDetailsModal } from "@/components/categories/CategoryDetailsModal";
+import { ItemDetailsModal } from "@/components/items/ItemDetailsModal";
 import {
   getCheckedOutView,
   getOverdueView,
@@ -31,6 +34,9 @@ export function DashboardView({
   const [tab, setTab] = useState<Tab>("Overview");
   const [historyMode, setHistoryMode] = useState<"item" | "person">("person");
   const [selectedItemId, setSelectedItemId] = useState(items[0]?.id ?? "");
+  const [selectedCheckout, setSelectedCheckout] = useState<Checkout | null>(null);
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
 
   const checkedOut = useMemo(() => getCheckedOutView(checkouts, items), [checkouts, items]);
   const overdue = useMemo(() => getOverdueView(checkouts, items), [checkouts, items]);
@@ -57,6 +63,7 @@ export function DashboardView({
   );
 
   const itemById = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
+  const categoryById = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
 
   return (
     <div>
@@ -64,10 +71,10 @@ export function DashboardView({
 
       <div className="px-4 md:px-8 pb-8 animate-enter">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <StatCard label="Assigned" value={checkedOut.length} />
-          <StatCard label="Overdue" value={overdue.length} tone="danger" />
-          <StatCard label="Low stock" value={lowStock.length} tone="warning" />
-          <StatCard label="Total items" value={items.length} />
+          <StatCard label="Assigned" value={checkedOut.length} onClick={() => setTab("Overview")} />
+          <StatCard label="Overdue" value={overdue.length} tone="danger" onClick={() => setTab("Overview")} />
+          <StatCard label="Low stock" value={lowStock.length} tone="warning" onClick={() => setTab("Overview")} />
+          <StatCard label="Total items" value={items.length} onClick={() => setTab("By category")} />
         </div>
 
         <div className="flex gap-1 mb-4 border-b border-border">
@@ -123,7 +130,19 @@ export function DashboardView({
                       (now - new Date(checkout.dueDate!).getTime()) / 86400000
                     );
                     return (
-                      <tr key={checkout.id} className="table-row border-b border-border last:border-0">
+                      <tr
+                        key={checkout.id}
+                        className="table-row border-b border-border last:border-0 cursor-pointer hover:bg-accent-soft/70 text-foreground"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setSelectedCheckout(checkout)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            setSelectedCheckout(checkout);
+                          }
+                        }}
+                      >
                         <Td>{item?.name ?? "Unknown"}</Td>
                         <Td>
                           <div>{checkout.assignedToName || checkout.collectedBy}</div>
@@ -146,7 +165,19 @@ export function DashboardView({
               ) : (
                 <Table headers={["Item", "Category", "Remaining", "Threshold"]}>
                   {lowStock.map(({ item, category }) => (
-                    <tr key={item.id} className="table-row border-b border-border last:border-0">
+                    <tr
+                      key={item.id}
+                      className="table-row border-b border-border last:border-0 cursor-pointer hover:bg-accent-soft/70 text-foreground"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setSelectedItem(item)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          setSelectedItem(item);
+                        }
+                      }}
+                    >
                       <Td>{item.name}</Td>
                       <Td muted>{category?.name ?? "—"}</Td>
                       <td className="px-4 py-3 text-status-low-stock font-medium font-mono">
@@ -164,7 +195,19 @@ export function DashboardView({
         {tab === "By category" && (
           <Table headers={["Category", "Total items", "Assigned", "Available", "Low stock"]}>
             {breakdown.map(({ category, totalItems, checkedOut, available, lowStock }) => (
-              <tr key={category.id} className="table-row border-b border-border last:border-0">
+              <tr
+                key={category.id}
+                className="table-row border-b border-border last:border-0 cursor-pointer hover:bg-accent-soft/70 text-foreground"
+                role="button"
+                tabIndex={0}
+                onClick={() => setSelectedCategory(category)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setSelectedCategory(category);
+                  }
+                }}
+              >
                 <Td>{category.name}</Td>
                 <Td muted mono>{totalItems}</Td>
                 <Td muted mono>{checkedOut}</Td>
@@ -226,7 +269,19 @@ export function DashboardView({
                 ) : (
                   <Table headers={["Item", "Assigned", "Returned", "Processed by", "Condition", "Status"]}>
                     {personHistory.map((c) => (
-                      <tr key={c.id} className="table-row border-b border-border last:border-0">
+                      <tr
+                        key={c.id}
+                        className="table-row border-b border-border last:border-0 cursor-pointer hover:bg-accent-soft/70 text-foreground"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setSelectedCheckout({ ...c, itemId: c.itemId } as Checkout)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            setSelectedCheckout({ ...c, itemId: c.itemId } as Checkout);
+                          }
+                        }}
+                      >
                         <Td>{itemById.get(c.itemId)?.name ?? "Unknown"}</Td>
                         <Td muted>{new Date(c.dateCollected).toLocaleDateString()}</Td>
                         <Td muted>{c.dateReturned ? new Date(c.dateReturned).toLocaleDateString() : "—"}</Td>
@@ -258,7 +313,19 @@ export function DashboardView({
                 ) : (
                   <Table headers={["Assigned to", "Assigned", "Returned", "Processed by", "Condition", "Status"]}>
                     {itemHistory.map((c) => (
-                      <tr key={c.id} className="table-row border-b border-border last:border-0">
+                      <tr
+                        key={c.id}
+                        className="table-row border-b border-border last:border-0 cursor-pointer hover:bg-accent-soft/70 text-foreground"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setSelectedCheckout(c)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            setSelectedCheckout(c);
+                          }
+                        }}
+                      >
                         <Td>{c.assignedToName || c.collectedBy}</Td>
                         <Td muted>{new Date(c.dateCollected).toLocaleDateString()}</Td>
                         <Td muted>{c.dateReturned ? new Date(c.dateReturned).toLocaleDateString() : "—"}</Td>
@@ -276,6 +343,38 @@ export function DashboardView({
           </div>
         )}
       </div>
+
+      {selectedCheckout && (() => {
+        const selectedItemForCheckout = itemById.get(selectedCheckout.itemId) ?? null;
+        const selectedCategoryForCheckout = selectedItemForCheckout?.categoryId
+          ? categoryById.get(selectedItemForCheckout.categoryId) ?? null
+          : null;
+
+        return (
+          <CheckoutDetailsModal
+            checkout={selectedCheckout}
+            item={selectedItemForCheckout}
+            category={selectedCategoryForCheckout}
+            onClose={() => setSelectedCheckout(null)}
+          />
+        );
+      })()}
+
+      {selectedItem && (
+        <ItemDetailsModal
+          item={selectedItem}
+          category={categoryById.get(selectedItem.categoryId) ?? null}
+          onClose={() => setSelectedItem(null)}
+        />
+      )}
+
+      {selectedCategory && (
+        <CategoryDetailsModal
+          category={selectedCategory}
+          itemCount={items.filter((item) => item.categoryId === selectedCategory.id).length}
+          onClose={() => setSelectedCategory(null)}
+        />
+      )}
     </div>
   );
 }
