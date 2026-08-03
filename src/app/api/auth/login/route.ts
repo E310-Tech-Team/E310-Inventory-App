@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
   // regardless of their status or whether a password has been set yet.
   if (user.role === "super-admin") {
     await createSession(user.id);
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, isSuperAdmin: true });
   }
 
   if (user.status === "inactive" || !user.passwordHash) {
@@ -36,7 +36,11 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (!verifyPassword(password ?? "", user.passwordHash)) {
+  if (typeof password !== "string" || password.trim().length === 0) {
+    return NextResponse.json({ error: "Password is required" }, { status: 400 });
+  }
+
+  if (!verifyPassword(password, user.passwordHash)) {
     return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
   }
 
