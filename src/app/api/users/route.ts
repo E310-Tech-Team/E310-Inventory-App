@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         ...user,
-        temporaryPassword: status === "pending" ? temporaryPassword : undefined,
+        temporaryPassword: status === "active" ? temporaryPassword : undefined,
       },
       { status: 201 }
     );

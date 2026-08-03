@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { getEffectiveStatus } from "@/lib/checkout-status";
 import { CheckInModal } from "./CheckInModal";
+import { CheckoutDetailsModal } from "./CheckoutDetailsModal";
 
 export function CheckoutsList({
   checkouts,
@@ -20,6 +21,7 @@ export function CheckoutsList({
   const [filter, setFilter] = useState<"all" | "active" | "overdue" | "returned">("all");
   const [query, setQuery] = useState("");
   const [checkingIn, setCheckingIn] = useState<Checkout | null>(null);
+  const [selectedCheckout, setSelectedCheckout] = useState<Checkout | null>(null);
 
   const itemById = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
   const categoryById = useMemo(
@@ -40,15 +42,15 @@ export function CheckoutsList({
 
     return sorted.filter((checkout) => {
       const item = itemById.get(checkout.itemId);
-      const category = item ? categoryById.get(item.categoryId) : null;
       const status = getEffectiveStatus(checkout);
+      const categoryName = item?.categoryId ? categoryById.get(item.categoryId)?.name : null;
       const matchesFilter = filter === "all" || status === filter;
       const matchesQuery =
         !normalizedQuery ||
         [
           item?.name,
           item?.serialNumber,
-          category?.name,
+          categoryName,
           checkout.collectedBy,
           checkout.assignedToName,
           checkout.assignedToPhone,
@@ -112,7 +114,6 @@ export function CheckoutsList({
                 <tr className="border-b border-border bg-background text-left text-xs text-muted uppercase tracking-wide">
                   <th className="px-4 py-3 font-medium">Item</th>
                   <th className="px-4 py-3 font-medium">Assigned to</th>
-                  <th className="px-4 py-3 font-medium">Contact</th>
                   <th className="px-4 py-3 font-medium">Processed by</th>
                   <th className="px-4 py-3 font-medium">Collected</th>
                   <th className="px-4 py-3 font-medium">Due</th>
@@ -126,7 +127,11 @@ export function CheckoutsList({
                   const item = itemById.get(checkout.itemId);
                   const status = getEffectiveStatus(checkout);
                   return (
-                    <tr key={checkout.id} className="table-row border-b border-border last:border-0">
+                    <tr
+                      key={checkout.id}
+                      className="table-row border-b border-border last:border-0 cursor-pointer hover:bg-background/70"
+                      onClick={() => setSelectedCheckout(checkout)}
+                    >
                       <td className="px-4 py-3 font-medium">
                         {item?.name ?? "Unknown item"}
                         {checkout.quantity !== null && (
@@ -135,10 +140,6 @@ export function CheckoutsList({
                       </td>
                       <td className="px-4 py-3 text-muted font-mono text-xs">
                         {checkout.assignedToName}
-                      </td>
-                      <td className="px-4 py-3 text-muted">
-                        <div>{checkout.assignedToPhone || "-"}</div>
-                        <div className="font-mono text-xs">{checkout.assignedToEmail || "-"}</div>
                       </td>
                       <td className="px-4 py-3 text-muted font-mono text-xs">
                         {checkout.collectedBy}
@@ -159,7 +160,7 @@ export function CheckoutsList({
                       <td className="px-4 py-3">
                         <StatusPill status={status} />
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3" onClick={(event) => event.stopPropagation()}>
                         {status !== "returned" && (
                           <button
                             onClick={() => setCheckingIn(checkout)}
@@ -177,6 +178,22 @@ export function CheckoutsList({
           </div>
         )}
       </div>
+
+      {selectedCheckout && (() => {
+        const selectedItem = itemById.get(selectedCheckout.itemId) ?? null;
+        const selectedCategory = selectedItem?.categoryId
+          ? categoryById.get(selectedItem.categoryId) ?? null
+          : null;
+
+        return (
+          <CheckoutDetailsModal
+            checkout={selectedCheckout}
+            item={selectedItem}
+            category={selectedCategory}
+            onClose={() => setSelectedCheckout(null)}
+          />
+        );
+      })()}
 
       {checkingIn && (
         <CheckInModal

@@ -2,9 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSession } from "@/lib/auth/session";
 import { verifyPassword } from "@/lib/auth/password";
 import { dataStore } from "@/lib/data";
+import { hasSupabaseConfig } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
   try {
+    if (!hasSupabaseConfig()) {
+      return NextResponse.json(
+        { error: "Authentication service is not configured. Please contact the administrator." },
+        { status: 500 }
+      );
+    }
+
     const { email, password } = await request.json();
 
     if (!email || typeof email !== "string") {
