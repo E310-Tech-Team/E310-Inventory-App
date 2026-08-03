@@ -1,12 +1,5 @@
-import { getSession } from "@/lib/auth/session";
-import { HomePage } from "@/components/home/HomePage";
+import { redirect } from "next/navigation";
 
-export default async function HomeRoute() {
-  const admin = await getSession();
-
-  if (!admin) {
-    return null;
-  }
-
-  return <HomePage admin={admin} />;
+export default function HomeRoute() {
+  redirect("/");
 }
