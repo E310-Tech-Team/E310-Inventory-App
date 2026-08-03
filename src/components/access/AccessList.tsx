@@ -300,7 +300,8 @@ function UserFormModal({
           </select>
           {!user && (
             <p className="text-xs text-muted mt-2">
-              New members are invited in pending state and must finish signup with a password.
+              New members are invited in pending state. They sign in with the temporary password
+              and are prompted to set a permanent password on first login.
             </p>
           )}
         </FormField>
@@ -318,7 +319,8 @@ function UserFormModal({
             <p className="font-medium text-foreground">Temporary password</p>
             <p className="font-mono text-sm text-foreground break-all">{temporaryPassword}</p>
             <p className="text-xs text-muted mt-1">
-              Share this temporary password with the invited user so they can finish onboarding through the app.
+              Share this temporary password with the invited user. They sign in once with this
+              temporary password and will be prompted to set a permanent password.
             </p>
           </div>
         )}

@@ -15,6 +15,15 @@ export async function requireActiveUser(): Promise<AuthResult> {
     };
   }
 
+  // Pending users may hold a session only to reach the forced password-change
+  // page. They must not be able to call protected APIs until their permanent
+  // password is set (status becomes active).
+  if (user.status !== "active" && user.role !== "super-admin") {
+    return {
+      response: NextResponse.json({ error: "Set your password to continue" }, { status: 403 }),
+    };
+  }
+
   return { user };
 }
 

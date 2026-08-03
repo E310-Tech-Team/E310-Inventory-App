@@ -6,7 +6,7 @@ export default async function LoginPage() {
   const user = await getSession();
 
   if (user) {
-    redirect("/dashboard");
+    redirect(user.status === "pending" ? "/change-password" : "/dashboard");
   }
 
   return <LoginForm />;

@@ -5,7 +5,7 @@ EThree10's inventory system for equipment and supplies with invite-only onboardi
 ## What is included
 
 - Invite-only user onboarding via pending Supabase users
-- Password-based login for active department users
+- Direct sign-in with a temporary password, forcing a permanent password change on first login
 - Super-admin access management for add/edit/deactivate/remove users
 - Category management with item grouping and category detail pages
 - Item CRUD with serial number / asset tag / identifier support
@@ -20,7 +20,7 @@ EThree10's inventory system for equipment and supplies with invite-only onboardi
 - `src/lib/data/`: Supabase data store and typed data mappings
 - `src/lib/auth/`: session helpers, password hashing, and permission checks
 - `src/components/`: feature-specific UI organized by domain
-- `src/app/signup/page.tsx`: gated signup page that only allows invited pending users with an approved email domain
+- `src/app/change-password/page.tsx`: forced password setup for pending users on first login
 
 ## Quick start
 
@@ -74,7 +74,7 @@ src/
 │   ├── (app)/              # authenticated routes for dashboard, categories, checkouts, access
 │   ├── api/                # server route handlers
 │   ├── login/              # login page
-│   ├── signup/             # gated signup page for invited users
+│   ├── change-password/    # forced password setup for pending users
 ├── components/             # UI and feature components
 ├── lib/                    # shared helpers and data layer
 └── types/                  # TypeScript domain types
@@ -82,7 +82,7 @@ src/
 
 ## Notes
 
-- The signup flow is intentionally invite-only and requires a pending user record in Supabase.
+- New members are invited by a super-admin as pending users. They sign in once with a temporary password and are prompted to set a permanent password on first login.
 - Super-admins control user access and can only be changed through the admin access page.
 
 ## Run production

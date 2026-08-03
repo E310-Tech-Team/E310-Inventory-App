@@ -27,9 +27,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true });
   }
 
-  if (user.status !== "active" || !user.passwordHash) {
+  if (user.status === "inactive" || !user.passwordHash) {
     return NextResponse.json(
-      { error: "No active access for this email. Set your password on the sign-up page if needed." },
+      { error: "No active access for this email. Ask an admin to validate your email." },
       { status: 403 }
     );
   }
@@ -39,5 +39,11 @@ export async function POST(request: NextRequest) {
   }
 
   await createSession(user.id);
-  return NextResponse.json({ success: true });
+
+  // Pending users are signing in with their temporary password for the first
+  // time. They are allowed to hold a session only to reach the forced
+  // password-change page, where they'll set a permanent password.
+  const mustChangePassword = user.status === "pending";
+
+  return NextResponse.json({ success: true, mustChangePassword });
 }

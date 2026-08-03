@@ -13,5 +13,9 @@ export default async function AppLayout({
     redirect("/login");
   }
 
+  if (admin.status === "pending") {
+    redirect("/change-password");
+  }
+
   return <AppShell admin={admin}>{children}</AppShell>;
 }

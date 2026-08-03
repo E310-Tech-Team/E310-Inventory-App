@@ -16,7 +16,10 @@ export async function getSession(): Promise<DepartmentUser | null> {
 
   // Active users can access normally. Super-admin users may also have access
   // while their account is still onboarding, so they are not blocked here.
-  if (user.status !== "active" && user.role !== "super-admin") {
+  // Pending users are allowed to hold a session only so they can reach the
+  // forced password-change page on first login; entry to the app itself is
+  // blocked separately in the app layout and API permission checks.
+  if (user.status === "inactive") {
     return null;
   }
 

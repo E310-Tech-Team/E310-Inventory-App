@@ -29,7 +29,12 @@ export function LoginForm({ setupError }: { setupError?: string | null }) {
       return;
     }
 
-    router.push("/dashboard");
+    const data = await response.json().catch(() => null);
+    if (data?.mustChangePassword) {
+      router.push("/change-password");
+    } else {
+      router.push("/dashboard");
+    }
     router.refresh();
   }
 
@@ -84,16 +89,6 @@ export function LoginForm({ setupError }: { setupError?: string | null }) {
             {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
-
-        <div className="mt-4">
-          <button
-            type="button"
-            onClick={() => router.push("/signup")}
-            className="pressable w-full py-2.5 rounded-lg border border-border bg-surface text-sm font-medium text-foreground transition-colors hover:bg-background"
-          >
-            Go to sign up
-          </button>
-        </div>
       </div>
     </div>
   );
