@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { Modal } from "@/components/ui/Modal";
 import { FormField, inputClass } from "@/components/ui/FormField";
+import { AccessDetailsModal } from "./AccessDetailsModal";
 
 export function AccessList({
   users,
@@ -19,6 +20,7 @@ export function AccessList({
   const router = useRouter();
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<DepartmentUser | null>(null);
+  const [selectedUser, setSelectedUser] = useState<DepartmentUser | null>(null);
   const [deleting, setDeleting] = useState<DepartmentUser | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
@@ -81,19 +83,19 @@ export function AccessList({
               {sortedUsers.map((user) => (
                 <tr
                   key={user.id}
-                  className="table-row cursor-pointer border-b border-border last:border-0"
+                  className="table-row cursor-pointer border-b border-border last:border-0 hover:bg-accent-soft/70 text-foreground"
                   role="button"
                   tabIndex={0}
                   onClick={() => {
                     if (!(user.role === "super-admin" && user.id !== currentUser.id)) {
-                      setEditing(user);
+                      setSelectedUser(user);
                     }
                   }}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
                       if (!(user.role === "super-admin" && user.id !== currentUser.id)) {
-                        setEditing(user);
+                        setSelectedUser(user);
                       }
                     }
                   }}
@@ -104,14 +106,14 @@ export function AccessList({
                       <span className="ml-2 text-xs text-muted font-normal">(you)</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-muted font-mono text-xs">{user.email}</td>
-                  <td className="px-4 py-3 text-muted capitalize">
+                  <td className="px-4 py-3 text-foreground font-mono text-xs">{user.email}</td>
+                  <td className="px-4 py-3 text-foreground capitalize">
                     {user.role.replace("-", " ")}
                   </td>
                   <td className="px-4 py-3">
                     <StatusPill status={user.status} />
                   </td>
-                  <td className="px-4 py-3 text-muted">{user.invitedBy ?? "-"}</td>
+                  <td className="px-4 py-3 text-foreground">{user.invitedBy ?? "-"}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1 justify-end">
                       <button
@@ -151,6 +153,10 @@ export function AccessList({
           </table>
         </div>
       </div>
+
+      {selectedUser && (
+        <AccessDetailsModal user={selectedUser} onClose={() => setSelectedUser(null)} />
+      )}
 
       {showCreate && <UserFormModal onClose={() => setShowCreate(false)} />}
       {editing && (

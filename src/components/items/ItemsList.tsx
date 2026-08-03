@@ -7,6 +7,7 @@ import { Item, Category } from "@/types";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { ItemFormModal } from "./ItemFormModal";
+import { ItemDetailsModal } from "./ItemDetailsModal";
 import { getItemIdentifierLabel } from "@/lib/items";
 
 export function ItemsList({
@@ -21,6 +22,7 @@ export function ItemsList({
   const [query, setQuery] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [deleting, setDeleting] = useState<Item | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -133,22 +135,36 @@ export function ItemsList({
                 </tr>
               </thead>
               <tbody>
-                {filteredItems.map((item) => (
-                  <tr key={item.id} className="table-row border-b border-border last:border-0">
+                {filteredItems.map((item) => {
+                  const category = categoryById.get(item.categoryId);
+                  return (
+                  <tr
+                    key={item.id}
+                    className="table-row border-b border-border last:border-0 cursor-pointer hover:bg-accent-soft/70 text-foreground"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setSelectedItem(item)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setSelectedItem(item);
+                      }
+                    }}
+                  >
                     <td className="px-4 py-3 font-medium">{item.name}</td>
-                    <td className="px-4 py-3 text-muted">
-                      {categoryById.get(item.categoryId)?.name ?? "—"}
+                    <td className="px-4 py-3 text-foreground">
+                      {category?.name ?? "—"}
                     </td>
-                    <td className="px-4 py-3 text-muted font-mono text-xs">
+                    <td className="px-4 py-3 text-foreground font-mono text-xs">
                       {item.quantity !== null
                         ? `${item.quantity} units`
                         : getItemIdentifierLabel(item)}
                     </td>
-                    <td className="px-4 py-3 text-muted capitalize">{item.condition}</td>
+                    <td className="px-4 py-3 text-foreground capitalize">{item.condition}</td>
                     <td className="px-4 py-3">
                       <StatusPill status={item.status} />
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3" onClick={(event) => event.stopPropagation()}>
                       <div className="flex items-center gap-1 justify-end">
                         <button
                           onClick={() => setEditing(item)}
@@ -170,12 +186,20 @@ export function ItemsList({
                       </div>
                     </td>
                   </tr>
-                ))}
+                );})}
               </tbody>
             </table>
           </div>
         )}
       </div>
+
+      {selectedItem && (
+        <ItemDetailsModal
+          item={selectedItem}
+          category={categoryById.get(selectedItem.categoryId) ?? null}
+          onClose={() => setSelectedItem(null)}
+        />
+      )}
 
       {showCreate && (
         <ItemFormModal

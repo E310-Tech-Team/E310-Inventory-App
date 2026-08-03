@@ -109,17 +109,17 @@ export function CheckoutsList({
           </div>
         ) : (
           <div className="interactive-card border border-border rounded-xl overflow-hidden bg-surface overflow-x-auto">
-            <table className="w-full min-w-[1180px] text-sm">
+            <table className="w-full table-fixed text-sm">
               <thead>
                 <tr className="border-b border-border bg-background text-left text-xs text-muted uppercase tracking-wide">
-                  <th className="px-4 py-3 font-medium">Item</th>
-                  <th className="px-4 py-3 font-medium">Assigned to</th>
-                  <th className="px-4 py-3 font-medium">Processed by</th>
-                  <th className="px-4 py-3 font-medium">Collected</th>
-                  <th className="px-4 py-3 font-medium">Due</th>
-                  <th className="px-4 py-3 font-medium">Returned</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium w-24"></th>
+                  <th className="px-3 py-2.5 font-medium w-[24%]">Item</th>
+                  <th className="px-3 py-2.5 font-medium w-[16%]">Assigned to</th>
+                  <th className="px-3 py-2.5 font-medium w-[15%]">Processed by</th>
+                  <th className="px-3 py-2.5 font-medium w-[12%]">Collected</th>
+                  <th className="px-3 py-2.5 font-medium w-[10%]">Due</th>
+                  <th className="px-3 py-2.5 font-medium w-[10%]">Returned</th>
+                  <th className="px-3 py-2.5 font-medium w-[10%]">Status</th>
+                  <th className="px-3 py-2.5 font-medium w-[12%]"></th>
                 </tr>
               </thead>
               <tbody>
@@ -129,38 +129,46 @@ export function CheckoutsList({
                   return (
                     <tr
                       key={checkout.id}
-                      className="table-row border-b border-border last:border-0 cursor-pointer hover:bg-background/70"
+                      className="table-row border-b border-border last:border-0 cursor-pointer hover:bg-accent-soft/70 text-foreground"
+                      role="button"
+                      tabIndex={0}
                       onClick={() => setSelectedCheckout(checkout)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          setSelectedCheckout(checkout);
+                        }
+                      }}
                     >
-                      <td className="px-4 py-3 font-medium">
+                      <td className="px-3 py-2.5 font-medium whitespace-normal break-words">
                         {item?.name ?? "Unknown item"}
                         {checkout.quantity !== null && (
                           <span className="text-muted font-normal"> ({checkout.quantity})</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-muted font-mono text-xs">
+                      <td className="px-3 py-2.5 text-foreground font-mono text-xs">
                         {checkout.assignedToName}
                       </td>
-                      <td className="px-4 py-3 text-muted font-mono text-xs">
+                      <td className="px-3 py-2.5 text-foreground font-mono text-xs">
                         {checkout.collectedBy}
                       </td>
-                      <td className="px-4 py-3 text-muted">
+                      <td className="px-3 py-2.5 text-foreground">
                         {new Date(checkout.dateCollected).toLocaleDateString()}
                       </td>
-                      <td className="px-4 py-3 text-muted">
+                      <td className="px-3 py-2.5 text-foreground">
                         {checkout.dueDate
                           ? new Date(checkout.dueDate).toLocaleDateString()
                           : "—"}
                       </td>
-                      <td className="px-4 py-3 text-muted">
+                      <td className="px-3 py-2.5 text-foreground">
                         {checkout.dateReturned
                           ? new Date(checkout.dateReturned).toLocaleDateString()
                           : "—"}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2.5">
                         <StatusPill status={status} />
                       </td>
-                      <td className="px-4 py-3" onClick={(event) => event.stopPropagation()}>
+                      <td className="px-3 py-2.5 whitespace-nowrap" onClick={(event) => event.stopPropagation()}>
                         {status !== "returned" && (
                           <button
                             onClick={() => setCheckingIn(checkout)}

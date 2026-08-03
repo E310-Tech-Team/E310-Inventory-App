@@ -6,6 +6,7 @@ import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Category, Item } from "@/types";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { CategoryFormModal } from "./CategoryFormModal";
+import { CategoryDetailsModal } from "./CategoryDetailsModal";
 
 export function CategoriesList({
   categories,
@@ -17,6 +18,7 @@ export function CategoriesList({
   const router = useRouter();
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<Category | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [deleting, setDeleting] = useState<Category | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -81,14 +83,14 @@ export function CategoriesList({
                   return (
                   <tr
                     key={category.id}
-                    className="table-row cursor-pointer border-b border-border last:border-0"
+                    className="table-row cursor-pointer border-b border-border last:border-0 hover:bg-accent-soft/70 text-foreground"
                     role="button"
                     tabIndex={0}
-                    onClick={() => router.push(`/categories/${category.id}`)}
+                    onClick={() => setSelectedCategory(category)}
                     onKeyDown={(event) => {
                       if (event.key === "Enter" || event.key === " ") {
                         event.preventDefault();
-                        router.push(`/categories/${category.id}`);
+                        setSelectedCategory(category);
                       }
                     }}
                   >
@@ -138,6 +140,14 @@ export function CategoriesList({
           </div>
         )}
       </div>
+
+      {selectedCategory && (
+        <CategoryDetailsModal
+          category={selectedCategory}
+          itemCount={items.filter((item) => item.categoryId === selectedCategory.id).length}
+          onClose={() => setSelectedCategory(null)}
+        />
+      )}
 
       {showCreate && <CategoryFormModal onClose={() => setShowCreate(false)} />}
       {editing && (
