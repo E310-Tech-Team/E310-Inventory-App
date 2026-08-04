@@ -6,7 +6,6 @@ import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Category, Item } from "@/types";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { CategoryFormModal } from "./CategoryFormModal";
-import { CategoryDetailsModal } from "./CategoryDetailsModal";
 
 export function CategoriesList({
   categories,
@@ -18,7 +17,6 @@ export function CategoriesList({
   const router = useRouter();
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<Category | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [deleting, setDeleting] = useState<Category | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -76,11 +74,11 @@ export function CategoriesList({
                     className="interactive-card cursor-pointer rounded-xl border border-border bg-surface p-4"
                     role="button"
                     tabIndex={0}
-                    onClick={() => setSelectedCategory(category)}
+                    onClick={() => router.push(`/categories/${category.id}`)}
                     onKeyDown={(event) => {
                       if (event.key === "Enter" || event.key === " ") {
                         event.preventDefault();
-                        setSelectedCategory(category);
+                        router.push(`/categories/${category.id}`);
                       }
                     }}
                   >
@@ -161,58 +159,58 @@ export function CategoriesList({
                     const itemCount = items.filter((item) => item.categoryId === category.id).length;
 
                     return (
-                    <tr
-                      key={category.id}
-                      className="table-row cursor-pointer border-b border-border last:border-0 hover:bg-accent-soft/70 text-foreground"
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => setSelectedCategory(category)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          setSelectedCategory(category);
-                        }
-                      }}
-                    >
-                      <td className="px-4 py-3 font-medium">{category.name}</td>
-                      <td className="px-4 py-3 text-muted font-mono text-xs">
-                        {itemCount}
-                      </td>
-                      <td className="px-4 py-3 text-muted capitalize">
-                        {category.trackingType}
-                      </td>
-                      <td className="px-4 py-3 text-muted capitalize">
-                        {category.returnType.replace("-", " ")}
-                      </td>
-                      <td className="px-4 py-3 text-muted font-mono text-xs">
-                        {category.createdBy}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1 justify-end">
-                          <button
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setEditing(category);
-                            }}
-                            className="pressable p-1.5 rounded hover:bg-background text-muted hover:text-foreground"
-                            aria-label="Edit"
-                          >
-                            <Pencil className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setDeleteError(null);
-                              setDeleting(category);
-                            }}
-                            className="pressable p-1.5 rounded hover:bg-background text-muted hover:text-status-overdue"
-                            aria-label="Delete"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                      <tr
+                        key={category.id}
+                        className="table-row cursor-pointer border-b border-border last:border-0 hover:bg-accent-soft/70 text-foreground"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => router.push(`/categories/${category.id}`)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            router.push(`/categories/${category.id}`);
+                          }
+                        }}
+                      >
+                        <td className="px-4 py-3 font-medium">{category.name}</td>
+                        <td className="px-4 py-3 text-muted font-mono text-xs">
+                          {itemCount}
+                        </td>
+                        <td className="px-4 py-3 text-muted capitalize">
+                          {category.trackingType}
+                        </td>
+                        <td className="px-4 py-3 text-muted capitalize">
+                          {category.returnType.replace("-", " ")}
+                        </td>
+                        <td className="px-4 py-3 text-muted font-mono text-xs">
+                          {category.createdBy}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1 justify-end">
+                            <button
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setEditing(category);
+                              }}
+                              className="pressable p-1.5 rounded hover:bg-background text-muted hover:text-foreground"
+                              aria-label="Edit"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setDeleteError(null);
+                                setDeleting(category);
+                              }}
+                              className="pressable p-1.5 rounded hover:bg-background text-muted hover:text-status-overdue"
+                              aria-label="Delete"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
                     );
                   })}
                 </tbody>
@@ -221,14 +219,6 @@ export function CategoriesList({
           </div>
         )}
       </div>
-
-      {selectedCategory && (
-        <CategoryDetailsModal
-          category={selectedCategory}
-          itemCount={items.filter((item) => item.categoryId === selectedCategory.id).length}
-          onClose={() => setSelectedCategory(null)}
-        />
-      )}
 
       {showCreate && <CategoryFormModal onClose={() => setShowCreate(false)} />}
       {editing && (

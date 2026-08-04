@@ -24,6 +24,13 @@ export function getLowStockView(items: Item[], categories: Category[]) {
     .map((i) => ({ item: i, category: categoryById.get(i.categoryId) }));
 }
 
+export function getRecentlyAddedView(items: Item[], days = 30) {
+  const cutoff = Date.now() - days * 86400000;
+  return [...items]
+    .filter((i) => new Date(i.createdAt).getTime() >= cutoff)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
 export function getCategoryBreakdown(items: Item[], categories: Category[]) {
   return categories.map((category) => {
     const categoryItems = items.filter((i) => i.categoryId === category.id);
