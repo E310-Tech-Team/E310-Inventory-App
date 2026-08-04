@@ -27,5 +27,6 @@
 - [x] 15. Home greeting reveal delay set to 1.3s per user feedback.
 - [x] 16. Dashboard landing redesigned to 4 big bold centered at-a-glance cards (Overdue, Low stock, Pending requests, Recently added) with expandable lists; raw tables moved to "By category" and "History" tabs; mobile responsive.
 - [x] 17. Categories: clicking a category navigates to its detail page (not a popup) with full item CRUD; each item is clickable to view full details.
+- [x] 18. Verified: production build (npm run build) succeeds; dev server running on localhost:3000 serving current code; / redirects to /login when unauthenticated; /login returns 200.
 
 
