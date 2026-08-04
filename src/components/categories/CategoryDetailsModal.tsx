@@ -1,7 +1,7 @@
 "use client";
 
 import { Modal } from "@/components/ui/Modal";
-import { Category, Item } from "@/types";
+import { Category } from "@/types";
 
 function DetailRow({ label, value }: { label: string; value: string | null | undefined }) {
   return (
