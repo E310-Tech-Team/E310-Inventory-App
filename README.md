@@ -1,95 +1,96 @@
-# EThree10 Inventory App
+# E310 Inventory & Device Management Platform
 
-EThree10's inventory system for equipment and supplies with invite-only onboarding and super-admin access control.
+Enterprise hardware asset management, custody tracking, and IT support platform built for **R4C Global**, managed and operated by the **E310 Tech Agency**.
 
-## What is included
+---
 
-- Invite-only user onboarding via pending Supabase users
-- Direct sign-in with a temporary password, forcing a permanent password change on first login
-- Super-admin access management for add/edit/deactivate/remove users
-- Category management with item grouping and category detail pages
-- Item CRUD with serial number / asset tag / identifier support
-- Checkout assignment, return workflows, and condition tracking
-- Dashboard views for assigned, overdue, and low-stock inventory
-- CSV export reporting for inventory and checkout history
-- PWA support with manifest and service worker configuration
+## Architecture Overview: The Dual-Portal System
 
-## Built functionality
+The platform is architected as two dedicated portals sharing a unified Next.js + Supabase backend:
 
-- `src/app/api/*`: all server routes and access validation
-- `src/lib/data/`: Supabase data store and typed data mappings
-- `src/lib/auth/`: session helpers, password hashing, and permission checks
-- `src/components/`: feature-specific UI organized by domain
-- `src/app/change-password/page.tsx`: forced password setup for pending users on first login
+1. **Portal 1: Staff Self-Service Portal (Company-Wide)**
+   * Built for all staff across R4C Global (`@r4cglobal.org`).
+   * **Device Self-Registration:** Register company-issued laptops, phones, and peripherals with standardized dropdowns.
+   * **My Assets Dashboard:** Real-time visibility into all equipment currently in the staff member's possession.
+   * **Complaint & Fault Reporting:** Fast, structured issue submission (screen damage, battery degradation, OS faults, physical wear).
+   * **Ticket Progress Tracking:** Transparent status updates (`Submitted`, `Under Review`, `In Repair`, `Resolved`).
 
-## Quick start
+2. **Portal 2: Tech Team Command Center (Back-End / Admin)**
+   * Built for the E310 Tech Agency / Support Administrators.
+   * **Live Activity Feed:** Real-time visibility of staff submissions, registrations, and complaints.
+   * **Dynamic Options Engine:** Add, rename, or toggle form dropdown options for staff directly from the UI without code changes.
+   * **Full Asset Inventory Management:** Complete CRUD operations for categories, serialized hardware, and bulk consumables.
+   * **Multi-Channel Alerts:** Instant in-portal bell alerts and automated emails whenever a staff member files a complaint.
+   * **Ticket Delegation:** Super Admins can assign repair tickets to specific team technicians.
 
-1. Clone the repository.
-2. Install dependencies:
+---
 
-```bash
-npm install
-```
+## Product Requirements Document (PRD)
 
-3. Create a Supabase project.
-4. Copy `.env.example` to `.env.local`.
-5. Set:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `SUPABASE_SERVICE_ROLE_KEY` or `SUPABASE_SECRET_KEY`
+For comprehensive architectural specifications, database schemas, API contracts, and UX standards, review the full specification document:
+👉 **[Read the Full PRD (PRD.md)](./PRD.md)**
 
-6. Run the database schema:
+---
 
-```bash
-supabase db reset --schema-only
-# or run the SQL in supabase/schema.sql manually
-```
+## Visual Design & UI System
 
-7. Start the dev server:
+* **Strict Light Mode:** Clean, pure-white canvas (`#FFFFFF`) with subtle off-white layering (`#F8FAFC`) and hairline borders (`#E2E8F0`). *No dark mode.*
+* **Enterprise Layout:** Inspired by modern executive dashboards (collapsible grouped sidebar, top command search bar `⌘K`, role context badge `Working as Staff` vs `Working as Tech Support`).
+* **Design Accents:** High-contrast lime/neon active pills (`#D4F868`) and teal status indicators (`#0D9488`).
+* **Mobile-First PWA:** Fully responsive across mobile, tablet, and desktop with standalone Progressive Web App installation support.
 
-```bash
-npm run dev
-```
+---
 
-8. Open `http://localhost:3000`.
+## Authentication & Onboarding Workflow
 
-## Supabase setup
+* **Domain Restriction:** Strictly enforced for verified `@r4cglobal.org` email accounts.
+* **Admin-Provisioned Accounts:** Super Admins create accounts with a **default temporary password** (`status: 'pending'`).
+* **Mandatory Password Creation:** On first sign-in, users are locked onto the `/change-password` screen and must set a permanent password before portal access is granted.
 
-1. Run `supabase/schema.sql` in the Supabase SQL editor.
-2. Run `supabase/import-google-sheet.sql` if you want the sample inventory import.
-3. Update placeholder super-admin email entries in `department_users` to your real admin addresses.
-4. Use the service-role key only in server-side code, not in client components.
+---
 
-## Developer onboarding
+## Engineering & Collaboration Guidelines (Git Policy)
 
-- `src/app/` contains the Next.js App Router pages and API routes.
-- `src/components/` contains reusable UI and feature views.
-- `src/lib/` contains backend helpers, data access, and business logic abstractions.
-- `src/types/` contains shared TypeScript models and domain types.
+To maintain code quality across multiple contributors:
 
-## Folder structure
+1. **Zero Direct Pushes to `main`:** All work must be conducted on feature branches.
+2. **Branch Naming Pattern:** `feature/issue-<number>-<short-description>` (e.g., `feature/issue-03-device-registration`).
+3. **Mandatory Implementation Plan:** Every contributor must write an implementation plan (files impacted, database/API contracts, UI states, test plan) before writing code.
+4. **Pull Requests Only:** Changes must be submitted via PR targeting `main`, linked to the corresponding issue (`Closes #X`). Only the project lead / admin merges to `main`.
+5. **Strict Code Quality:** Modular directory layout, strict TypeScript (no `any`), and reusable UI primitives.
 
-```
-src/
-├── app/
-│   ├── (app)/              # authenticated routes for dashboard, categories, checkouts, access
-│   ├── api/                # server route handlers
-│   ├── login/              # login page
-│   ├── change-password/    # forced password setup for pending users
-├── components/             # UI and feature components
-├── lib/                    # shared helpers and data layer
-└── types/                  # TypeScript domain types
-```
+---
 
-## Notes
+## Tech Stack
 
-- New members are invited by a super-admin as pending users. They sign in once with a temporary password and are prompted to set a permanent password on first login.
-- Super-admins control user access and can only be changed through the admin access page.
+* **Frontend:** Next.js (App Router), React, Vanilla CSS / Tailwind utilities, Lucide React Icons.
+* **Backend:** Next.js Route Handlers (`src/app/api/`).
+* **Database & Auth:** Supabase PostgreSQL with Service Role Administration.
+* **PWA:** Web App Manifest & Service Worker for installability.
+* **Deployment:** Vercel.
 
-## Run production
+---
 
-```bash
-npm run build
-npm run start
-```
+## Quick Start (Local Development)
 
-> Note: This project uses webpack for build and dev, not Turbopack, due to the PWA plugin compatibility.
+1. Clone the repository and install dependencies:
+   ```bash
+   git clone https://github.com/E310-Tech-Team/E310-Inventory-App.git
+   cd E310-Inventory-App
+   npm install
+   ```
+
+2. Configure environment variables in `.env.local`:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+   ```
+
+3. Run the database schema in Supabase:
+   * Execute `supabase/schema.sql` in the Supabase SQL Editor.
+
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
