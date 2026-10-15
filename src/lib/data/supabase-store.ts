@@ -66,6 +66,7 @@ function fromUserRow(row: DepartmentUserRow): DepartmentUser {
     id: row.id,
     name: row.name,
     email: row.email,
+    passwordHash: row.password_hash,
     role: row.role,
     status: row.status,
     invitedBy: row.invited_by,
