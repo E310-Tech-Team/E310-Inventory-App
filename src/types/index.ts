@@ -106,3 +106,38 @@ export interface StaffDevice {
     priority: string;
   } | null;
 }
+
+export type ComplaintStatus =
+  | "pending"
+  | "assigned"
+  | "in-progress"
+  | "waiting-parts"
+  | "resolved"
+  | "closed";
+
+export type ComplaintPriority = "low" | "medium" | "high" | "critical";
+
+export interface DeviceComplaint {
+  id: string;
+  ticketNumber: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  userDepartment?: string | null;
+  itemId?: string | null;
+  itemName?: string | null;
+  itemSerial?: string | null;
+  title: string;
+  description: string;
+  issueType: string;
+  priority: ComplaintPriority;
+  status: ComplaintStatus;
+  attachmentUrls?: string[];
+  assignedTechId?: string | null;
+  assignedTechName?: string | null;
+  techNotes?: string | null;
+  resolutionSummary?: string | null;
+  resolvedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
