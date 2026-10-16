@@ -40,3 +40,18 @@ export async function destroySession(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE);
 }
+
+export function isStaffUser(user: DepartmentUser): boolean {
+  return user.role === "viewer";
+}
+
+export function isTechUser(user: DepartmentUser): boolean {
+  return user.role === "super-admin" || user.role === "team-member";
+}
+
+export function getPortalRoute(user: DepartmentUser): string {
+  if (user.status === "pending") {
+    return "/change-password";
+  }
+  return isTechUser(user) ? "/tech" : "/staff";
+}

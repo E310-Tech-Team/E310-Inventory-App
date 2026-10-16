@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth/session";
+import { getSession, isTechUser } from "@/lib/auth/session";
 import { AppShell } from "@/components/layout/AppShell";
 
 export default async function AppLayout({
@@ -13,8 +13,13 @@ export default async function AppLayout({
     redirect("/login");
   }
 
-  if (admin.role !== "super-admin" && admin.status === "pending") {
+  if (admin.status === "pending") {
     redirect("/change-password");
+  }
+
+  // Staff members are restricted to the Staff Portal
+  if (!isTechUser(admin)) {
+    redirect("/staff");
   }
 
   return <AppShell admin={admin}>{children}</AppShell>;

@@ -30,7 +30,9 @@ export function LoginForm({ setupError }: { setupError?: string | null }) {
     }
 
     const data = await response.json().catch(() => null);
-    if (data?.mustChangePassword) {
+    if (data?.redirectUrl) {
+      router.push(data.redirectUrl);
+    } else if (data?.mustChangePassword) {
       router.push("/change-password");
     } else {
       router.push("/");

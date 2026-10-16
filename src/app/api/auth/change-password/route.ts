@@ -40,7 +40,11 @@ export async function POST(request: NextRequest) {
 
   try {
     await dataStore.updateUser(user.id, { passwordHash, status: "active" });
-    return NextResponse.json({ success: true });
+    const isTech = user.role === "super-admin" || user.role === "team-member";
+    return NextResponse.json({
+      success: true,
+      redirectUrl: isTech ? "/tech" : "/staff",
+    });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unable to change password" },

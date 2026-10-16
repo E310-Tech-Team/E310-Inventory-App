@@ -19,29 +19,60 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Enforce strict @r4cglobal.org domain restriction
+    if (!normalizedEmail.endsWith("@r4cglobal.org")) {
+      return NextResponse.json(
+        { error: "Access restricted. Only @r4cglobal.org email addresses are permitted." },
+        { status: 403 }
+      );
+    }
+
     if (password !== undefined && typeof password !== "string") {
       return NextResponse.json({ error: "Password must be a string" }, { status: 400 });
     }
 
-    const user = await dataStore.getUserByEmail(email.trim().toLowerCase());
+    const user = await dataStore.getUserByEmail(normalizedEmail);
     if (!user) {
       return NextResponse.json(
-        { error: "No active access for this email. Ask an admin to validate your email." },
+        { error: "No active access for this email. Contact your administrator." },
+        { status: 403 }
+      );
+    }
+
+    if (user.status === "inactive") {
+      return NextResponse.json(
+        { error: "Your account is inactive. Please contact an administrator." },
         { status: 403 }
       );
     }
 
     // Super-admins and bootstrap accounts without a password hash can sign in
     // directly. Onboarded users still need their temporary password once.
-    const passwordlessAccess = user.role === "super-admin" || (user.status === "active" && !user.passwordHash);
+    const passwordlessAccess = user.role === "super-admin" && !user.passwordHash;
     if (passwordlessAccess) {
       await createSession(user.id);
-      return NextResponse.json({ success: true, isPasswordless: true });
+      const isTech = user.role === "super-admin" || user.role === "team-member";
+      return NextResponse.json({
+        success: true,
+        isPasswordless: true,
+        mustChangePassword: false,
+        role: user.role,
+        redirectUrl: isTech ? "/tech" : "/staff",
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          status: user.status,
+        },
+      });
     }
 
-    if (user.status === "inactive" || !user.passwordHash) {
+    if (!user.passwordHash) {
       return NextResponse.json(
-        { error: "No active access for this email. Ask an admin to validate your email." },
+        { error: "No password configured for this account. Contact an administrator." },
         { status: 403 }
       );
     }
@@ -67,8 +98,22 @@ export async function POST(request: NextRequest) {
     // time. They are allowed to hold a session only to reach the forced
     // password-change page, where they'll set a permanent password.
     const mustChangePassword = user.status === "pending";
+    const isTech = user.role === "super-admin" || user.role === "team-member";
+    const redirectUrl = mustChangePassword ? "/change-password" : isTech ? "/tech" : "/staff";
 
-    return NextResponse.json({ success: true, mustChangePassword });
+    return NextResponse.json({
+      success: true,
+      mustChangePassword,
+      role: user.role,
+      redirectUrl,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+      },
+    });
   } catch (error) {
     console.error("Login failed", error);
     return NextResponse.json(

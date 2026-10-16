@@ -1,18 +1,12 @@
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth/session";
-import { AppShell } from "@/components/layout/AppShell";
-import { HomePage } from "@/components/home/HomePage";
+import { getPortalRoute, getSession } from "@/lib/auth/session";
 
 export default async function RootPage() {
-  const admin = await getSession();
+  const user = await getSession();
 
-  if (!admin) {
+  if (!user) {
     redirect("/login");
   }
 
-  return (
-    <AppShell admin={admin}>
-      <HomePage admin={admin} />
-    </AppShell>
-  );
+  redirect(getPortalRoute(user));
 }

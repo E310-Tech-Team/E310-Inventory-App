@@ -46,7 +46,8 @@ export function ChangePasswordForm() {
       return;
     }
 
-    router.push("/");
+    const redirectTarget = data?.redirectUrl ?? "/";
+    router.push(redirectTarget);
     router.refresh();
   }
 
