@@ -81,3 +81,24 @@ export interface ItemWithDetails extends Item {
   categoryName: string;
   activeCheckout: Checkout | null;
 }
+
+export interface StaffDevice {
+  checkoutId: string;
+  itemId: string;
+  name: string;
+  categoryName: string;
+  serialNumber: string | null;
+  identifierType: ItemIdentifierType | null;
+  identifierValue: string | null;
+  condition: ItemCondition;
+  dateCollected: string;
+  dueDate: string | null;
+  status: CheckoutStatus;
+  activeComplaint?: {
+    id: string;
+    ticketNumber: string;
+    title: string;
+    status: string;
+    priority: string;
+  } | null;
+}
