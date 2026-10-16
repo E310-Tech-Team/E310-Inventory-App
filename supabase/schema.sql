@@ -59,6 +59,29 @@ create table if not exists public.checkouts (
   status text not null check (status in ('active', 'returned', 'overdue'))
 );
 
+create sequence if not exists public.device_complaint_ticket_seq start with 1 increment by 1;
+
+create table if not exists public.device_complaints (
+  id uuid primary key default gen_random_uuid(),
+  ticket_number text unique not null default (
+    'TKT-' || to_char(now(), 'YYYY') || '-' || lpad(nextval('public.device_complaint_ticket_seq'::regclass)::text, 4, '0')
+  ),
+  user_id uuid not null references public.department_users(id) on delete cascade,
+  item_id uuid references public.items(id) on delete set null,
+  device_summary text not null check (char_length(trim(device_summary)) > 0),
+  issue_type text not null check (char_length(trim(issue_type)) > 0),
+  severity text not null check (severity in ('low', 'medium', 'high', 'critical')),
+  title text not null check (char_length(trim(title)) > 0),
+  description text not null check (char_length(trim(description)) > 0),
+  attachment_urls text[] default '{}',
+  status text not null default 'submitted' check (status in ('submitted', 'under-review', 'in-repair', 'resolved', 'cancelled')),
+  assigned_tech_id uuid references public.department_users(id) on delete set null,
+  resolution_notes text,
+  resolved_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create index if not exists idx_department_users_status on public.department_users(status);
 create index if not exists idx_department_users_role_status on public.department_users(role, status);
 create index if not exists idx_items_category_id on public.items(category_id);
@@ -66,6 +89,11 @@ create index if not exists idx_items_status on public.items(status);
 create index if not exists idx_checkouts_item_id on public.checkouts(item_id);
 create index if not exists idx_checkouts_status on public.checkouts(status);
 create index if not exists idx_checkouts_collected_by on public.checkouts(collected_by);
+create index if not exists idx_device_complaints_user_id on public.device_complaints(user_id);
+create index if not exists idx_device_complaints_item_id on public.device_complaints(item_id);
+create index if not exists idx_device_complaints_status on public.device_complaints(status);
+create index if not exists idx_device_complaints_assigned_tech on public.device_complaints(assigned_tech_id);
+create index if not exists idx_device_complaints_created_at on public.device_complaints(created_at desc);
 
 create or replace function public.set_updated_at()
 returns trigger
@@ -82,20 +110,29 @@ create trigger set_department_users_updated_at
 before update on public.department_users
 for each row execute function public.set_updated_at();
 
+drop trigger if exists set_device_complaints_updated_at on public.device_complaints;
+create trigger set_device_complaints_updated_at
+before update on public.device_complaints
+for each row execute function public.set_updated_at();
+
 alter table public.department_users enable row level security;
 alter table public.categories enable row level security;
 alter table public.items enable row level security;
 alter table public.checkouts enable row level security;
+alter table public.device_complaints enable row level security;
 
 revoke all on public.department_users from anon, authenticated;
 revoke all on public.categories from anon, authenticated;
 revoke all on public.items from anon, authenticated;
 revoke all on public.checkouts from anon, authenticated;
+revoke all on public.device_complaints from anon, authenticated;
 
 grant select, insert, update, delete on public.department_users to service_role;
 grant select, insert, update, delete on public.categories to service_role;
 grant select, insert, update, delete on public.items to service_role;
 grant select, insert, update, delete on public.checkouts to service_role;
+grant select, insert, update, delete on public.device_complaints to service_role;
+grant usage, select on sequence public.device_complaint_ticket_seq to service_role;
 
 insert into public.department_users (name, email, role, status, invited_by)
 values
