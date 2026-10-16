@@ -94,6 +94,38 @@ create table if not exists public.portal_options (
   constraint uq_portal_options_group_value unique (category_group, value)
 );
 
+create table if not exists public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  recipient_id uuid not null references public.department_users(id) on delete cascade,
+  title text not null check (char_length(trim(title)) > 0),
+  message text not null check (char_length(trim(message)) > 0),
+  notification_type text not null check (
+    notification_type in (
+      'complaint_logged',
+      'complaint_assigned',
+      'complaint_status_changed',
+      'device_registered',
+      'device_approved',
+      'system_alert'
+    )
+  ),
+  link_url text,
+  is_read boolean not null default false,
+  email_sent boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.audit_logs (
+  id uuid primary key default gen_random_uuid(),
+  actor_id uuid references public.department_users(id) on delete set null,
+  actor_name text not null check (char_length(trim(actor_name)) > 0),
+  action_type text not null check (char_length(trim(action_type)) > 0),
+  entity_type text not null check (char_length(trim(entity_type)) > 0),
+  entity_id text not null,
+  details jsonb default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
 create index if not exists idx_department_users_status on public.department_users(status);
 create index if not exists idx_department_users_role_status on public.department_users(role, status);
 create index if not exists idx_items_category_id on public.items(category_id);
@@ -107,6 +139,12 @@ create index if not exists idx_device_complaints_status on public.device_complai
 create index if not exists idx_device_complaints_assigned_tech on public.device_complaints(assigned_tech_id);
 create index if not exists idx_device_complaints_created_at on public.device_complaints(created_at desc);
 create index if not exists idx_portal_options_group on public.portal_options(category_group, is_active, display_order);
+create index if not exists idx_notifications_recipient_unread on public.notifications(recipient_id, is_read, created_at desc);
+create index if not exists idx_notifications_created_at on public.notifications(created_at desc);
+create index if not exists idx_audit_logs_actor on public.audit_logs(actor_id);
+create index if not exists idx_audit_logs_action_type on public.audit_logs(action_type);
+create index if not exists idx_audit_logs_entity on public.audit_logs(entity_type, entity_id);
+create index if not exists idx_audit_logs_created_at on public.audit_logs(created_at desc);
 
 create or replace function public.set_updated_at()
 returns trigger
@@ -139,6 +177,8 @@ alter table public.items enable row level security;
 alter table public.checkouts enable row level security;
 alter table public.device_complaints enable row level security;
 alter table public.portal_options enable row level security;
+alter table public.notifications enable row level security;
+alter table public.audit_logs enable row level security;
 
 revoke all on public.department_users from anon, authenticated;
 revoke all on public.categories from anon, authenticated;
@@ -146,6 +186,8 @@ revoke all on public.items from anon, authenticated;
 revoke all on public.checkouts from anon, authenticated;
 revoke all on public.device_complaints from anon, authenticated;
 revoke all on public.portal_options from anon, authenticated;
+revoke all on public.notifications from anon, authenticated;
+revoke all on public.audit_logs from anon, authenticated;
 
 grant select, insert, update, delete on public.department_users to service_role;
 grant select, insert, update, delete on public.categories to service_role;
@@ -153,6 +195,8 @@ grant select, insert, update, delete on public.items to service_role;
 grant select, insert, update, delete on public.checkouts to service_role;
 grant select, insert, update, delete on public.device_complaints to service_role;
 grant select, insert, update, delete on public.portal_options to service_role;
+grant select, insert, update, delete on public.notifications to service_role;
+grant select, insert, update, delete on public.audit_logs to service_role;
 grant usage, select on sequence public.device_complaint_ticket_seq to service_role;
 
 insert into public.department_users (name, email, role, status, invited_by)
