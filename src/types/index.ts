@@ -40,6 +40,8 @@ export interface Category {
   createdAt: string;
 }
 
+export type ApprovalStatus = "pending" | "approved" | "rejected";
+
 export interface Item {
   id: string;
   categoryId: string;
@@ -51,6 +53,8 @@ export interface Item {
   status: ItemStatus;
   condition: ItemCondition;
   notes: string | null;
+  registeredByStaff?: boolean;
+  approvalStatus?: ApprovalStatus;
   createdBy: string;
   createdAt: string;
 }

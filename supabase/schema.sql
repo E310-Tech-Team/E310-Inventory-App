@@ -40,6 +40,8 @@ create table if not exists public.items (
   status text not null check (status in ('available', 'checked-out', 'low-stock')),
   condition text not null check (condition in ('new', 'good', 'fair', 'damaged')),
   notes text,
+  registered_by_staff boolean not null default false,
+  approval_status text not null default 'approved' check (approval_status in ('pending', 'approved', 'rejected')),
   created_by text not null,
   created_at timestamptz not null default now()
 );
@@ -135,6 +137,7 @@ create index if not exists idx_department_users_staff_id on public.department_us
 create index if not exists idx_department_users_department on public.department_users(department);
 create index if not exists idx_items_category_id on public.items(category_id);
 create index if not exists idx_items_status on public.items(status);
+create index if not exists idx_items_registered_by_staff on public.items(registered_by_staff, approval_status);
 create index if not exists idx_checkouts_item_id on public.checkouts(item_id);
 create index if not exists idx_checkouts_status on public.checkouts(status);
 create index if not exists idx_checkouts_collected_by on public.checkouts(collected_by);
