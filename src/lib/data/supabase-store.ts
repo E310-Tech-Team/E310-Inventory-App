@@ -38,6 +38,8 @@ interface ItemRow {
   status: Item["status"];
   condition: Item["condition"];
   notes: string | null;
+  registered_by_staff?: boolean;
+  approval_status?: Item["approvalStatus"];
   created_by: string | null;
   created_at: string;
 }
@@ -160,6 +162,8 @@ function fromItemRow(row: ItemRow): Item {
     status: row.status,
     condition: row.condition,
     notes: row.notes,
+    registeredByStaff: row.registered_by_staff ?? false,
+    approvalStatus: row.approval_status ?? "approved",
     createdBy: row.created_by ?? "",
     createdAt: row.created_at,
   };
@@ -176,6 +180,8 @@ function toItemInsertRow(data: Omit<Item, "id" | "createdAt">): Omit<ItemRow, "i
     status: data.status,
     condition: data.condition,
     notes: data.notes,
+    registered_by_staff: data.registeredByStaff ?? false,
+    approval_status: data.approvalStatus ?? "approved",
     created_by: data.createdBy,
   };
 }
@@ -191,6 +197,8 @@ function toItemUpdateRow(data: Partial<Item>): Partial<ItemRow> {
     ...(data.status !== undefined ? { status: data.status } : {}),
     ...(data.condition !== undefined ? { condition: data.condition } : {}),
     ...(data.notes !== undefined ? { notes: data.notes } : {}),
+    ...(data.registeredByStaff !== undefined ? { registered_by_staff: data.registeredByStaff } : {}),
+    ...(data.approvalStatus !== undefined ? { approval_status: data.approvalStatus } : {}),
     ...(data.createdBy !== undefined ? { created_by: data.createdBy } : {}),
   };
 }
