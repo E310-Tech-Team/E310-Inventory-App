@@ -15,6 +15,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { Admin, DeviceComplaint, Item, Checkout } from "@/types";
+import { LiveActivityTimeline } from "./LiveActivityTimeline";
 
 interface DashboardMetrics {
   totalAssets: number;
@@ -384,6 +385,9 @@ export function TechDashboard({ admin }: { admin: Admin }) {
             </div>
           )}
         </div>
+
+        {/* Real-Time Live Activity Feed */}
+        <LiveActivityTimeline />
       </div>
     </div>
   );
