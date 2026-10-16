@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession, isTechUser } from "@/lib/auth/session";
+import { AppShell } from "@/components/layout/AppShell";
+import { TechDashboard } from "@/components/tech/TechDashboard";
 
 export default async function TechPortalRoot() {
   const user = await getSession();
@@ -17,6 +19,9 @@ export default async function TechPortalRoot() {
     redirect("/staff");
   }
 
-  // Active tech team members land directly on the tech inventory dashboard
-  redirect("/dashboard");
+  return (
+    <AppShell admin={user}>
+      <TechDashboard admin={user} />
+    </AppShell>
+  );
 }
