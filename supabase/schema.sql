@@ -82,6 +82,18 @@ create table if not exists public.device_complaints (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.portal_options (
+  id uuid primary key default gen_random_uuid(),
+  category_group text not null check (char_length(trim(category_group)) > 0),
+  label text not null check (char_length(trim(label)) > 0),
+  value text not null check (char_length(trim(value)) > 0),
+  is_active boolean not null default true,
+  display_order integer not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint uq_portal_options_group_value unique (category_group, value)
+);
+
 create index if not exists idx_department_users_status on public.department_users(status);
 create index if not exists idx_department_users_role_status on public.department_users(role, status);
 create index if not exists idx_items_category_id on public.items(category_id);
@@ -94,6 +106,7 @@ create index if not exists idx_device_complaints_item_id on public.device_compla
 create index if not exists idx_device_complaints_status on public.device_complaints(status);
 create index if not exists idx_device_complaints_assigned_tech on public.device_complaints(assigned_tech_id);
 create index if not exists idx_device_complaints_created_at on public.device_complaints(created_at desc);
+create index if not exists idx_portal_options_group on public.portal_options(category_group, is_active, display_order);
 
 create or replace function public.set_updated_at()
 returns trigger
@@ -115,23 +128,31 @@ create trigger set_device_complaints_updated_at
 before update on public.device_complaints
 for each row execute function public.set_updated_at();
 
+drop trigger if exists set_portal_options_updated_at on public.portal_options;
+create trigger set_portal_options_updated_at
+before update on public.portal_options
+for each row execute function public.set_updated_at();
+
 alter table public.department_users enable row level security;
 alter table public.categories enable row level security;
 alter table public.items enable row level security;
 alter table public.checkouts enable row level security;
 alter table public.device_complaints enable row level security;
+alter table public.portal_options enable row level security;
 
 revoke all on public.department_users from anon, authenticated;
 revoke all on public.categories from anon, authenticated;
 revoke all on public.items from anon, authenticated;
 revoke all on public.checkouts from anon, authenticated;
 revoke all on public.device_complaints from anon, authenticated;
+revoke all on public.portal_options from anon, authenticated;
 
 grant select, insert, update, delete on public.department_users to service_role;
 grant select, insert, update, delete on public.categories to service_role;
 grant select, insert, update, delete on public.items to service_role;
 grant select, insert, update, delete on public.checkouts to service_role;
 grant select, insert, update, delete on public.device_complaints to service_role;
+grant select, insert, update, delete on public.portal_options to service_role;
 grant usage, select on sequence public.device_complaint_ticket_seq to service_role;
 
 insert into public.department_users (name, email, role, status, invited_by)
@@ -228,3 +249,47 @@ values
     'overdue'
   )
 on conflict (id) do nothing;
+
+insert into public.portal_options (category_group, label, value, is_active, display_order)
+values
+  -- Device Types
+  ('device_type', 'Laptop', 'laptop', true, 1),
+  ('device_type', 'Smartphone / Mobile', 'smartphone', true, 2),
+  ('device_type', 'Tablet', 'tablet', true, 3),
+  ('device_type', 'Monitor / Display', 'monitor', true, 4),
+  ('device_type', 'Peripheral / Accessory', 'peripheral', true, 5),
+  ('device_type', 'Network Equipment', 'network-equipment', true, 6),
+  ('device_type', 'Audio / Video Equipment', 'av-equipment', true, 7),
+  ('device_type', 'Other', 'other', true, 8),
+
+  -- Device Brands
+  ('device_brand', 'Apple', 'apple', true, 1),
+  ('device_brand', 'HP', 'hp', true, 2),
+  ('device_brand', 'Dell', 'dell', true, 3),
+  ('device_brand', 'Lenovo', 'lenovo', true, 4),
+  ('device_brand', 'Samsung', 'samsung', true, 5),
+  ('device_brand', 'Logitech', 'logitech', true, 6),
+  ('device_brand', 'Canon', 'canon', true, 7),
+  ('device_brand', 'Other', 'other', true, 8),
+
+  -- Issue Categories / Types
+  ('issue_type', 'Screen / Display Damage', 'screen-damage', true, 1),
+  ('issue_type', 'Battery / Charging Issue', 'battery-charging', true, 2),
+  ('issue_type', 'Operating System / Boot Failure', 'os-boot-failure', true, 3),
+  ('issue_type', 'Physical Hardware Damage', 'hardware-damage', true, 4),
+  ('issue_type', 'Keyboard / Trackpad Malfunction', 'keyboard-trackpad', true, 5),
+  ('issue_type', 'Audio / Camera Fault', 'audio-camera', true, 6),
+  ('issue_type', 'Overheating / Fan Noise', 'overheating', true, 7),
+  ('issue_type', 'Lost or Stolen Device', 'lost-stolen', true, 8),
+  ('issue_type', 'Other Technical Issue', 'other', true, 9),
+
+  -- Organization Departments
+  ('department', 'Executive & Leadership', 'executive', true, 1),
+  ('department', 'Software & Engineering', 'engineering', true, 2),
+  ('department', 'Media & Communications', 'media', true, 3),
+  ('department', 'Operations & Logistics', 'operations', true, 4),
+  ('department', 'Programs & Projects', 'programs', true, 5),
+  ('department', 'Finance & Administration', 'finance', true, 6),
+  ('department', 'Human Resources', 'hr', true, 7)
+on conflict (category_group, value) do nothing;
+
