@@ -10,6 +10,9 @@ interface DepartmentUserRow {
   role: DepartmentUser["role"];
   status: DepartmentUser["status"];
   invited_by: string | null;
+  staff_id: string | null;
+  phone: string | null;
+  department: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -70,6 +73,9 @@ function fromUserRow(row: DepartmentUserRow): DepartmentUser {
     role: row.role,
     status: row.status,
     invitedBy: row.invited_by,
+    staffId: row.staff_id,
+    phone: row.phone,
+    department: row.department,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -85,6 +91,9 @@ function toUserInsertRow(
     role: data.role,
     status: data.status,
     invited_by: data.invitedBy,
+    staff_id: data.staffId ?? null,
+    phone: data.phone ?? null,
+    department: data.department ?? null,
   };
 }
 
@@ -96,6 +105,9 @@ function toUserUpdateRow(data: Partial<DepartmentUser>): Partial<DepartmentUserR
     ...(data.status !== undefined ? { status: data.status } : {}),
     ...(data.passwordHash !== undefined ? { password_hash: data.passwordHash } : {}),
     ...(data.invitedBy !== undefined ? { invited_by: data.invitedBy } : {}),
+    ...(data.staffId !== undefined ? { staff_id: data.staffId } : {}),
+    ...(data.phone !== undefined ? { phone: data.phone } : {}),
+    ...(data.department !== undefined ? { department: data.department } : {}),
     updated_at: new Date().toISOString(),
   };
 }

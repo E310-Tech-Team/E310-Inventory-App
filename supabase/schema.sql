@@ -4,11 +4,14 @@ create extension if not exists citext;
 create table if not exists public.department_users (
   id uuid primary key default gen_random_uuid(),
   name text not null check (char_length(trim(name)) > 0),
-  email citext not null unique,
+  email citext not null unique check (email like '%@r4cglobal.org'),
   password_hash text,
   role text not null check (role in ('super-admin', 'team-member', 'viewer')),
   status text not null default 'active' check (status in ('active', 'inactive', 'pending')),
   invited_by text,
+  staff_id text,
+  phone text,
+  department text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -128,6 +131,8 @@ create table if not exists public.audit_logs (
 
 create index if not exists idx_department_users_status on public.department_users(status);
 create index if not exists idx_department_users_role_status on public.department_users(role, status);
+create index if not exists idx_department_users_staff_id on public.department_users(staff_id);
+create index if not exists idx_department_users_department on public.department_users(department);
 create index if not exists idx_items_category_id on public.items(category_id);
 create index if not exists idx_items_status on public.items(status);
 create index if not exists idx_checkouts_item_id on public.checkouts(item_id);
@@ -199,16 +204,18 @@ grant select, insert, update, delete on public.notifications to service_role;
 grant select, insert, update, delete on public.audit_logs to service_role;
 grant usage, select on sequence public.device_complaint_ticket_seq to service_role;
 
-insert into public.department_users (name, email, role, status, invited_by)
+insert into public.department_users (name, email, role, status, invited_by, staff_id, department)
 values
-  ('Department Lead', 'boss@department.local', 'super-admin', 'active', null),
-  ('Goodness', 'goodnessezekiel@theincubatorhub.org', 'super-admin', 'active', 'Department Lead'),
-  ('Admin 2', 'admin2@department.local', 'team-member', 'active', 'Department Lead')
+  ('Department Lead', 'boss@r4cglobal.org', 'super-admin', 'active', null, 'R4C-001', 'Executive & Leadership'),
+  ('Goodness', 'goodness.ezekiel@r4cglobal.org', 'super-admin', 'active', 'Department Lead', 'R4C-002', 'Software & Engineering'),
+  ('Admin 2', 'admin2@r4cglobal.org', 'team-member', 'active', 'Department Lead', 'R4C-003', 'Operations & Logistics')
 on conflict (email) do update set
   name = excluded.name,
   role = excluded.role,
   status = excluded.status,
-  invited_by = excluded.invited_by;
+  invited_by = excluded.invited_by,
+  staff_id = excluded.staff_id,
+  department = excluded.department;
 
 insert into public.categories (id, name, tracking_type, return_type, low_stock_threshold, created_by, created_at)
 values
@@ -265,7 +272,7 @@ values
     'Goodness',
     'Goodness',
     '+234 800 000 0001',
-    'goodnessezekiel@theincubatorhub.org',
+    'goodness.ezekiel@r4cglobal.org',
     'good',
     null,
     '2026-06-01T10:00:00.000Z',
@@ -282,7 +289,7 @@ values
     'Admin 2',
     'Admin 2',
     '+234 800 000 0002',
-    'admin2@department.local',
+    'admin2@r4cglobal.org',
     'good',
     'For product shoot',
     '2026-07-18T10:00:00.000Z',
