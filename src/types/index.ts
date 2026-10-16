@@ -21,6 +21,9 @@ export interface DepartmentUser {
   role: UserRole;
   status: UserStatus;
   invitedBy: string | null;
+  staffId?: string | null;
+  phone?: string | null;
+  department?: string | null;
   createdAt: string;
   updatedAt: string;
 }
