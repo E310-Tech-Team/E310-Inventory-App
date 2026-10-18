@@ -42,11 +42,15 @@ export async function destroySession(): Promise<void> {
 }
 
 export function isStaffUser(user: DepartmentUser): boolean {
-  return user.role === "viewer";
+  return user.role === "staff" || user.role === "viewer";
 }
 
 export function isTechUser(user: DepartmentUser): boolean {
-  return user.role === "super-admin" || user.role === "team-member";
+  return (
+    user.role === "super-admin" ||
+    user.role === "tech-support" ||
+    user.role === "team-member"
+  );
 }
 
 export function getPortalRoute(user: DepartmentUser): string {
