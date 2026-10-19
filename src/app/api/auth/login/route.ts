@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     // directly. Onboarded users still need their temporary password once.
     const passwordlessAccess = user.role === "super-admin" && !user.passwordHash;
     if (passwordlessAccess) {
-      await createSession(user.id);
+      await createSession(user);
       const isTech = user.role === "super-admin" || user.role === "team-member";
       return NextResponse.json({
         success: true,
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
     }
 
-    await createSession(user.id);
+    await createSession(user);
 
     // Pending users are signing in with their temporary password for the first
     // time. They are allowed to hold a session only to reach the forced

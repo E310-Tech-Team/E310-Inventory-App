@@ -7,7 +7,8 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test:email": "npx tsx src/lib/email/__tests__/email-service.test.ts"
+    "test:email": "npx tsx src/lib/email/__tests__/email-service.test.ts",
+    "test:security": "npx tsx src/lib/__tests__/route-guards.test.ts"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",

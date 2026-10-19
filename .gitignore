@@ -41,3 +41,13 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 src/mock-data-store/db.json
+
+# pwa generated build outputs
+public/sw.js
+public/sw.js.map
+public/workbox-*.js
+public/workbox-*.js.map
+public/fallback-*.js
+public/fallback-*.js.map
+public/swe-worker-*.js
+
