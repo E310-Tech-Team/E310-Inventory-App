@@ -1,8 +1,13 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getSession, isTechUser } from "@/lib/auth/session";
-import { Monitor, AlertCircle, PlusCircle, LogOut, ShieldCheck } from "lucide-react";
+import { getSupabaseAdminClient, hasSupabaseConfig } from "@/lib/supabase/server";
+import { StaffDevice, DeviceComplaint } from "@/types";
+import { E310Logo } from "@/components/common/E310Logo";
+import { RoleContextBadge } from "@/components/common/RoleContextBadge";
 import { NotificationBell } from "@/components/layout/NotificationBell";
+import { StaffDashboard } from "@/components/staff/StaffDashboard";
+import { AlertCircle, LogOut, ShieldCheck } from "lucide-react";
 
 export default async function StaffPortalPage({
   searchParams,
@@ -21,103 +26,169 @@ export default async function StaffPortalPage({
     redirect("/change-password");
   }
 
+  let initialDevices: StaffDevice[] = [];
+  let initialComplaints: DeviceComplaint[] = [];
+
+  if (hasSupabaseConfig()) {
+    try {
+      const supabase = getSupabaseAdminClient();
+
+      // Fetch active devices in custody
+      const { data: checkoutRows } = await supabase
+        .from("checkouts")
+        .select(`
+          id,
+          item_id,
+          date_collected,
+          due_date,
+          status,
+          item:items (
+            id,
+            name,
+            serial_number,
+            identifier_type,
+            identifier_value,
+            condition,
+            category:categories (
+              name
+            )
+          )
+        `)
+        .ilike("assigned_to_email", user.email)
+        .in("status", ["active", "overdue"])
+        .order("date_collected", { ascending: false });
+
+      if (checkoutRows) {
+        initialDevices = checkoutRows
+          .filter((row: any) => row.item)
+          .map((row: any) => ({
+            checkoutId: row.id,
+            itemId: row.item_id,
+            name: row.item?.name ?? "Hardware Device",
+            categoryName: row.item?.category?.name ?? "General Equipment",
+            serialNumber: row.item?.serial_number ?? null,
+            identifierType: row.item?.identifier_type ?? null,
+            identifierValue: row.item?.identifier_value ?? null,
+            condition: row.item?.condition ?? "good",
+            dateCollected: row.date_collected,
+            dueDate: row.due_date,
+            status: row.status,
+          }));
+      }
+
+      // Fetch staff complaints
+      const { data: complaintRows } = await supabase
+        .from("device_complaints")
+        .select(`
+          id,
+          ticket_number,
+          user_id,
+          user_name,
+          user_email,
+          item_id,
+          title,
+          description,
+          issue_type,
+          priority,
+          status,
+          created_at,
+          updated_at
+        `)
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (complaintRows) {
+        initialComplaints = complaintRows.map((c: any) => ({
+          id: c.id,
+          ticketNumber: c.ticket_number,
+          userId: c.user_id,
+          userName: c.user_name,
+          userEmail: c.user_email,
+          itemId: c.item_id,
+          title: c.title,
+          description: c.description,
+          issueType: c.issue_type,
+          priority: c.priority,
+          status: c.status,
+          createdAt: c.created_at,
+          updatedAt: c.updated_at,
+        }));
+      }
+    } catch (err) {
+      console.warn("Could not load initial staff data during SSR:", err);
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-white text-foreground">
+    <div className="min-h-screen bg-[#090d16] text-white selection:bg-emerald-500/30 selection:text-white">
+      {/* 403 Forbidden Access Restricted Banner */}
       {isForbidden && (
-        <div className="bg-amber-500/10 border-b border-amber-500/20 px-6 py-2.5 text-center text-xs font-semibold text-amber-700">
-          <AlertCircle className="w-4 h-4 inline mr-1.5 -mt-0.5" />
-          Access Restricted (403 Forbidden): The Tech Command Center is reserved exclusively for IT team members.
+        <div className="bg-amber-500/10 border-b border-amber-500/20 px-6 py-2.5 text-center text-xs font-semibold text-amber-300 backdrop-blur-md">
+          <AlertCircle className="w-4 h-4 inline mr-1.5 -mt-0.5 text-amber-400" />
+          Access Restricted (403 Forbidden): The Tech Command Center is reserved exclusively for IT team specialists.
         </div>
       )}
-      {/* Top Header */}
-      <header className="border-b border-border bg-white px-6 py-4">
-        <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-white shadow-sm">
-              <Monitor className="h-5 w-5" />
-            </div>
-            <div>
-              <h1 className="text-base font-semibold text-foreground">R4C Global Staff Portal</h1>
-              <p className="text-xs text-muted">Self-Service Device & Support Hub</p>
+
+      {/* Top Navigation Bar with E310 Branding & Role Context */}
+      <header className="border-b border-white/[0.08] bg-neutral-900/60 backdrop-blur-xl px-6 py-4 sticky top-0 z-30">
+        <div className="mx-auto flex max-w-6xl items-center justify-between">
+          <div className="flex items-center gap-6">
+            <Link href="/staff" className="flex items-center">
+              <E310Logo size="md" />
+            </Link>
+
+            <div className="hidden md:flex items-center gap-1.5">
+              <Link
+                href="/staff"
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-white/[0.08] transition-colors"
+              >
+                Dashboard
+              </Link>
+              <Link
+                href="/staff/devices"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-neutral-400 hover:text-white hover:bg-white/[0.04] transition-colors"
+              >
+                My Devices
+              </Link>
             </div>
           </div>
-          <div className="flex items-center space-x-4">
+
+          <div className="flex items-center gap-3.5">
+            <RoleContextBadge
+              role={user.role}
+              currentPortal="staff"
+              canSwitchPortal={isTechUser(user)}
+            />
+
+            <div className="h-4 w-[1px] bg-white/[0.1]" />
+
             <NotificationBell />
-            {isTechUser(user) && (
-              <Link
-                href="/tech"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold shadow-sm transition-colors"
-                title="Switch back to Tech Command Center"
-              >
-                <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-                <span>Tech Command Center</span>
-              </Link>
-            )}
-            <div className="text-right">
-              <p className="text-sm font-medium text-foreground">{user.name}</p>
-              <p className="text-xs text-muted">{user.email}</p>
+
+            <div className="hidden sm:block text-right">
+              <p className="text-xs font-semibold text-white">{user.name}</p>
+              <p className="text-[11px] font-mono text-neutral-400">{user.email}</p>
             </div>
+
             <form action="/api/auth/logout" method="POST">
               <button
                 type="submit"
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted hover:bg-neutral-50 hover:text-foreground transition-colors"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] text-neutral-400 hover:bg-neutral-800 hover:text-white transition-colors pressable"
                 title="Sign out"
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className="h-3.5 w-3.5" />
               </button>
             </form>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="mx-auto max-w-5xl px-6 py-8">
-        <div className="mb-8 rounded-2xl border border-border bg-surface p-6 shadow-sm">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-semibold text-foreground">Welcome back, {user.name}</h2>
-              <p className="mt-1 text-sm text-muted">
-                {user.department ?? "R4C Global Team"} {user.staffId ? `• Staff ID: ${user.staffId}` : ""}
-              </p>
-            </div>
-            <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 border border-emerald-200">
-              Active Staff Account
-            </span>
-          </div>
-        </div>
-
-        {/* Quick Actions Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="rounded-xl border border-border bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600 mb-4">
-              <Monitor className="h-5 w-5" />
-            </div>
-            <h3 className="text-base font-semibold text-foreground">My Assigned Devices</h3>
-            <p className="mt-1 text-xs text-muted">
-              View custody status, serial numbers, and return dates for all your active office hardware.
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-border bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 mb-4">
-              <PlusCircle className="h-5 w-5" />
-            </div>
-            <h3 className="text-base font-semibold text-foreground">Register New Device</h3>
-            <p className="mt-1 text-xs text-muted">
-              Self-register personal or newly procured work devices for tech review and approval.
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-border bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-rose-50 text-rose-600 mb-4">
-              <AlertCircle className="h-5 w-5" />
-            </div>
-            <h3 className="text-base font-semibold text-foreground">Report Hardware Issue</h3>
-            <p className="mt-1 text-xs text-muted">
-              Log a ticket with the E310 Tech Agency for device malfunctions, screen damage, or battery issues.
-            </p>
-          </div>
-        </div>
+      {/* Main Content Cockpit */}
+      <main className="mx-auto max-w-6xl px-6 py-8">
+        <StaffDashboard
+          user={user}
+          initialDevices={initialDevices}
+          initialComplaints={initialComplaints}
+        />
       </main>
     </div>
   );
