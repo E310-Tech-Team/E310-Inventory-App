@@ -68,8 +68,8 @@ export function isStaffUser(user: DepartmentUser): boolean {
 export function isTechUser(user: DepartmentUser): boolean {
   return (
     user.role === "super-admin" ||
-    user.role === "team-member" ||
-    (user.role as string) === "tech-support"
+    user.role === "tech-support" ||
+    user.role === "team-member"
   );
 }
 

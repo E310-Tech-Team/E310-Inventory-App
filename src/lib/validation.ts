@@ -22,7 +22,13 @@ const ITEM_IDENTIFIER_TYPES: ItemIdentifierType[] = [
   "model-number",
   "other",
 ];
-const USER_ROLES: UserRole[] = ["super-admin", "team-member", "viewer"];
+const USER_ROLES: UserRole[] = [
+  "super-admin",
+  "tech-support",
+  "staff",
+  "team-member",
+  "viewer",
+];
 const USER_STATUSES: UserStatus[] = ["active", "inactive", "pending"];
 
 export function cleanString(value: unknown): string {
