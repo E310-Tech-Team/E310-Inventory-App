@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/session";
 import { getSupabaseAdminClient, hasSupabaseConfig } from "@/lib/supabase/server";
+import { dispatchAsyncEmail, sendNewComplaintEmail } from "@/lib/email/service";
 
 export async function GET() {
   try {
@@ -171,7 +172,7 @@ export async function POST(request: NextRequest) {
     try {
       const { data: techMembers } = await supabase
         .from("department_users")
-        .select("id")
+        .select("id, email, name")
         .in("role", ["super-admin", "team-member"])
         .eq("status", "active");
 
@@ -181,12 +182,53 @@ export async function POST(request: NextRequest) {
           title: `New Ticket [${ticketNumber}]`,
           message: `${user.name} reported: "${newComplaint.title}" (${newComplaint.issue_type})`,
           notification_type: "complaint_logged",
-          link_url: `/tech/complaints/${newComplaint.id}`,
+          link_url: `/tech`,
           is_read: false,
-          email_sent: false,
+          email_sent: true,
         }));
 
         await supabase.from("notifications").insert(notifications);
+
+        // Fetch equipment name if linked
+        let deviceName: string | null = null;
+        let serialNumber: string | null = null;
+        if (newComplaint.item_id) {
+          const { data: item } = await supabase
+            .from("items")
+            .select("name, serial_number, identifier_value")
+            .eq("id", newComplaint.item_id)
+            .maybeSingle();
+          if (item) {
+            deviceName = item.name;
+            serialNumber = item.serial_number || item.identifier_value;
+          }
+        }
+
+        // Asynchronously dispatch email alerts to all tech support specialists
+        const techEmails = techMembers
+          .map((m) => m.email)
+          .filter((e): e is string => Boolean(e && e.includes("@")));
+
+        if (techEmails.length > 0) {
+          dispatchAsyncEmail(
+            sendNewComplaintEmail(
+              {
+                ticketNumber,
+                staffName: user.name,
+                staffEmail: user.email,
+                staffDepartment: user.department,
+                title: newComplaint.title,
+                description: newComplaint.description,
+                issueType: newComplaint.issue_type,
+                priority: newComplaint.priority,
+                deviceName,
+                serialNumber,
+              },
+              techEmails
+            ),
+            `New complaint alert [${ticketNumber}]`
+          );
+        }
       }
     } catch (techNotifErr) {
       console.warn("Failed to notify tech members of new complaint:", techNotifErr);
@@ -199,9 +241,9 @@ export async function POST(request: NextRequest) {
         title: `Ticket Logged [${ticketNumber}]`,
         message: `Your support request "${newComplaint.title}" has been registered and is pending IT triage.`,
         notification_type: "complaint_logged",
-        link_url: `/staff/complaints/${newComplaint.id}`,
+        link_url: `/staff`,
         is_read: false,
-        email_sent: false,
+        email_sent: true,
       });
     } catch (staffNotifErr) {
       console.warn("Failed to notify staff member of ticket confirmation:", staffNotifErr);

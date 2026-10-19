@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/session";
 import { getSupabaseAdminClient, hasSupabaseConfig } from "@/lib/supabase/server";
+import { dispatchAsyncEmail, sendTicketAssignedEmail } from "@/lib/email/service";
 
 export async function POST(
   request: NextRequest,
@@ -175,7 +176,7 @@ export async function POST(
         notification_type: "complaint_assigned",
         link_url: `/tech`,
         is_read: false,
-        email_sent: false,
+        email_sent: true,
       });
     } catch (notifErr) {
       console.warn("Failed to notify assigned technician:", notifErr);
@@ -191,12 +192,34 @@ export async function POST(
           notification_type: "complaint_status_changed",
           link_url: `/staff`,
           is_read: false,
-          email_sent: false,
+          email_sent: true,
         });
       } catch (staffNotifErr) {
         console.warn("Failed to notify submitting staff member:", staffNotifErr);
       }
     }
+
+    // 7. Dispatch asynchronous multi-channel email alerts (Technician + Staff)
+    const assignedItem = Array.isArray(updatedTicket.item)
+      ? updatedTicket.item[0]
+      : updatedTicket.item;
+
+    dispatchAsyncEmail(
+      sendTicketAssignedEmail({
+        ticketNumber: updatedTicket.ticket_number,
+        technicianName: technician.name,
+        technicianEmail: technician.email,
+        staffName: updatedTicket.user_name || "Staff Member",
+        staffEmail: updatedTicket.user_email || "",
+        title: updatedTicket.title || updatedTicket.issue_type,
+        issueType: updatedTicket.issue_type,
+        priority: updatedTicket.priority,
+        triageNotes: trimmedNotes || null,
+        assignedByName: user.name,
+        deviceName: assignedItem?.name,
+      }),
+      `Ticket assignment dispatch [${updatedTicket.ticket_number}]`
+    );
 
     // 7. Record delegation event in audit_logs
     try {
