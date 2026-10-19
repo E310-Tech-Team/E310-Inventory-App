@@ -141,3 +141,14 @@ export interface DeviceComplaint {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface PortalOption {
+  id: string;
+  categoryGroup: string;
+  label: string;
+  value: string;
+  isActive: boolean;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
