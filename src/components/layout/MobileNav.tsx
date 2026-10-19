@@ -6,11 +6,10 @@ import {
   LayoutDashboard,
   Boxes,
   ArrowLeftRight,
-  Home,
   UserRoundCog,
   FileSpreadsheet,
-  ShieldCheck,
   Package,
+  ShieldCheck,
   Monitor,
 } from "lucide-react";
 import { Admin } from "@/types";

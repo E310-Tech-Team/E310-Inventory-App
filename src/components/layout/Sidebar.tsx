@@ -7,7 +7,6 @@ import {
   Boxes,
   Package,
   ArrowLeftRight,
-  Home,
   LogOut,
   UserRoundCog,
   FileSpreadsheet,
