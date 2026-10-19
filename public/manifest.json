@@ -1,13 +1,61 @@
 {
-  "name": "EThree10 Inventory App",
-  "short_name": "EThree10",
-  "description": "EThree10 department equipment and supplies inventory tracker",
-  "start_url": "/dashboard",
+  "name": "E310 Inventory",
+  "short_name": "E310",
+  "description": "EThree10 department equipment, custody, and support ticket management hub",
+  "start_url": "/?source=pwa",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#fafaf9",
-  "theme_color": "#15803d",
+  "orientation": "portrait-primary",
+  "background_color": "#0F172A",
+  "theme_color": "#FFFFFF",
+  "categories": ["business", "productivity", "utilities"],
   "icons": [
-    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Tech Command Center",
+      "short_name": "Command Center",
+      "description": "Open hardware ticket triage queue and specialist workbench",
+      "url": "/tech",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Staff Portal",
+      "short_name": "Staff Hub",
+      "description": "Self-service device management and repair requests",
+      "url": "/staff",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Inventory Catalog",
+      "short_name": "Inventory",
+      "description": "Browse and search hardware assets",
+      "url": "/items",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
   ]
 }
