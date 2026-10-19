@@ -6,6 +6,10 @@ const withPWA = withPWAInit({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
   cacheOnFrontEndNav: true,
+  aggressiveFrontEndNavCaching: true,
+  fallbacks: {
+    document: "/offline.html",
+  },
 });
 
 const nextConfig: NextConfig = {
