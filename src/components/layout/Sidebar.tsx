@@ -14,17 +14,19 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   ShieldCheck,
+  Monitor,
 } from "lucide-react";
 import { Admin } from "@/types";
 import { ThemeToggle } from "./ThemeToggle";
 
 const NAV_ITEMS = [
-  { href: "/", label: "Home", icon: Home },
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/tech", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/items", label: "Inventory", icon: Package },
   { href: "/tech/approvals", label: "Approvals", icon: ShieldCheck },
   { href: "/categories", label: "Categories", icon: Boxes },
   { href: "/checkouts", label: "Checkouts", icon: ArrowLeftRight },
   { href: "/exports", label: "Exports", icon: FileSpreadsheet },
+  { href: "/staff", label: "Staff Portal", icon: Monitor },
 ];
 
 export function Sidebar({
