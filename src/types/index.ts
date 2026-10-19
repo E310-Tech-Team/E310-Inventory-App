@@ -10,7 +10,9 @@ export type ItemIdentifierType =
   | "imei"
   | "model-number"
   | "other";
-export type UserRole = "super-admin" | "team-member" | "viewer";
+export type DualPortalRole = "super-admin" | "tech-support" | "staff";
+export type LegacyUserRole = "team-member" | "viewer";
+export type UserRole = DualPortalRole | LegacyUserRole;
 export type UserStatus = "active" | "inactive" | "pending";
 
 export interface DepartmentUser {
@@ -119,7 +121,8 @@ export type ComplaintStatus =
   | "waiting-parts"
   | "closed";
 
-export type ComplaintPriority = "low" | "medium" | "high" | "critical";
+export type ComplaintSeverity = "low" | "medium" | "high" | "critical";
+export type ComplaintPriority = ComplaintSeverity;
 
 export interface DeviceComplaint {
   id: string;
@@ -131,15 +134,18 @@ export interface DeviceComplaint {
   itemId?: string | null;
   itemName?: string | null;
   itemSerial?: string | null;
+  deviceSummary?: string;
   title: string;
   description: string;
   issueType: string;
+  severity?: ComplaintSeverity;
   priority: ComplaintPriority;
   status: ComplaintStatus;
   attachmentUrls?: string[];
   assignedTechId?: string | null;
   assignedTechName?: string | null;
   techNotes?: string | null;
+  resolutionNotes?: string | null;
   resolutionSummary?: string | null;
   resolvedAt?: string | null;
   createdAt: string;
@@ -154,7 +160,38 @@ export interface PortalOption {
   isActive: boolean;
   displayOrder: number;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
+}
+
+export type NotificationType =
+  | "complaint_logged"
+  | "complaint_assigned"
+  | "complaint_status_changed"
+  | "device_registered"
+  | "device_approved"
+  | "system_alert";
+
+export interface Notification {
+  id: string;
+  recipientId: string;
+  title: string;
+  message: string;
+  notificationType: NotificationType;
+  linkUrl?: string | null;
+  isRead: boolean;
+  emailSent: boolean;
+  createdAt: string;
+}
+
+export interface AuditLog {
+  id: string;
+  actorId: string | null;
+  actorName: string;
+  actionType: string;
+  entityType: string;
+  entityId: string;
+  details?: Record<string, unknown> | null;
+  createdAt: string;
 }
 
 export type NotificationType =
