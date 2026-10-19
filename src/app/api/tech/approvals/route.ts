@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
     const itemIds = (items || []).map((i) => i.id);
 
     // Fetch associated checkout records to find the submitting staff member
-    let checkoutsMap: Record<string, any> = {};
+    const checkoutsMap: Record<string, any> = {};
     if (itemIds.length > 0) {
       const { data: checkouts, error: checkoutsError } = await supabase
         .from("checkouts")

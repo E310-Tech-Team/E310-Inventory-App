@@ -2,7 +2,9 @@ import { cookies } from "next/headers";
 import { DepartmentUser } from "@/types";
 import { dataStore } from "@/lib/data";
 
-const SESSION_COOKIE = "inventory_user_id";
+export const SESSION_COOKIE = "inventory_user_id";
+export const ROLE_COOKIE = "inventory_user_role";
+export const STATUS_COOKIE = "inventory_user_status";
 
 export async function getSession(): Promise<DepartmentUser | null> {
   const cookieStore = await cookies();
@@ -26,27 +28,49 @@ export async function getSession(): Promise<DepartmentUser | null> {
   return user;
 }
 
-export async function createSession(userId: string): Promise<void> {
+export async function createSession(
+  userOrId: DepartmentUser | string,
+  role?: string,
+  status?: string
+): Promise<void> {
   const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE, userId, {
+  const userId = typeof userOrId === "string" ? userOrId : userOrId.id;
+  const userRole = typeof userOrId === "object" ? userOrId.role : role;
+  const userStatus = typeof userOrId === "object" ? userOrId.status : status;
+
+  const cookieOptions = {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "lax" as const,
     path: "/",
     maxAge: 60 * 60 * 24 * 30,
-  });
+  };
+
+  cookieStore.set(SESSION_COOKIE, userId, cookieOptions);
+  if (userRole) {
+    cookieStore.set(ROLE_COOKIE, userRole, cookieOptions);
+  }
+  if (userStatus) {
+    cookieStore.set(STATUS_COOKIE, userStatus, cookieOptions);
+  }
 }
 
 export async function destroySession(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE);
+  cookieStore.delete(ROLE_COOKIE);
+  cookieStore.delete(STATUS_COOKIE);
 }
 
 export function isStaffUser(user: DepartmentUser): boolean {
-  return user.role === "viewer";
+  return !isTechUser(user);
 }
 
 export function isTechUser(user: DepartmentUser): boolean {
-  return user.role === "super-admin" || user.role === "team-member";
+  return (
+    user.role === "super-admin" ||
+    user.role === "team-member" ||
+    (user.role as string) === "tech-support"
+  );
 }
 
 export function getPortalRoute(user: DepartmentUser): string {

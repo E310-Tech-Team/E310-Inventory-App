@@ -4,7 +4,13 @@ import { getSession, isTechUser } from "@/lib/auth/session";
 import { Monitor, AlertCircle, PlusCircle, LogOut, ShieldCheck } from "lucide-react";
 import { NotificationBell } from "@/components/layout/NotificationBell";
 
-export default async function StaffPortalPage() {
+export default async function StaffPortalPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ forbidden?: string }>;
+}) {
+  const params = await searchParams;
+  const isForbidden = params?.forbidden === "true";
   const user = await getSession();
 
   if (!user) {
@@ -17,6 +23,12 @@ export default async function StaffPortalPage() {
 
   return (
     <div className="min-h-screen bg-white text-foreground">
+      {isForbidden && (
+        <div className="bg-amber-500/10 border-b border-amber-500/20 px-6 py-2.5 text-center text-xs font-semibold text-amber-700">
+          <AlertCircle className="w-4 h-4 inline mr-1.5 -mt-0.5" />
+          Access Restricted (403 Forbidden): The Tech Command Center is reserved exclusively for IT team members.
+        </div>
+      )}
       {/* Top Header */}
       <header className="border-b border-border bg-white px-6 py-4">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
