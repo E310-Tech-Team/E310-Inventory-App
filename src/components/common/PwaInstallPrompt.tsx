@@ -90,75 +90,55 @@ export function PwaInstallPrompt() {
   return (
     <aside
       aria-label="Install E310 Inventory App"
-      className="fixed bottom-20 md:bottom-6 right-4 left-4 md:left-auto md:w-96 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300"
+      className="fixed bottom-4 right-4 z-50 animate-fade-in max-w-sm"
     >
-      <div className="bg-surface/95 dark:bg-neutral-900/95 backdrop-blur-md border border-border shadow-2xl rounded-2xl p-4 text-foreground transition-all">
+      <div className="bg-zinc-900 border border-zinc-800 shadow-lg rounded-xl p-3.5 text-zinc-200">
         <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-accent text-white flex items-center justify-center shrink-0 shadow-md">
-              <Download className="w-5 h-5" />
+          <div className="flex items-start gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center shrink-0 text-zinc-300">
+              <Download className="w-4 h-4" />
             </div>
             <div>
-              <div className="flex items-center gap-1.5">
-                <h4 className="font-semibold text-sm leading-tight">Install E310 Inventory</h4>
-                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-accent-soft text-accent">
-                  <Sparkles className="w-2.5 h-2.5" /> PWA
-                </span>
-              </div>
-              <p className="text-xs text-muted mt-1 leading-normal">
-                Install as a standalone app for instant launch, badge notifications, and offline access.
+              <h4 className="font-medium text-xs text-zinc-100">Install E310 Inventory</h4>
+              <p className="text-xs text-zinc-400 mt-0.5 leading-normal">
+                Install as a standalone app for fast access and offline viewing.
               </p>
             </div>
           </div>
           <button
             onClick={handleDismiss}
             aria-label="Dismiss install prompt"
-            className="p-1 rounded-lg text-muted hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            className="p-1 rounded-md text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
 
         {showIOSInstructions ? (
-          <div className="mt-3 p-3 bg-neutral-100 dark:bg-neutral-800/80 rounded-xl text-xs space-y-2 border border-border">
-            <p className="font-semibold text-foreground">How to install on iPhone / iPad:</p>
-            <div className="flex items-center gap-2 text-muted">
-              <span className="w-5 h-5 rounded-full bg-surface flex items-center justify-center font-bold text-[10px] text-foreground shrink-0 border border-border">
-                1
-              </span>
-              <span>
-                Tap the <Share className="w-3.5 h-3.5 inline mx-1 text-accent" /> Share button in Safari.
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-muted">
-              <span className="w-5 h-5 rounded-full bg-surface flex items-center justify-center font-bold text-[10px] text-foreground shrink-0 border border-border">
-                2
-              </span>
-              <span>
-                Scroll down and tap <PlusSquare className="w-3.5 h-3.5 inline mx-1 text-accent" /> &ldquo;Add to Home Screen&rdquo;.
-              </span>
-            </div>
+          <div className="mt-3 p-2.5 bg-zinc-800/60 rounded-lg text-xs space-y-1.5 border border-zinc-700/60 text-zinc-300">
+            <p className="font-medium text-zinc-200">How to install on iOS:</p>
+            <p className="text-zinc-400">1. Tap the Share button in Safari.</p>
+            <p className="text-zinc-400">2. Tap &ldquo;Add to Home Screen&rdquo;.</p>
             <button
               onClick={() => setShowIOSInstructions(false)}
-              className="mt-2 text-[11px] text-accent font-semibold hover:underline block text-right w-full"
+              className="text-xs text-zinc-300 hover:text-white font-medium block text-right w-full pt-1"
             >
               Got it
             </button>
           </div>
         ) : (
-          <div className="mt-3 flex items-center gap-2 justify-end">
+          <div className="mt-3 flex items-center justify-end gap-2">
             <button
               onClick={handleDismiss}
-              className="px-3 py-1.5 text-xs font-medium text-muted hover:text-foreground transition-colors"
+              className="text-xs text-zinc-400 hover:text-zinc-200 px-2.5 py-1"
             >
               Maybe later
             </button>
             <button
               onClick={handleInstallClick}
-              className="px-4 py-1.5 rounded-lg bg-accent hover:bg-accent/90 text-white text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5"
+              className="text-xs font-medium bg-zinc-100 hover:bg-white text-zinc-950 px-3 py-1.5 rounded-md transition-colors"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span>Install App</span>
+              Install App
             </button>
           </div>
         )}
