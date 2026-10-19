@@ -1,6 +1,7 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth/session";
-import { Monitor, AlertCircle, PlusCircle, LogOut } from "lucide-react";
+import { getSession, isTechUser } from "@/lib/auth/session";
+import { Monitor, AlertCircle, PlusCircle, LogOut, ShieldCheck } from "lucide-react";
 
 export default async function StaffPortalPage() {
   const user = await getSession();
@@ -28,6 +29,16 @@ export default async function StaffPortalPage() {
             </div>
           </div>
           <div className="flex items-center space-x-4">
+            {isTechUser(user) && (
+              <Link
+                href="/tech"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold shadow-sm transition-colors"
+                title="Switch back to Tech Command Center"
+              >
+                <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+                <span>Tech Command Center</span>
+              </Link>
+            )}
             <div className="text-right">
               <p className="text-sm font-medium text-foreground">{user.name}</p>
               <p className="text-xs text-muted">{user.email}</p>

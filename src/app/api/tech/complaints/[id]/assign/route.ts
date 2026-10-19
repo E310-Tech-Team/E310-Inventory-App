@@ -35,7 +35,7 @@ export async function POST(
       return NextResponse.json({ error: "Invalid request payload" }, { status: 400 });
     }
 
-    const { assignedTechId, notes } = body;
+    const { assignedTechId, notes, priority } = body;
 
     if (!assignedTechId || typeof assignedTechId !== "string" || assignedTechId.trim().length === 0) {
       return NextResponse.json(
@@ -102,17 +102,63 @@ export async function POST(
       ? `${existingTechNotes}\n${delegationNote}`
       : delegationNote;
 
+    const validPriorities = ["low", "medium", "high", "critical", "urgent"];
+    const normalizedPriority =
+      priority && typeof priority === "string"
+        ? priority.toLowerCase() === "urgent"
+          ? "critical"
+          : priority.toLowerCase()
+        : undefined;
+
+    const updateFields: Record<string, any> = {
+      assigned_tech_id: technician.id,
+      status: nextStatus,
+      tech_notes: updatedTechNotes,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (normalizedPriority && validPriorities.includes(normalizedPriority)) {
+      updateFields.priority = normalizedPriority;
+    }
+
     // 4. Update complaint
     const { data: updatedTicket, error: updateError } = await supabase
       .from("device_complaints")
-      .update({
-        assigned_tech_id: technician.id,
-        status: nextStatus,
-        tech_notes: updatedTechNotes,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateFields)
       .eq("id", id)
-      .select()
+      .select(`
+        id,
+        ticket_number,
+        user_id,
+        user_name,
+        user_email,
+        user_department,
+        item_id,
+        title,
+        description,
+        issue_type,
+        priority,
+        status,
+        attachment_urls,
+        assigned_tech_id,
+        tech_notes,
+        resolution_summary,
+        resolved_at,
+        created_at,
+        updated_at,
+        item:items (
+          id,
+          name,
+          serial_number,
+          identifier_type,
+          identifier_value
+        ),
+        assigned_tech:department_users!assigned_tech_id (
+          id,
+          name,
+          email
+        )
+      `)
       .single();
 
     if (updateError) {
