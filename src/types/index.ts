@@ -108,11 +108,15 @@ export interface StaffDevice {
 }
 
 export type ComplaintStatus =
+  | "submitted"
+  | "under-review"
+  | "in-repair"
+  | "resolved"
+  | "cancelled"
   | "pending"
   | "assigned"
   | "in-progress"
   | "waiting-parts"
-  | "resolved"
   | "closed";
 
 export type ComplaintPriority = "low" | "medium" | "high" | "critical";
