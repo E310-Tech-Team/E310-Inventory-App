@@ -1,11 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { LogOut, Package } from "lucide-react";
+import { LogOut, Package, Search } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { NotificationBell } from "./NotificationBell";
 
-export function MobileHeader() {
+export function MobileHeader({ onOpenSearch }: { onOpenSearch?: () => void }) {
   const router = useRouter();
 
   async function handleLogout() {
@@ -24,6 +24,16 @@ export function MobileHeader() {
           <span className="font-semibold text-sm leading-tight">EThree10 Inventory</span>
         </div>
         <div className="flex items-center gap-2">
+          {onOpenSearch && (
+            <button
+              onClick={onOpenSearch}
+              title="Search devices, tickets, staff"
+              aria-label="Search"
+              className="pressable p-2 rounded-lg border border-border bg-surface text-muted hover:bg-background hover:text-foreground transition-colors"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+          )}
           <NotificationBell />
           <ThemeToggle compact />
           <button
