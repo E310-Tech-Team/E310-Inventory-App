@@ -120,59 +120,59 @@ export default async function StaffPortalPage({
   }
 
   return (
-    <div className="min-h-screen bg-[#090d16] text-white selection:bg-emerald-500/30 selection:text-white">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 selection:bg-zinc-800 selection:text-white">
       {/* 403 Forbidden Access Restricted Banner */}
       {isForbidden && (
-        <div className="bg-amber-500/10 border-b border-amber-500/20 px-6 py-2.5 text-center text-xs font-semibold text-amber-300 backdrop-blur-md">
-          <AlertCircle className="w-4 h-4 inline mr-1.5 -mt-0.5 text-amber-400" />
-          Access Restricted (403 Forbidden): The Tech Command Center is reserved exclusively for IT team specialists.
+        <div className="bg-amber-500/10 border-b border-amber-500/20 px-6 py-2 text-center text-xs text-amber-300">
+          <AlertCircle className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5 text-amber-400" />
+          Access Restricted: The Tech Command Center is reserved for IT specialists.
         </div>
       )}
 
-      {/* Top Navigation Bar with E310 Branding & Role Context */}
-      <header className="border-b border-white/[0.08] bg-neutral-900/60 backdrop-blur-xl px-6 py-4 sticky top-0 z-30">
+      {/* Top Navigation Bar */}
+      <header className="border-b border-zinc-800/80 bg-zinc-900/50 backdrop-blur-md px-6 py-3 sticky top-0 z-30">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <div className="flex items-center gap-6">
             <Link href="/staff" className="flex items-center">
-              <E310Logo size="md" />
+              <E310Logo size="sm" />
             </Link>
 
-            <div className="hidden md:flex items-center gap-1.5">
+            <nav className="hidden md:flex items-center gap-1">
               <Link
                 href="/staff"
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-white/[0.08] transition-colors"
+                className="px-2.5 py-1 rounded-md text-xs font-medium text-white bg-zinc-800"
               >
                 Dashboard
               </Link>
               <Link
                 href="/staff/devices"
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-neutral-400 hover:text-white hover:bg-white/[0.04] transition-colors"
+                className="px-2.5 py-1 rounded-md text-xs font-medium text-zinc-400 hover:text-zinc-200 transition-colors"
               >
                 My Devices
               </Link>
-            </div>
+            </nav>
           </div>
 
-          <div className="flex items-center gap-3.5">
+          <div className="flex items-center gap-3">
             <RoleContextBadge
               role={user.role}
               currentPortal="staff"
               canSwitchPortal={isTechUser(user)}
             />
 
-            <div className="h-4 w-[1px] bg-white/[0.1]" />
+            <div className="h-3.5 w-[1px] bg-zinc-800" />
 
             <NotificationBell />
 
             <div className="hidden sm:block text-right">
-              <p className="text-xs font-semibold text-white">{user.name}</p>
-              <p className="text-[11px] font-mono text-neutral-400">{user.email}</p>
+              <p className="text-xs font-medium text-zinc-200">{user.name}</p>
+              <p className="text-[11px] text-zinc-400">{user.email}</p>
             </div>
 
             <form action="/api/auth/logout" method="POST">
               <button
                 type="submit"
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] text-neutral-400 hover:bg-neutral-800 hover:text-white transition-colors pressable"
+                className="flex h-7 w-7 items-center justify-center rounded-md border border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors"
                 title="Sign out"
               >
                 <LogOut className="h-3.5 w-3.5" />
@@ -182,7 +182,7 @@ export default async function StaffPortalPage({
         </div>
       </header>
 
-      {/* Main Content Cockpit */}
+      {/* Main Content */}
       <main className="mx-auto max-w-6xl px-6 py-8">
         <StaffDashboard
           user={user}

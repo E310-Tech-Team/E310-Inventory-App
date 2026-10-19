@@ -15,13 +15,9 @@ import {
   HardDrive,
   Copy,
   Check,
-  Calendar,
   AlertTriangle,
-  PlusCircle,
-  Clock,
-  ShieldCheck,
+  Plus,
   Wrench,
-  Sparkles,
 } from "lucide-react";
 
 interface MyDevicesListProps {
@@ -68,53 +64,53 @@ export function MyDevicesList({ devices, onRefresh }: MyDevicesListProps) {
 
   return (
     <div className="space-y-6">
-      {/* Action Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-zinc-800">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+          <h2 className="text-xl font-semibold text-zinc-100 flex items-center gap-2">
             <span>My Assigned Equipment</span>
-            <span className="text-xs font-mono font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
-              {devices.length} {devices.length === 1 ? "device" : "devices"}
+            <span className="text-xs px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-400">
+              {devices.length}
             </span>
           </h2>
-          <p className="text-xs text-neutral-400 mt-1">
-            Official hardware issued into your custody with real-time status and warranty support.
+          <p className="text-xs text-zinc-400 mt-1">
+            Hardware items currently registered in your custody.
           </p>
         </div>
 
         <Button
-          variant="secondary"
+          variant="primary"
           size="sm"
-          leftIcon={<PlusCircle className="w-4 h-4 text-emerald-400" />}
+          leftIcon={<Plus className="w-3.5 h-3.5" />}
           onClick={() => setIsRegisterOpen(true)}
         >
-          Register Another Device
+          Register New Device
         </Button>
       </div>
 
-      {/* Device Cards Grid */}
+      {/* Device List */}
       {devices.length === 0 ? (
-        <Card className="text-center py-12 px-6 flex flex-col items-center justify-center space-y-4">
-          <div className="h-16 w-16 rounded-2xl bg-neutral-800/80 border border-white/[0.08] flex items-center justify-center text-neutral-400 shadow-inner">
-            <HardDrive className="w-8 h-8 text-neutral-500" />
+        <Card className="text-center py-12 px-6 border-dashed border-zinc-800 space-y-3">
+          <div className="mx-auto w-10 h-10 rounded-full bg-zinc-800/80 flex items-center justify-center text-zinc-400">
+            <HardDrive className="w-5 h-5" />
           </div>
-          <div className="max-w-md space-y-1.5">
-            <h3 className="text-base font-semibold text-white">No Assigned Devices Found</h3>
-            <p className="text-xs text-neutral-400">
-              You currently do not have any registered hardware in your custody. If you have an office laptop or phone, you can self-register it now.
+          <div className="space-y-1">
+            <h3 className="text-sm font-medium text-zinc-200">No Devices Found</h3>
+            <p className="text-xs text-zinc-400 max-w-sm mx-auto">
+              You do not have any registered hardware in your custody. If you have an office device, you can self-register it.
             </p>
           </div>
           <Button
-            variant="primary"
-            size="md"
-            leftIcon={<PlusCircle className="w-4 h-4" />}
+            variant="outline"
+            size="sm"
             onClick={() => setIsRegisterOpen(true)}
+            leftIcon={<Plus className="w-3.5 h-3.5" />}
           >
-            Register My Device
+            Register Device
           </Button>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {devices.map((device) => {
             const Icon = getDeviceIcon(device.name, device.categoryName);
             const isOverdue = device.status === "overdue";
@@ -123,80 +119,69 @@ export function MyDevicesList({ devices, onRefresh }: MyDevicesListProps) {
             return (
               <Card
                 key={device.checkoutId || device.itemId}
-                className="flex flex-col justify-between space-y-4 group"
+                className="p-4 flex flex-col justify-between space-y-4"
               >
                 <div>
-                  {/* Top Header */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="h-11 w-11 rounded-xl bg-neutral-800/90 border border-white/[0.08] flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform">
-                        <Icon className="w-5 h-5" />
+                      <div className="w-9 h-9 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-300 shrink-0">
+                        <Icon className="w-4 h-4" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-semibold">
-                            {device.categoryName || "Hardware Asset"}
+                          <span className="text-xs text-zinc-400">
+                            {device.categoryName || "Device"}
                           </span>
-                          <span className="text-neutral-600">•</span>
-                          <span className="text-[11px] font-mono text-neutral-400 capitalize">
-                            Condition: {device.condition || "Good"}
+                          <span className="text-zinc-600">•</span>
+                          <span className="text-xs text-zinc-400 capitalize">
+                            {device.condition || "Good"}
                           </span>
                         </div>
-                        <h3 className="text-base font-semibold text-white tracking-tight mt-0.5">
+                        <h3 className="text-sm font-medium text-zinc-100 mt-0.5">
                           {device.name}
                         </h3>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5">
-                      {isOverdue ? (
-                        <Badge variant="overdue" label="OVERDUE" />
-                      ) : (
-                        <Badge variant="active" label="IN CUSTODY" />
-                      )}
-                    </div>
+                    <Badge
+                      variant={isOverdue ? "overdue" : "active"}
+                      label={isOverdue ? "Overdue" : "In Custody"}
+                    />
                   </div>
 
-                  {/* Serial Number & Custody Details */}
-                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-neutral-950/40 border border-white/[0.05]">
-                      <span className="text-[11px] font-mono text-neutral-400">SERIAL NO</span>
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                    <div className="p-2 rounded-md bg-zinc-800/40 border border-zinc-800">
+                      <span className="text-[11px] text-zinc-500 block">Serial</span>
                       <button
                         onClick={() => copyToClipboard(device.serialNumber || "N/A")}
-                        className="inline-flex items-center gap-1.5 font-mono text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors pressable"
-                        title="Click to copy serial number"
+                        className="font-mono text-xs text-zinc-300 hover:text-white flex items-center gap-1 mt-0.5"
+                        title="Click to copy serial"
                       >
-                        <span>{device.serialNumber || "UNTAGGED"}</span>
+                        <span>{device.serialNumber || "None"}</span>
                         {copiedSerial === device.serialNumber ? (
-                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          <Check className="w-3 h-3 text-emerald-400" />
                         ) : (
-                          <Copy className="w-3 h-3 text-neutral-500" />
+                          <Copy className="w-3 h-3 text-zinc-500" />
                         )}
                       </button>
                     </div>
 
-                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-neutral-950/40 border border-white/[0.05]">
-                      <span className="text-[11px] font-mono text-neutral-400">COLLECTED</span>
-                      <span className="font-mono text-xs text-neutral-200">
+                    <div className="p-2 rounded-md bg-zinc-800/40 border border-zinc-800">
+                      <span className="text-[11px] text-zinc-500 block">Assigned Date</span>
+                      <span className="text-xs text-zinc-300 block mt-0.5">
                         {formatCustodyDate(device.dateCollected)}
                       </span>
                     </div>
                   </div>
 
-                  {/* Active Ticket Banner */}
                   {hasActiveComplaint && device.activeComplaint && (
-                    <div className="mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2.5">
-                      <Wrench className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                    <div className="mt-3 p-2.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 flex items-start gap-2">
+                      <Wrench className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-wide">
-                            {device.activeComplaint.ticketNumber} • {device.activeComplaint.status}
-                          </span>
-                          <span className="text-[10px] font-mono text-neutral-400 capitalize">
-                            {device.activeComplaint.priority} Priority
-                          </span>
-                        </div>
-                        <p className="text-xs text-neutral-200 truncate mt-0.5">
+                        <span className="font-semibold text-[11px]">
+                          Ticket {device.activeComplaint.ticketNumber} ({device.activeComplaint.status})
+                        </span>
+                        <p className="text-zinc-300 text-xs truncate mt-0.5">
                           {device.activeComplaint.title}
                         </p>
                       </div>
@@ -204,17 +189,11 @@ export function MyDevicesList({ devices, onRefresh }: MyDevicesListProps) {
                   )}
                 </div>
 
-                {/* Card Actions */}
-                <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between">
-                  <div className="flex items-center gap-1 text-[11px] text-neutral-400">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Protected by E310 IT Policy</span>
-                  </div>
-
+                <div className="pt-2 border-t border-zinc-800 flex items-center justify-end">
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
-                    leftIcon={<AlertTriangle className="w-3.5 h-3.5 text-amber-400" />}
+                    leftIcon={<AlertTriangle className="w-3.5 h-3.5 text-zinc-400" />}
                     onClick={() => handleReportIssue(device)}
                   >
                     Report Issue

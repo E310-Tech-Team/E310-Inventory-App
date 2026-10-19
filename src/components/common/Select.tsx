@@ -1,4 +1,4 @@
-import React, { forwardRef, useState } from "react";
+import React, { forwardRef } from "react";
 import { AlertCircle, ChevronDown } from "lucide-react";
 
 export interface SelectOption {
@@ -9,7 +9,7 @@ export interface SelectOption {
 
 export interface SelectProps
   extends React.SelectHTMLAttributes<HTMLSelectElement> {
-  label: string;
+  label?: string;
   options: SelectOption[];
   error?: string;
   helperText?: string;
@@ -25,93 +25,72 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       helperText,
       leftIcon,
       className = "",
-      value,
-      defaultValue,
-      onFocus,
-      onBlur,
+      id,
       ...props
     },
     ref
   ) => {
-    const [isFocused, setIsFocused] = useState(false);
-    const hasValue = Boolean(value || defaultValue);
-    const isFloating = isFocused || hasValue;
+    const selectId = id || (label ? label.toLowerCase().replace(/\s+/g, "-") : undefined);
 
     return (
-      <div className="relative w-full">
+      <div className="w-full space-y-1.5">
+        {label && (
+          <label
+            htmlFor={selectId}
+            className="block text-xs font-medium text-zinc-300"
+          >
+            {label}
+          </label>
+        )}
+
         <div
-          className={`relative flex items-center w-full rounded-xl border bg-neutral-900/60 transition-all duration-200 ${
+          className={`relative flex items-center w-full rounded-md border bg-zinc-900 transition-colors ${
             error
-              ? "border-rose-500/80 focus-within:ring-2 focus-within:ring-rose-500/30"
-              : isFocused
-              ? "border-emerald-500/80 ring-2 ring-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
-              : "border-neutral-700/70 hover:border-neutral-600"
+              ? "border-rose-500/80 focus-within:ring-1 focus-within:ring-rose-500"
+              : "border-zinc-800 focus-within:border-zinc-400 focus-within:ring-1 focus-within:ring-zinc-400"
           }`}
         >
           {leftIcon && (
-            <div className="pl-3.5 pr-1 text-neutral-400 select-none">
+            <div className="pl-3 pr-1 text-zinc-400 select-none">
               {leftIcon}
             </div>
           )}
 
-          <div className="relative flex-1">
-            <select
-              ref={ref}
-              value={value}
-              defaultValue={defaultValue}
-              onFocus={(e) => {
-                setIsFocused(true);
-                onFocus?.(e);
-              }}
-              onBlur={(e) => {
-                setIsFocused(false);
-                onBlur?.(e);
-              }}
-              className={`w-full appearance-none bg-transparent px-3.5 pt-5 pb-1.5 text-sm text-white focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
-                leftIcon ? "pl-1" : ""
-              } ${className}`}
-              {...props}
-            >
-              <option value="" disabled className="bg-neutral-900 text-neutral-500">
-                Select {label.toLowerCase()}
+          <select
+            id={selectId}
+            ref={ref}
+            className={`w-full appearance-none bg-transparent px-3 py-2 text-xs text-zinc-100 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
+              leftIcon ? "pl-1.5" : ""
+            } ${className}`}
+            {...props}
+          >
+            <option value="" disabled className="bg-zinc-900 text-zinc-500">
+              Select {label ? label.toLowerCase() : "option"}
+            </option>
+            {options.map((opt) => (
+              <option
+                key={opt.value}
+                value={opt.value}
+                disabled={opt.disabled}
+                className="bg-zinc-900 text-zinc-100"
+              >
+                {opt.label}
               </option>
-              {options.map((opt) => (
-                <option
-                  key={opt.value}
-                  value={opt.value}
-                  disabled={opt.disabled}
-                  className="bg-neutral-900 text-white"
-                >
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+            ))}
+          </select>
 
-            <label
-              className={`pointer-events-none absolute left-3.5 transition-all duration-150 origin-top-left ${
-                leftIcon ? "left-1" : ""
-              } ${
-                isFloating
-                  ? "top-1 text-[10px] uppercase font-mono tracking-wider font-semibold text-neutral-400"
-                  : "top-3.5 text-sm text-neutral-400"
-              } ${error ? "text-rose-400" : isFocused ? "text-emerald-400" : ""}`}
-            >
-              {label}
-            </label>
-          </div>
-
-          <div className="pr-3.5 pl-1 pointer-events-none text-neutral-400">
-            <ChevronDown className="w-4 h-4" />
+          <div className="pr-3 pl-1 pointer-events-none text-zinc-400">
+            <ChevronDown className="w-3.5 h-3.5" />
           </div>
         </div>
 
         {error ? (
-          <p className="mt-1.5 flex items-center gap-1 text-xs text-rose-400">
+          <p className="flex items-center gap-1 text-xs text-rose-400">
             <AlertCircle className="w-3.5 h-3.5 shrink-0" />
             <span>{error}</span>
           </p>
         ) : helperText ? (
-          <p className="mt-1.5 text-xs text-neutral-400">{helperText}</p>
+          <p className="text-xs text-zinc-500">{helperText}</p>
         ) : null}
       </div>
     );

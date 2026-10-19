@@ -219,26 +219,26 @@ export function ReportIssueModal({
             required
           />
 
-          <div className="relative">
-            <label className="block text-[10px] font-mono uppercase tracking-wider font-semibold text-neutral-400 mb-1.5">
-              Detailed Description & Steps to Reproduce
+          <div className="space-y-1.5">
+            <label className="block text-xs font-medium text-zinc-300">
+              Detailed Description
             </label>
             <textarea
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe what occurred, any error codes shown on screen, and if damage was sustained..."
-              className="w-full rounded-xl border border-neutral-700/70 bg-neutral-900/60 p-3 text-xs text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/80 transition-all resize-none"
+              placeholder="Describe what occurred, any error messages, and when it started..."
+              className="w-full rounded-md border border-zinc-800 bg-zinc-900 p-2.5 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-400 focus:border-zinc-400 transition-colors resize-none"
               disabled={submitting}
               required
             />
           </div>
 
-          <div className="pt-2 flex items-center justify-end gap-2.5 border-t border-white/[0.06]">
+          <div className="pt-3 flex items-center justify-end gap-2 border-t border-zinc-800">
             <Button
               type="button"
               variant="ghost"
-              size="md"
+              size="sm"
               onClick={onClose}
               disabled={submitting}
             >
@@ -247,7 +247,7 @@ export function ReportIssueModal({
             <Button
               type="submit"
               variant="primary"
-              size="md"
+              size="sm"
               isLoading={submitting}
             >
               Submit Ticket

@@ -253,25 +253,25 @@ export function RegisterDeviceModal({
             </div>
           </div>
 
-          <div className="relative">
-            <label className="block text-[10px] font-mono uppercase tracking-wider font-semibold text-neutral-400 mb-1.5">
+          <div className="space-y-1.5">
+            <label className="block text-xs font-medium text-zinc-300">
               Additional Notes (Optional)
             </label>
             <textarea
               rows={2}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g. Includes original 67W charger and USB-C hub..."
-              className="w-full rounded-xl border border-neutral-700/70 bg-neutral-900/60 p-3 text-xs text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/80 transition-all resize-none"
+              placeholder="e.g. Includes original charger and adapter..."
+              className="w-full rounded-md border border-zinc-800 bg-zinc-900 p-2.5 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-400 focus:border-zinc-400 transition-colors resize-none"
               disabled={submitting}
             />
           </div>
 
-          <div className="pt-2 flex items-center justify-end gap-2.5 border-t border-white/[0.06]">
+          <div className="pt-3 flex items-center justify-end gap-2 border-t border-zinc-800">
             <Button
               type="button"
               variant="ghost"
-              size="md"
+              size="sm"
               onClick={onClose}
               disabled={submitting}
             >
@@ -280,10 +280,10 @@ export function RegisterDeviceModal({
             <Button
               type="submit"
               variant="primary"
-              size="md"
+              size="sm"
               isLoading={submitting}
             >
-              Submit Registration
+              Register Device
             </Button>
           </div>
         </form>

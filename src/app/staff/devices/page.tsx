@@ -72,35 +72,35 @@ export default async function StaffDevicesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#090d16] text-white selection:bg-emerald-500/30 selection:text-white">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 selection:bg-zinc-800 selection:text-white">
       {/* Top Header */}
-      <header className="border-b border-white/[0.08] bg-neutral-900/60 backdrop-blur-xl px-6 py-4 sticky top-0 z-30">
+      <header className="border-b border-zinc-800/80 bg-zinc-900/50 backdrop-blur-md px-6 py-3 sticky top-0 z-30">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <div className="flex items-center gap-6">
-            <Link href="/staff" className="flex items-center gap-2 text-xs text-neutral-400 hover:text-white transition-colors group">
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-              <span>Back to Staff Home</span>
+            <Link href="/staff" className="flex items-center gap-2 text-xs text-zinc-400 hover:text-zinc-200 transition-colors">
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back to Dashboard</span>
             </Link>
-            <div className="h-4 w-[1px] bg-white/[0.1]" />
+            <div className="h-3.5 w-[1px] bg-zinc-800" />
             <E310Logo size="sm" />
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <RoleContextBadge
               role={user.role}
               currentPortal="staff"
               canSwitchPortal={isTechUser(user)}
             />
-            <div className="h-4 w-[1px] bg-white/[0.1]" />
+            <div className="h-3.5 w-[1px] bg-zinc-800" />
             <NotificationBell />
             <div className="hidden sm:block text-right">
-              <p className="text-xs font-semibold text-white">{user.name}</p>
-              <p className="text-[11px] font-mono text-neutral-400">{user.email}</p>
+              <p className="text-xs font-medium text-zinc-200">{user.name}</p>
+              <p className="text-[11px] text-zinc-400">{user.email}</p>
             </div>
             <form action="/api/auth/logout" method="POST">
               <button
                 type="submit"
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] text-neutral-400 hover:bg-neutral-800 hover:text-white transition-colors pressable"
+                className="flex h-7 w-7 items-center justify-center rounded-md border border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors"
                 title="Sign out"
               >
                 <LogOut className="h-3.5 w-3.5" />

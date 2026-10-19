@@ -73,19 +73,19 @@ export function Modal({
       {/* Modal Dialog Panel */}
       <div
         ref={modalRef}
-        className={`relative w-full ${sizeClasses[size]} rounded-2xl border border-white/[0.08] bg-neutral-900/95 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8),0_0_30px_rgba(16,185,129,0.1)] backdrop-blur-2xl overflow-hidden modal-panel z-10 flex flex-col max-h-[90vh]`}
+        className={`relative w-full ${sizeClasses[size]} rounded-xl border border-zinc-800 bg-zinc-900 shadow-2xl overflow-hidden modal-panel z-10 flex flex-col max-h-[90vh]`}
       >
         {/* Header */}
-        <div className="flex items-start justify-between p-6 border-b border-white/[0.08] bg-neutral-950/40">
+        <div className="flex items-start justify-between p-5 border-b border-zinc-800 bg-zinc-900/60">
           <div>
             <h2
               id="modal-title"
-              className="text-lg font-semibold tracking-tight text-white"
+              className="text-base font-semibold text-zinc-100"
             >
               {title}
             </h2>
             {description && (
-              <p className="mt-1 text-xs text-neutral-400 leading-relaxed">
+              <p className="mt-0.5 text-xs text-zinc-400">
                 {description}
               </p>
             )}
@@ -94,16 +94,16 @@ export function Modal({
           {showCloseButton && (
             <button
               onClick={onClose}
-              className="rounded-lg p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800/80 transition-colors pressable"
+              className="rounded-md p-1 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
               aria-label="Close dialog"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           )}
         </div>
 
         {/* Content Body */}
-        <div className="p-6 overflow-y-auto flex-1">{children}</div>
+        <div className="p-5 overflow-y-auto flex-1">{children}</div>
       </div>
     </div>
   );
