@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession, isTechUser } from "@/lib/auth/session";
 import { Monitor, AlertCircle, PlusCircle, LogOut, ShieldCheck } from "lucide-react";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 
 export default async function StaffPortalPage() {
   const user = await getSession();
@@ -29,6 +30,7 @@ export default async function StaffPortalPage() {
             </div>
           </div>
           <div className="flex items-center space-x-4">
+            <NotificationBell />
             {isTechUser(user) && (
               <Link
                 href="/tech"

@@ -156,3 +156,24 @@ export interface PortalOption {
   createdAt: string;
   updatedAt: string;
 }
+
+export type NotificationType =
+  | "complaint_logged"
+  | "complaint_assigned"
+  | "complaint_status_changed"
+  | "device_registered"
+  | "device_approved"
+  | "system_alert";
+
+export interface InAppNotification {
+  id: string;
+  recipientId: string;
+  title: string;
+  message: string;
+  notificationType: NotificationType;
+  linkUrl: string | null;
+  isRead: boolean;
+  emailSent?: boolean;
+  createdAt: string;
+}
+
