@@ -1,4 +1,15 @@
-import { Category, Checkout, DepartmentUser, Item } from "@/types";
+import {
+  AuditLog,
+  Category,
+  Checkout,
+  ComplaintPriority,
+  ComplaintSeverity,
+  DepartmentUser,
+  DeviceComplaint,
+  Item,
+  Notification,
+  PortalOption,
+} from "@/types";
 import { getSupabaseAdminClient } from "@/lib/supabase/server";
 import { DataStore } from "./types";
 
@@ -60,6 +71,66 @@ interface CheckoutRow {
   condition_on_return: Checkout["conditionOnReturn"];
   return_notes: string | null;
   status: Checkout["status"];
+}
+
+interface ComplaintRow {
+  id: string;
+  ticket_number: string;
+  user_id: string;
+  user_name?: string | null;
+  user_email?: string | null;
+  user_department?: string | null;
+  item_id: string | null;
+  device_summary?: string | null;
+  title: string;
+  description: string;
+  issue_type: string;
+  severity?: string | null;
+  priority?: string | null;
+  status: DeviceComplaint["status"];
+  attachment_urls: string[] | null;
+  assigned_tech_id: string | null;
+  assigned_tech_name?: string | null;
+  tech_notes?: string | null;
+  resolution_notes?: string | null;
+  resolution_summary?: string | null;
+  resolved_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface PortalOptionRow {
+  id: string;
+  category_group: string;
+  label: string;
+  value: string;
+  is_active: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface NotificationRow {
+  id: string;
+  recipient_id: string;
+  title: string;
+  message: string;
+  notification_type: Notification["notificationType"];
+  link_url: string | null;
+  is_read: boolean;
+  email_sent: boolean;
+  created_at: string;
+}
+
+interface AuditLogRow {
+  id: string;
+  actor_id: string | null;
+  actor_name: string;
+  action_type: string;
+  entity_type: string;
+  entity_id: string;
+  details: Record<string, unknown> | null;
+  created_at: string;
 }
 
 function throwOnError(error: { message: string } | null): void {
@@ -262,6 +333,179 @@ function toCheckoutUpdateRow(data: Partial<Checkout>): Partial<CheckoutRow> {
       : {}),
     ...(data.returnNotes !== undefined ? { return_notes: data.returnNotes } : {}),
     ...(data.status !== undefined ? { status: data.status } : {}),
+  };
+}
+
+function fromComplaintRow(row: ComplaintRow): DeviceComplaint {
+  const priority = (row.severity || row.priority || "medium") as ComplaintPriority;
+  return {
+    id: row.id,
+    ticketNumber: row.ticket_number || "",
+    userId: row.user_id,
+    userName: row.user_name || "Unknown User",
+    userEmail: row.user_email || "",
+    userDepartment: row.user_department ?? null,
+    itemId: row.item_id,
+    deviceSummary: row.device_summary ?? undefined,
+    title: row.title,
+    description: row.description,
+    issueType: row.issue_type,
+    severity: (row.severity || priority) as ComplaintSeverity,
+    priority: priority,
+    status: row.status,
+    attachmentUrls: row.attachment_urls ?? [],
+    assignedTechId: row.assigned_tech_id,
+    assignedTechName: row.assigned_tech_name ?? null,
+    techNotes: row.tech_notes ?? null,
+    resolutionNotes: row.resolution_notes ?? row.resolution_summary ?? null,
+    resolutionSummary: row.resolution_summary ?? row.resolution_notes ?? null,
+    resolvedAt: row.resolved_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function toComplaintInsertRow(
+  data: Omit<DeviceComplaint, "id" | "createdAt" | "updatedAt">
+): Record<string, unknown> {
+  const priority = data.severity || data.priority || "medium";
+  const row: Record<string, unknown> = {
+    user_id: data.userId,
+    item_id: data.itemId ?? null,
+    device_summary: data.deviceSummary?.trim() || `${data.title} (${data.issueType})`,
+    title: data.title.trim(),
+    description: data.description.trim(),
+    issue_type: data.issueType.trim(),
+    severity: data.severity ?? priority,
+    priority: priority,
+    status: data.status || "submitted",
+    attachment_urls: data.attachmentUrls ?? [],
+    assigned_tech_id: data.assignedTechId ?? null,
+    resolution_notes: data.resolutionNotes ?? data.resolutionSummary ?? null,
+    resolved_at: data.resolvedAt ?? null,
+  };
+  if (data.ticketNumber) row.ticket_number = data.ticketNumber;
+  if (data.userName) row.user_name = data.userName;
+  if (data.userEmail) row.user_email = data.userEmail.toLowerCase();
+  if (data.userDepartment) row.user_department = data.userDepartment;
+  if (data.techNotes) row.tech_notes = data.techNotes;
+  if (data.resolutionSummary) row.resolution_summary = data.resolutionSummary;
+  return row;
+}
+
+function toComplaintUpdateRow(data: Partial<DeviceComplaint>): Record<string, unknown> {
+  const row: Record<string, unknown> = {
+    updated_at: new Date().toISOString(),
+  };
+  if (data.ticketNumber !== undefined) row.ticket_number = data.ticketNumber;
+  if (data.userId !== undefined) row.user_id = data.userId;
+  if (data.itemId !== undefined) row.item_id = data.itemId;
+  if (data.deviceSummary !== undefined) row.device_summary = data.deviceSummary;
+  if (data.title !== undefined) row.title = data.title.trim();
+  if (data.description !== undefined) row.description = data.description.trim();
+  if (data.issueType !== undefined) row.issue_type = data.issueType.trim();
+  if (data.severity !== undefined) row.severity = data.severity;
+  if (data.priority !== undefined) row.priority = data.priority;
+  if (data.status !== undefined) row.status = data.status;
+  if (data.attachmentUrls !== undefined) row.attachment_urls = data.attachmentUrls;
+  if (data.assignedTechId !== undefined) row.assigned_tech_id = data.assignedTechId;
+  if (data.userName !== undefined) row.user_name = data.userName;
+  if (data.userEmail !== undefined) row.user_email = data.userEmail ? data.userEmail.toLowerCase() : null;
+  if (data.userDepartment !== undefined) row.user_department = data.userDepartment;
+  if (data.techNotes !== undefined) row.tech_notes = data.techNotes;
+  if (data.resolutionNotes !== undefined) row.resolution_notes = data.resolutionNotes;
+  if (data.resolutionSummary !== undefined) row.resolution_summary = data.resolutionSummary;
+  if (data.resolvedAt !== undefined) row.resolved_at = data.resolvedAt;
+  return row;
+}
+
+function fromPortalOptionRow(row: PortalOptionRow): PortalOption {
+  return {
+    id: row.id,
+    categoryGroup: row.category_group,
+    label: row.label,
+    value: row.value,
+    isActive: row.is_active,
+    displayOrder: row.display_order,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function toPortalOptionInsertRow(
+  data: Omit<PortalOption, "id" | "createdAt" | "updatedAt">
+): Omit<PortalOptionRow, "id" | "created_at" | "updated_at"> {
+  return {
+    category_group: data.categoryGroup.trim(),
+    label: data.label.trim(),
+    value: data.value.trim(),
+    is_active: data.isActive ?? true,
+    display_order: data.displayOrder ?? 0,
+  };
+}
+
+function toPortalOptionUpdateRow(data: Partial<PortalOption>): Partial<PortalOptionRow> {
+  return {
+    ...(data.categoryGroup !== undefined ? { category_group: data.categoryGroup.trim() } : {}),
+    ...(data.label !== undefined ? { label: data.label.trim() } : {}),
+    ...(data.value !== undefined ? { value: data.value.trim() } : {}),
+    ...(data.isActive !== undefined ? { is_active: data.isActive } : {}),
+    ...(data.displayOrder !== undefined ? { display_order: data.displayOrder } : {}),
+    updated_at: new Date().toISOString(),
+  };
+}
+
+function fromNotificationRow(row: NotificationRow): Notification {
+  return {
+    id: row.id,
+    recipientId: row.recipient_id,
+    title: row.title,
+    message: row.message,
+    notificationType: row.notification_type,
+    linkUrl: row.link_url,
+    isRead: row.is_read,
+    emailSent: row.email_sent,
+    createdAt: row.created_at,
+  };
+}
+
+function toNotificationInsertRow(
+  data: Omit<Notification, "id" | "createdAt">
+): Omit<NotificationRow, "id" | "created_at"> {
+  return {
+    recipient_id: data.recipientId,
+    title: data.title.trim(),
+    message: data.message.trim(),
+    notification_type: data.notificationType,
+    link_url: data.linkUrl ?? null,
+    is_read: data.isRead ?? false,
+    email_sent: data.emailSent ?? false,
+  };
+}
+
+function fromAuditLogRow(row: AuditLogRow): AuditLog {
+  return {
+    id: row.id,
+    actorId: row.actor_id,
+    actorName: row.actor_name,
+    actionType: row.action_type,
+    entityType: row.entity_type,
+    entityId: row.entity_id,
+    details: row.details ?? null,
+    createdAt: row.created_at,
+  };
+}
+
+function toAuditLogInsertRow(
+  data: Omit<AuditLog, "id" | "createdAt">
+): Omit<AuditLogRow, "id" | "created_at"> {
+  return {
+    actor_id: data.actorId ?? null,
+    actor_name: data.actorName.trim(),
+    action_type: data.actionType.trim(),
+    entity_type: data.entityType.trim(),
+    entity_id: data.entityId,
+    details: data.details ?? {},
   };
 }
 
@@ -495,5 +739,177 @@ export class SupabaseStore implements DataStore {
       .single();
     throwOnError(response.error);
     return fromCheckoutRow(response.data as CheckoutRow);
+  }
+
+  // Complaints
+  async getComplaints(): Promise<DeviceComplaint[]> {
+    const { data, error } = await this.supabase
+      .from("device_complaints")
+      .select("*")
+      .order("created_at", { ascending: false });
+    throwOnError(error);
+    return ((data ?? []) as ComplaintRow[]).map(fromComplaintRow);
+  }
+
+  async getComplaint(id: string): Promise<DeviceComplaint | null> {
+    const { data, error } = await this.supabase
+      .from("device_complaints")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+    throwOnError(error);
+    return data ? fromComplaintRow(data as ComplaintRow) : null;
+  }
+
+  async getComplaintsByUser(userId: string): Promise<DeviceComplaint[]> {
+    const { data, error } = await this.supabase
+      .from("device_complaints")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+    throwOnError(error);
+    return ((data ?? []) as ComplaintRow[]).map(fromComplaintRow);
+  }
+
+  async createComplaint(
+    data: Omit<DeviceComplaint, "id" | "createdAt" | "updatedAt">
+  ): Promise<DeviceComplaint> {
+    const response = await this.supabase
+      .from("device_complaints")
+      .insert(toComplaintInsertRow(data))
+      .select("*")
+      .single();
+    throwOnError(response.error);
+    return fromComplaintRow(response.data as ComplaintRow);
+  }
+
+  async updateComplaint(
+    id: string,
+    data: Partial<DeviceComplaint>
+  ): Promise<DeviceComplaint> {
+    const response = await this.supabase
+      .from("device_complaints")
+      .update(toComplaintUpdateRow(data))
+      .eq("id", id)
+      .select("*")
+      .single();
+    throwOnError(response.error);
+    return fromComplaintRow(response.data as ComplaintRow);
+  }
+
+  // Portal Options
+  async getPortalOptions(group?: string): Promise<PortalOption[]> {
+    let query = this.supabase
+      .from("portal_options")
+      .select("*")
+      .order("category_group", { ascending: true })
+      .order("display_order", { ascending: true })
+      .order("label", { ascending: true });
+
+    if (group && group.trim() !== "" && group.trim() !== "all") {
+      query = query.eq("category_group", group.trim());
+    }
+
+    const { data, error } = await query;
+    throwOnError(error);
+    return ((data ?? []) as PortalOptionRow[]).map(fromPortalOptionRow);
+  }
+
+  async getPortalOption(id: string): Promise<PortalOption | null> {
+    const { data, error } = await this.supabase
+      .from("portal_options")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+    throwOnError(error);
+    return data ? fromPortalOptionRow(data as PortalOptionRow) : null;
+  }
+
+  async createPortalOption(
+    data: Omit<PortalOption, "id" | "createdAt" | "updatedAt">
+  ): Promise<PortalOption> {
+    const response = await this.supabase
+      .from("portal_options")
+      .insert(toPortalOptionInsertRow(data))
+      .select("*")
+      .single();
+    throwOnError(response.error);
+    return fromPortalOptionRow(response.data as PortalOptionRow);
+  }
+
+  async updatePortalOption(
+    id: string,
+    data: Partial<PortalOption>
+  ): Promise<PortalOption> {
+    const response = await this.supabase
+      .from("portal_options")
+      .update(toPortalOptionUpdateRow(data))
+      .eq("id", id)
+      .select("*")
+      .single();
+    throwOnError(response.error);
+    return fromPortalOptionRow(response.data as PortalOptionRow);
+  }
+
+  async deletePortalOption(id: string): Promise<void> {
+    const { error } = await this.supabase
+      .from("portal_options")
+      .delete()
+      .eq("id", id);
+    throwOnError(error);
+  }
+
+  // Notifications
+  async getNotifications(userId: string): Promise<Notification[]> {
+    const { data, error } = await this.supabase
+      .from("notifications")
+      .select("*")
+      .eq("recipient_id", userId)
+      .order("created_at", { ascending: false });
+    throwOnError(error);
+    return ((data ?? []) as NotificationRow[]).map(fromNotificationRow);
+  }
+
+  async createNotification(
+    data: Omit<Notification, "id" | "createdAt">
+  ): Promise<Notification> {
+    const response = await this.supabase
+      .from("notifications")
+      .insert(toNotificationInsertRow(data))
+      .select("*")
+      .single();
+    throwOnError(response.error);
+    return fromNotificationRow(response.data as NotificationRow);
+  }
+
+  async markNotificationRead(id: string): Promise<void> {
+    const { error } = await this.supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("id", id);
+    throwOnError(error);
+  }
+
+  // Audit Logs
+  async createAuditLog(
+    data: Omit<AuditLog, "id" | "createdAt">
+  ): Promise<AuditLog> {
+    const response = await this.supabase
+      .from("audit_logs")
+      .insert(toAuditLogInsertRow(data))
+      .select("*")
+      .single();
+    throwOnError(response.error);
+    return fromAuditLogRow(response.data as AuditLogRow);
+  }
+
+  async getRecentAuditLogs(limit: number = 30): Promise<AuditLog[]> {
+    const { data, error } = await this.supabase
+      .from("audit_logs")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    throwOnError(error);
+    return ((data ?? []) as AuditLogRow[]).map(fromAuditLogRow);
   }
 }
