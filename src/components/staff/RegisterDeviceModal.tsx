@@ -171,19 +171,19 @@ export function RegisterDeviceModal({
     >
       {successToast ? (
         <div className="py-8 flex flex-col items-center justify-center text-center space-y-3 animate-fade-in">
-          <div className="h-14 w-14 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+          <div className="h-14 w-14 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
             <CheckCircle2 className="w-8 h-8" />
           </div>
-          <h3 className="text-lg font-semibold text-white">Device Registered!</h3>
-          <p className="text-sm text-neutral-400 max-w-xs">
+          <h3 className="text-lg font-semibold text-foreground">Device Registered!</h3>
+          <p className="text-sm text-muted max-w-xs">
             Your device has been registered and is now listed under your active custody.
           </p>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-2.5 text-xs text-rose-300">
-              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-2.5 text-xs text-rose-700 dark:text-rose-300">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400" />
               <span>{error}</span>
             </div>
           )}
@@ -247,14 +247,14 @@ export function RegisterDeviceModal({
               disabled={submitting}
             />
 
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-neutral-950/40 border border-white/[0.05] text-[11px] text-neutral-400">
-              <Info className="w-4 h-4 shrink-0 text-emerald-400" />
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-surface-subtle border border-border text-[11px] text-muted">
+              <Info className="w-4 h-4 shrink-0 text-accent" />
               <span>Custody takes effect immediately upon submission.</span>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-medium text-zinc-300">
+            <label className="block text-xs font-medium text-foreground">
               Additional Notes (Optional)
             </label>
             <textarea
@@ -262,12 +262,12 @@ export function RegisterDeviceModal({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="e.g. Includes original charger and adapter..."
-              className="w-full rounded-md border border-zinc-800 bg-zinc-900 p-2.5 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-400 focus:border-zinc-400 transition-colors resize-none"
+              className="w-full rounded-md border border-border bg-surface p-2.5 text-xs text-foreground placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent transition-colors resize-none"
               disabled={submitting}
             />
           </div>
 
-          <div className="pt-3 flex items-center justify-end gap-2 border-t border-zinc-800">
+          <div className="pt-3 flex items-center justify-end gap-2 border-t border-border">
             <Button
               type="button"
               variant="ghost"

@@ -194,17 +194,17 @@ export function TicketStatusTracker({
   return (
     <div className="space-y-6 animate-fade-in">
       {/* ─── Top Control Bar & Stats ─── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-800/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-border">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-semibold tracking-tight text-zinc-100">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
               Support Tickets & Status Tracker
             </h1>
-            <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-zinc-800 text-zinc-300 border border-zinc-700">
+            <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-surface-subtle text-foreground border border-border">
               {complaints.length} Total
             </span>
           </div>
-          <p className="text-sm text-zinc-400 mt-1">
+          <p className="text-sm text-muted mt-1">
             Real-time diagnostic progress, technician notes, and repair updates for your assigned equipment.
           </p>
         </div>
@@ -239,49 +239,49 @@ export function TicketStatusTracker({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="p-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-zinc-400">Active Requests</span>
-            <span className="flex h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+            <span className="text-xs font-medium text-muted">Active Requests</span>
+            <span className="flex h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
           </div>
-          <p className="text-2xl font-bold text-zinc-100 mt-2">
+          <p className="text-2xl font-bold text-foreground mt-2">
             {activeTickets.length}
           </p>
-          <p className="text-[11px] text-zinc-400 mt-1">Under inspection or repair</p>
+          <p className="text-[11px] text-muted mt-1">Under inspection or repair</p>
         </Card>
 
         <Card className="p-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-zinc-400">Resolved & Returned</span>
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="text-xs font-medium text-muted">Resolved & Returned</span>
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
           </div>
-          <p className="text-2xl font-bold text-zinc-100 mt-2">
+          <p className="text-2xl font-bold text-foreground mt-2">
             {resolvedTickets.length}
           </p>
-          <p className="text-[11px] text-zinc-400 mt-1">Completed successfully</p>
+          <p className="text-[11px] text-muted mt-1">Completed successfully</p>
         </Card>
 
         <Card className="p-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-zinc-400">Average Turnaround</span>
-            <Clock className="w-3.5 h-3.5 text-sky-400" />
+            <span className="text-xs font-medium text-muted">Average Turnaround</span>
+            <Clock className="w-3.5 h-3.5 text-sky-500" />
           </div>
-          <p className="text-2xl font-bold text-zinc-100 mt-2">
+          <p className="text-2xl font-bold text-foreground mt-2">
             &lt; 24h
           </p>
-          <p className="text-[11px] text-zinc-400 mt-1">E310 IT triage standard</p>
+          <p className="text-[11px] text-muted mt-1">E310 IT triage standard</p>
         </Card>
       </div>
 
       {/* ─── Search & Tab Filters ─── */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
         {/* Tabs */}
-        <div className="inline-flex rounded-lg bg-zinc-900 border border-zinc-800 p-1">
+        <div className="inline-flex rounded-lg bg-surface-subtle border border-border p-1">
           <button
             type="button"
             onClick={() => setActiveTab("all")}
             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
               activeTab === "all"
-                ? "bg-zinc-800 text-white shadow-sm"
-                : "text-zinc-400 hover:text-zinc-200"
+                ? "bg-surface text-foreground shadow-xs font-semibold"
+                : "text-muted hover:text-foreground"
             }`}
           >
             All Tickets ({complaints.length})
@@ -291,8 +291,8 @@ export function TicketStatusTracker({
             onClick={() => setActiveTab("active")}
             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
               activeTab === "active"
-                ? "bg-zinc-800 text-white shadow-sm"
-                : "text-zinc-400 hover:text-zinc-200"
+                ? "bg-surface text-foreground shadow-xs font-semibold"
+                : "text-muted hover:text-foreground"
             }`}
           >
             Active ({activeTickets.length})
@@ -302,8 +302,8 @@ export function TicketStatusTracker({
             onClick={() => setActiveTab("resolved")}
             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
               activeTab === "resolved"
-                ? "bg-zinc-800 text-white shadow-sm"
-                : "text-zinc-400 hover:text-zinc-200"
+                ? "bg-surface text-foreground shadow-xs font-semibold"
+                : "text-muted hover:text-foreground"
             }`}
           >
             Resolved ({resolvedTickets.length})
@@ -312,27 +312,27 @@ export function TicketStatusTracker({
 
         {/* Search */}
         <div className="relative flex-1 sm:max-w-xs">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
           <input
             type="text"
             placeholder="Search tickets by #, title, device..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-1.5 text-xs rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400 transition-colors"
+            className="w-full pl-9 pr-4 py-1.5 text-xs rounded-lg border border-border bg-surface text-foreground placeholder:text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent-ring transition-colors"
           />
         </div>
       </div>
 
       {/* ─── Ticket List / Cards with Progress Pipeline ─── */}
       {filteredTickets.length === 0 ? (
-        <Card className="py-12 px-6 text-center border-dashed border-zinc-800">
-          <div className="mx-auto w-12 h-12 rounded-full bg-zinc-800/80 border border-zinc-700/80 flex items-center justify-center text-zinc-400 mb-3">
+        <Card className="py-12 px-6 text-center border-dashed border-border">
+          <div className="mx-auto w-12 h-12 rounded-full bg-surface-subtle border border-border flex items-center justify-center text-muted mb-3">
             <LifeBuoy className="w-6 h-6" />
           </div>
-          <h3 className="text-sm font-semibold text-zinc-200">
+          <h3 className="text-sm font-semibold text-foreground">
             {searchQuery ? "No matching tickets found" : "No Support Requests on File"}
           </h3>
-          <p className="text-xs text-zinc-400 max-w-sm mx-auto mt-1">
+          <p className="text-xs text-muted max-w-sm mx-auto mt-1">
             {searchQuery
               ? `No requests match "${searchQuery}". Clear your search query or tab filter.`
               : "All your equipment is in optimal health. If you experience any defect, file a service request."}
@@ -358,25 +358,25 @@ export function TicketStatusTracker({
             return (
               <Card
                 key={ticket.id}
-                className="p-5 hover:border-zinc-700/80 transition-all cursor-pointer group space-y-4"
+                className="p-5 hover:border-border transition-all cursor-pointer group space-y-4"
                 onClick={() => setSelectedTicket(ticket)}
               >
                 {/* Header Row */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-zinc-800/60">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-border">
                   <div className="flex items-center gap-2.5 flex-wrap">
                     {/* Ticket Number & Copy */}
-                    <div className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 px-2.5 py-1 rounded-md">
-                      <span className="font-mono text-xs font-semibold text-zinc-200">
+                    <div className="flex items-center gap-1.5 bg-surface-subtle border border-border px-2.5 py-1 rounded-md">
+                      <span className="font-mono text-xs font-semibold text-foreground">
                         {ticket.ticketNumber}
                       </span>
                       <button
                         type="button"
                         onClick={(e) => handleCopy(ticket.ticketNumber, e)}
-                        className="text-zinc-500 hover:text-zinc-200 transition-colors p-0.5 rounded"
+                        className="text-muted hover:text-foreground transition-colors p-0.5 rounded"
                         title="Copy Ticket ID"
                       >
                         {copiedTicketId === ticket.ticketNumber ? (
-                          <Check className="w-3 h-3 text-emerald-400" />
+                          <Check className="w-3 h-3 text-emerald-500" />
                         ) : (
                           <Copy className="w-3 h-3" />
                         )}
@@ -405,14 +405,14 @@ export function TicketStatusTracker({
                       <span>{priorityCfg.label}</span>
                     </div>
 
-                    <span className="text-xs text-zinc-400">
+                    <span className="text-xs text-muted">
                       • {ticket.issueType}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-3 text-xs text-zinc-400">
+                  <div className="flex items-center gap-3 text-xs text-muted">
                     <span className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-zinc-400" />
+                      <Calendar className="w-3 h-3 text-muted" />
                       {new Date(ticket.createdAt).toLocaleDateString(undefined, {
                         month: "short",
                         day: "numeric",
@@ -420,7 +420,7 @@ export function TicketStatusTracker({
                       })}
                     </span>
 
-                    <span className="text-zinc-400 group-hover:text-zinc-200 transition-colors flex items-center gap-1 font-medium">
+                    <span className="text-muted group-hover:text-foreground transition-colors flex items-center gap-1 font-medium">
                       View details
                       <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-0.5 transition-transform" />
                     </span>
@@ -430,23 +430,23 @@ export function TicketStatusTracker({
                 {/* Content & Affected Device */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                   <div className="space-y-1 max-w-2xl">
-                    <h3 className="text-sm font-semibold text-zinc-100 group-hover:text-white transition-colors">
+                    <h3 className="text-sm font-semibold text-foreground group-hover:text-accent transition-colors">
                       {ticket.title}
                     </h3>
-                    <p className="text-xs text-zinc-400 line-clamp-1">
+                    <p className="text-xs text-muted line-clamp-1">
                       {ticket.description}
                     </p>
                   </div>
 
                   {/* Device Tag */}
                   {ticket.itemName && (
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 shrink-0">
-                      <Laptop className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-subtle border border-border text-xs text-foreground shrink-0">
+                      <Laptop className="w-3.5 h-3.5 text-muted shrink-0" />
                       <span className="font-medium truncate max-w-[180px]">
                         {ticket.itemName}
                       </span>
                       {ticket.itemSerial && (
-                        <span className="font-mono text-[11px] text-zinc-400">
+                        <span className="font-mono text-[11px] text-muted">
                           ({ticket.itemSerial})
                         </span>
                       )}
@@ -469,23 +469,23 @@ export function TicketStatusTracker({
                               isComplete
                                 ? "bg-emerald-500"
                                 : isCurrent
-                                ? "bg-amber-400 animate-pulse"
-                                : "bg-zinc-800"
+                                ? "bg-amber-500 animate-pulse"
+                                : "bg-border"
                             }`}
                           />
                           <div className="flex flex-col">
                             <span
                               className={`text-[11px] font-medium leading-tight truncate ${
                                 isComplete
-                                  ? "text-emerald-400"
+                                  ? "text-emerald-700 dark:text-emerald-400 font-semibold"
                                   : isCurrent
-                                  ? "text-zinc-100 font-semibold"
-                                  : "text-zinc-400"
+                                  ? "text-foreground font-bold"
+                                  : "text-muted"
                               }`}
                             >
                               {stg.label}
                             </span>
-                            <span className="text-[10px] text-zinc-400 hidden sm:block truncate">
+                            <span className="text-[10px] text-muted hidden sm:block truncate">
                               {stg.sublabel}
                             </span>
                           </div>
@@ -497,19 +497,19 @@ export function TicketStatusTracker({
 
                 {/* Technician Notes or Resolution Preview */}
                 {(ticket.assignedTechName || ticket.techNotes) && (
-                  <div className="pt-1 flex items-center justify-between text-xs text-zinc-400 bg-zinc-900/60 border border-zinc-800/80 rounded-lg px-3 py-2">
+                  <div className="pt-1 flex items-center justify-between text-xs text-muted bg-surface-subtle border border-border rounded-lg px-3 py-2">
                     <div className="flex items-center gap-2 truncate">
-                      <UserCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <UserCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                       <span>
                         Assigned Tech:{" "}
-                        <strong className="text-zinc-300 font-medium">
+                        <strong className="text-foreground font-medium">
                           {ticket.assignedTechName || "IT Specialist"}
                         </strong>
                       </span>
                     </div>
 
                     {ticket.techNotes && (
-                      <span className="text-[11px] text-zinc-400 truncate max-w-xs italic hidden md:inline">
+                      <span className="text-[11px] text-muted truncate max-w-xs italic hidden md:inline">
                         &ldquo;{ticket.techNotes}&rdquo;
                       </span>
                     )}
@@ -532,9 +532,9 @@ export function TicketStatusTracker({
         >
           <div className="space-y-5 animate-fade-in text-xs">
             {/* Ticket Header & Status Pills */}
-            <div className="flex items-center justify-between p-3.5 rounded-xl bg-zinc-900 border border-zinc-800">
+            <div className="flex items-center justify-between p-3.5 rounded-xl bg-surface-subtle border border-border">
               <div className="space-y-0.5">
-                <span className="text-[11px] text-zinc-400 font-mono">Status & Priority</span>
+                <span className="text-[11px] text-muted font-mono">Status & Priority</span>
                 <div className="flex items-center gap-2 pt-0.5">
                   <Badge
                     variant={
@@ -546,15 +546,15 @@ export function TicketStatusTracker({
                     }
                     label={selectedTicket.status.toUpperCase()}
                   />
-                  <span className="px-2 py-0.5 rounded-full border border-zinc-700 bg-zinc-800 text-[11px] font-medium text-zinc-300 uppercase">
+                  <span className="px-2 py-0.5 rounded-full border border-border bg-surface text-[11px] font-medium text-foreground uppercase">
                     {selectedTicket.priority} Priority
                   </span>
                 </div>
               </div>
 
               <div className="text-right space-y-0.5">
-                <span className="text-[11px] text-zinc-400">Created On</span>
-                <p className="font-mono text-zinc-200">
+                <span className="text-[11px] text-muted">Created On</span>
+                <p className="font-mono text-foreground">
                   {new Date(selectedTicket.createdAt).toLocaleString()}
                 </p>
               </div>
@@ -562,21 +562,21 @@ export function TicketStatusTracker({
 
             {/* Affected Device Card */}
             {selectedTicket.itemName && (
-              <div className="p-3.5 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-between">
+              <div className="p-3.5 rounded-xl bg-surface-subtle border border-border flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-300">
+                  <div className="w-9 h-9 rounded-lg bg-surface border border-border flex items-center justify-center text-foreground">
                     <Laptop className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-zinc-100">
+                    <h4 className="text-sm font-semibold text-foreground">
                       {selectedTicket.itemName}
                     </h4>
-                    <p className="text-[11px] text-zinc-400 font-mono">
+                    <p className="text-[11px] text-muted font-mono">
                       Serial: {selectedTicket.itemSerial || "N/A"}
                     </p>
                   </div>
                 </div>
-                <span className="text-[11px] text-zinc-400 bg-zinc-800/80 px-2.5 py-1 rounded-md border border-zinc-700/80">
+                <span className="text-[11px] text-muted bg-surface px-2.5 py-1 rounded-md border border-border">
                   Assigned Asset
                 </span>
               </div>
@@ -584,14 +584,14 @@ export function TicketStatusTracker({
 
             {/* Issue Description */}
             <div className="space-y-2">
-              <h4 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider">
+              <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">
                 Summary & Defect Description
               </h4>
-              <div className="p-3.5 rounded-xl bg-zinc-900 border border-zinc-800 space-y-2">
-                <h5 className="text-sm font-semibold text-zinc-100">
+              <div className="p-3.5 rounded-xl bg-surface-subtle border border-border space-y-2">
+                <h5 className="text-sm font-semibold text-foreground">
                   {selectedTicket.title}
                 </h5>
-                <p className="text-zinc-300 leading-relaxed whitespace-pre-wrap text-xs">
+                <p className="text-foreground leading-relaxed whitespace-pre-wrap text-xs">
                   {selectedTicket.description}
                 </p>
               </div>
@@ -600,7 +600,7 @@ export function TicketStatusTracker({
             {/* Attachments (if any) */}
             {selectedTicket.attachmentUrls && selectedTicket.attachmentUrls.length > 0 && (
               <div className="space-y-2">
-                <h4 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider">
+                <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">
                   Photo / Evidence Attachments
                 </h4>
                 <div className="flex flex-wrap gap-2">
@@ -610,11 +610,11 @@ export function TicketStatusTracker({
                       href={url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white transition-colors"
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-subtle border border-border hover:border-accent text-foreground hover:text-accent transition-colors"
                     >
-                      <ImageIcon className="w-3.5 h-3.5 text-zinc-400" />
+                      <ImageIcon className="w-3.5 h-3.5 text-muted" />
                       <span className="truncate max-w-[200px] text-xs">{url}</span>
-                      <ExternalLink className="w-3 h-3 text-zinc-500" />
+                      <ExternalLink className="w-3 h-3 text-muted" />
                     </a>
                   ))}
                 </div>
@@ -623,19 +623,19 @@ export function TicketStatusTracker({
 
             {/* Technician Notes & Resolution */}
             <div className="space-y-2">
-              <h4 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider">
+              <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">
                 IT Diagnostics & Resolution Notes
               </h4>
-              <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 space-y-3">
-                <div className="flex items-center gap-2.5 pb-2.5 border-b border-zinc-800">
-                  <div className="w-7 h-7 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-semibold">
+              <div className="p-4 rounded-xl bg-surface-subtle border border-border space-y-3">
+                <div className="flex items-center gap-2.5 pb-2.5 border-b border-border">
+                  <div className="w-7 h-7 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 font-semibold">
                     <ShieldCheck className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-zinc-200">
+                    <p className="text-xs font-semibold text-foreground">
                       {selectedTicket.assignedTechName || "E310 IT Support Team"}
                     </p>
-                    <p className="text-[10px] text-zinc-400">
+                    <p className="text-[10px] text-muted">
                       Primary Assigned Technician
                     </p>
                   </div>
@@ -643,25 +643,25 @@ export function TicketStatusTracker({
 
                 {selectedTicket.techNotes ? (
                   <div className="space-y-1">
-                    <span className="text-[10px] uppercase font-semibold text-zinc-400">
+                    <span className="text-[10px] uppercase font-semibold text-muted">
                       Bench / Triage Notes:
                     </span>
-                    <p className="text-xs text-zinc-300 bg-zinc-950/60 p-2.5 rounded-lg border border-zinc-800/80">
+                    <p className="text-xs text-foreground bg-surface p-2.5 rounded-lg border border-border">
                       {selectedTicket.techNotes}
                     </p>
                   </div>
                 ) : (
-                  <p className="text-xs text-zinc-400 italic">
+                  <p className="text-xs text-muted italic">
                     Ticket is queued for bench diagnostics. Notes will appear here as the technician conducts repairs.
                   </p>
                 )}
 
                 {selectedTicket.resolutionSummary && (
                   <div className="space-y-1 pt-1">
-                    <span className="text-[10px] uppercase font-semibold text-emerald-400">
+                    <span className="text-[10px] uppercase font-semibold text-emerald-600 dark:text-emerald-400">
                       Final Resolution:
                     </span>
-                    <p className="text-xs text-emerald-300 bg-emerald-500/10 p-2.5 rounded-lg border border-emerald-500/20">
+                    <p className="text-xs text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-500/10 p-2.5 rounded-lg border border-emerald-200 dark:border-emerald-500/20">
                       {selectedTicket.resolutionSummary}
                     </p>
                   </div>
@@ -670,14 +670,14 @@ export function TicketStatusTracker({
             </div>
 
             {/* Modal Actions */}
-            <div className="pt-3 flex items-center justify-between border-t border-zinc-800">
+            <div className="pt-3 flex items-center justify-between border-t border-border">
               <button
                 type="button"
                 onClick={() => handleCopy(selectedTicket.ticketNumber)}
-                className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+                className="flex items-center gap-1.5 text-xs text-muted hover:text-foreground transition-colors"
               >
                 {copiedTicketId === selectedTicket.ticketNumber ? (
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  <Check className="w-3.5 h-3.5 text-emerald-500" />
                 ) : (
                   <Copy className="w-3.5 h-3.5" />
                 )}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { StaffDevice } from "@/types";
 import { MyDevicesList } from "@/components/staff/MyDevicesList";
 import { Loader2 } from "lucide-react";

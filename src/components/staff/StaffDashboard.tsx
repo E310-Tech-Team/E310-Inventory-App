@@ -76,12 +76,12 @@ export function StaffDashboard({
   return (
     <div className="space-y-8 animate-fade-in">
       {/* ─── Clean Header & Greeting ─── */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-zinc-800/80">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-border">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-100">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
             Welcome, {firstName}
           </h1>
-          <p className="text-sm text-zinc-400 mt-1">
+          <p className="text-sm text-muted mt-1">
             Overview of your assigned equipment and active IT support requests.
           </p>
         </div>
@@ -94,7 +94,7 @@ export function StaffDashboard({
               setSelectedDeviceForIssue(null);
               setIsReportOpen(true);
             }}
-            leftIcon={<AlertTriangle className="w-3.5 h-3.5 text-zinc-400" />}
+            leftIcon={<AlertTriangle className="w-3.5 h-3.5 text-muted" />}
           >
             Report an Issue
           </Button>
@@ -112,22 +112,22 @@ export function StaffDashboard({
       {/* ─── Quick Stats Overview ─── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="p-4">
-          <p className="text-xs text-zinc-400">Assigned Equipment</p>
-          <p className="text-2xl font-semibold text-zinc-100 mt-1">
+          <p className="text-xs text-muted">Assigned Equipment</p>
+          <p className="text-2xl font-semibold text-foreground mt-1">
             {devices.length}
           </p>
         </Card>
 
         <Card className="p-4">
-          <p className="text-xs text-zinc-400">Active IT Tickets</p>
-          <p className="text-2xl font-semibold text-zinc-100 mt-1">
+          <p className="text-xs text-muted">Active IT Tickets</p>
+          <p className="text-2xl font-semibold text-foreground mt-1">
             {activeTickets.length}
           </p>
         </Card>
 
         <Card className="p-4">
-          <p className="text-xs text-zinc-400">Department</p>
-          <p className="text-sm font-medium text-zinc-200 mt-2 truncate">
+          <p className="text-xs text-muted">Department</p>
+          <p className="text-sm font-medium text-foreground mt-2 truncate">
             {user.department || "R4C Operations"}
           </p>
         </Card>
@@ -140,13 +140,13 @@ export function StaffDashboard({
           {/* Assigned Devices Section */}
           <section className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold text-zinc-100">
+              <h2 className="text-base font-semibold text-foreground">
                 Assigned Devices
               </h2>
               {devices.length > 0 && (
                 <Link
                   href="/staff/devices"
-                  className="text-xs text-zinc-400 hover:text-zinc-200 flex items-center gap-1 transition-colors"
+                  className="text-xs text-muted hover:text-foreground flex items-center gap-1 transition-colors"
                 >
                   <span>View all ({devices.length})</span>
                   <ChevronRight className="w-3 h-3" />
@@ -155,15 +155,15 @@ export function StaffDashboard({
             </div>
 
             {devices.length === 0 ? (
-              <Card className="py-8 px-6 text-center border-dashed border-zinc-800 space-y-3">
-                <div className="mx-auto w-10 h-10 rounded-full bg-zinc-800/80 flex items-center justify-center text-zinc-400">
+              <Card className="py-8 px-6 text-center border-dashed border-border space-y-3">
+                <div className="mx-auto w-10 h-10 rounded-full bg-surface-subtle flex items-center justify-center text-muted">
                   <Laptop className="w-5 h-5" />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-zinc-200">
+                  <p className="text-sm font-medium text-foreground">
                     No devices currently assigned
                   </p>
-                  <p className="text-xs text-zinc-400 max-w-sm mx-auto">
+                  <p className="text-xs text-muted max-w-sm mx-auto">
                     If you have received an office laptop, phone, or accessory, you can link it to your account.
                   </p>
                 </div>
@@ -184,28 +184,28 @@ export function StaffDashboard({
                     className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
                   >
                     <div className="flex items-center gap-3.5">
-                      <div className="w-9 h-9 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-300 shrink-0">
+                      <div className="w-9 h-9 rounded-lg bg-surface-subtle border border-border flex items-center justify-center text-foreground shrink-0">
                         <Laptop className="w-4 h-4" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-medium text-zinc-100">
+                          <h3 className="text-sm font-medium text-foreground">
                             {device.name}
                           </h3>
                           <Badge variant="active" label="In Custody" />
                         </div>
-                        <div className="flex items-center gap-2 mt-1 text-xs text-zinc-400">
+                        <div className="flex items-center gap-2 mt-1 text-xs text-muted">
                           <span>Serial:</span>
                           <button
                             onClick={() => copyToClipboard(device.serialNumber || "N/A")}
-                            className="font-mono text-zinc-300 hover:text-white flex items-center gap-1 transition-colors"
+                            className="font-mono text-foreground hover:text-accent flex items-center gap-1 transition-colors"
                             title="Click to copy serial"
                           >
                             <span>{device.serialNumber || "None"}</span>
                             {copiedSerial === device.serialNumber ? (
-                              <Check className="w-3 h-3 text-emerald-400" />
+                              <Check className="w-3 h-3 text-emerald-500" />
                             ) : (
-                              <Copy className="w-3 h-3 text-zinc-500" />
+                              <Copy className="w-3 h-3 text-muted" />
                             )}
                           </button>
                         </div>
@@ -219,7 +219,7 @@ export function StaffDashboard({
                         setSelectedDeviceForIssue(device);
                         setIsReportOpen(true);
                       }}
-                      className="text-xs text-zinc-400 hover:text-zinc-200"
+                      className="text-xs text-muted hover:text-foreground"
                     >
                       Report issue
                     </Button>
@@ -232,12 +232,12 @@ export function StaffDashboard({
           {/* Active Support Tickets Section */}
           <section className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold text-zinc-100">
+              <h2 className="text-base font-semibold text-foreground">
                 Recent Support Requests
               </h2>
               <Link
                 href="/staff/tickets"
-                className="text-xs text-zinc-400 hover:text-zinc-200 transition-colors flex items-center gap-1"
+                className="text-xs text-muted hover:text-foreground transition-colors flex items-center gap-1"
               >
                 <span>View all tickets</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -245,8 +245,8 @@ export function StaffDashboard({
             </div>
 
             {complaints.length === 0 ? (
-              <Card className="py-6 px-4 text-center border-dashed border-zinc-800">
-                <p className="text-xs text-zinc-400">
+              <Card className="py-6 px-4 text-center border-dashed border-border">
+                <p className="text-xs text-muted">
                   No support tickets on file. Everything is running smoothly.
                 </p>
               </Card>
@@ -254,10 +254,10 @@ export function StaffDashboard({
               <div className="space-y-2.5">
                 {complaints.slice(0, 4).map((ticket) => (
                   <Link key={ticket.id} href="/staff/tickets" className="block">
-                    <Card className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:border-zinc-700/80 transition-colors">
+                    <Card className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:border-border transition-colors">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs font-semibold text-zinc-300">
+                          <span className="font-mono text-xs font-semibold text-foreground">
                             {ticket.ticketNumber}
                           </span>
                           <Badge
@@ -271,14 +271,14 @@ export function StaffDashboard({
                             label={ticket.status}
                           />
                         </div>
-                        <p className="text-sm font-medium text-zinc-200">
+                        <p className="text-sm font-medium text-foreground">
                           {ticket.title}
                         </p>
                       </div>
 
-                      <div className="text-right shrink-0 text-xs text-zinc-400 flex items-center gap-2">
+                      <div className="text-right shrink-0 text-xs text-muted flex items-center gap-2">
                         <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
-                        <ChevronRight className="w-3.5 h-3.5 text-zinc-500" />
+                        <ChevronRight className="w-3.5 h-3.5 text-muted" />
                       </div>
                     </Card>
                   </Link>
@@ -292,23 +292,23 @@ export function StaffDashboard({
         <div className="lg:col-span-4 space-y-6">
           {/* Support & Actions Card */}
           <Card className="space-y-4 p-5">
-            <h3 className="text-sm font-semibold text-zinc-100">
+            <h3 className="text-sm font-semibold text-foreground">
               IT Support & Helpdesk
             </h3>
 
-            <div className="space-y-2 text-xs text-zinc-400">
+            <div className="space-y-2 text-xs text-muted">
               <div className="flex items-start gap-2">
-                <Clock className="w-4 h-4 text-zinc-500 shrink-0 mt-0.5" />
+                <Clock className="w-4 h-4 text-muted shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium text-zinc-300">Room 310 Helpdesk</p>
+                  <p className="font-medium text-foreground">Room 310 Helpdesk</p>
                   <p>Monday – Friday, 08:00 – 18:00</p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-2 pt-2 border-t border-zinc-800/80">
-                <ShieldCheck className="w-4 h-4 text-zinc-500 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2 pt-2 border-t border-border">
+                <ShieldCheck className="w-4 h-4 text-muted shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium text-zinc-300">Hardware Stewardship</p>
+                  <p className="font-medium text-foreground">Hardware Stewardship</p>
                   <p>Devices remain property of R4C Global. Report issues promptly.</p>
                 </div>
               </div>
@@ -320,7 +320,7 @@ export function StaffDashboard({
                 size="sm"
                 className="w-full justify-between"
                 onClick={() => setIsPolicyOpen(true)}
-                rightIcon={<ChevronRight className="w-3.5 h-3.5 text-zinc-500" />}
+                rightIcon={<ChevronRight className="w-3.5 h-3.5 text-muted" />}
               >
                 View Equipment Guidelines
               </Button>
@@ -329,16 +329,16 @@ export function StaffDashboard({
 
           {/* IT Notices */}
           <Card className="space-y-3 p-5">
-            <h3 className="text-sm font-semibold text-zinc-100">
+            <h3 className="text-sm font-semibold text-foreground">
               Notice
             </h3>
-            <p className="text-xs text-zinc-400 leading-relaxed">
+            <p className="text-xs text-muted leading-relaxed">
               Standard operating system updates occur automatically over weekends. Please keep assigned devices connected to power.
             </p>
             <div className="pt-1">
               <a
                 href="mailto:ezekielgoodness@r4cglobal.org"
-                className="text-xs text-zinc-400 hover:text-zinc-200 inline-flex items-center gap-1 transition-colors"
+                className="text-xs text-muted hover:text-foreground inline-flex items-center gap-1 transition-colors"
               >
                 <span>Contact IT Administration</span>
                 <ExternalLink className="w-3 h-3" />
@@ -373,24 +373,24 @@ export function StaffDashboard({
         description="Standard operating guidelines for company hardware custody."
         size="md"
       >
-        <div className="space-y-4 text-xs text-zinc-300 leading-relaxed">
-          <div className="p-3 rounded-lg bg-zinc-800/50 border border-zinc-700/60 space-y-1">
-            <h4 className="font-medium text-zinc-100">1. Custody and Care</h4>
-            <p className="text-zinc-400">
+        <div className="space-y-4 text-xs text-foreground leading-relaxed">
+          <div className="p-3 rounded-lg bg-surface-subtle border border-border space-y-1">
+            <h4 className="font-medium text-foreground">1. Custody and Care</h4>
+            <p className="text-muted">
               Assigned equipment remains the property of R4C Global and should be handled with reasonable care against loss and liquid damage.
             </p>
           </div>
 
-          <div className="p-3 rounded-lg bg-zinc-800/50 border border-zinc-700/60 space-y-1">
-            <h4 className="font-medium text-zinc-100">2. Issue Reporting</h4>
-            <p className="text-zinc-400">
+          <div className="p-3 rounded-lg bg-surface-subtle border border-border space-y-1">
+            <h4 className="font-medium text-foreground">2. Issue Reporting</h4>
+            <p className="text-muted">
               If an assigned device experiences a hardware malfunction or physical damage, file a ticket through this portal so a replacement or repair can be coordinated.
             </p>
           </div>
 
-          <div className="p-3 rounded-lg bg-zinc-800/50 border border-zinc-700/60 space-y-1">
-            <h4 className="font-medium text-zinc-100">3. Return Timeline</h4>
-            <p className="text-zinc-400">
+          <div className="p-3 rounded-lg bg-surface-subtle border border-border space-y-1">
+            <h4 className="font-medium text-foreground">3. Return Timeline</h4>
+            <p className="text-muted">
               Fixed-date loans should be returned to Room 310 by the specified due date or extended through IT support.
             </p>
           </div>
