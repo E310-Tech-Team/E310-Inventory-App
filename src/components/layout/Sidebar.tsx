@@ -13,36 +13,52 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   ShieldCheck,
-  Monitor,
+  Home,
+  Laptop,
+  Eye,
+  Sliders,
 } from "lucide-react";
 import { Admin } from "@/types";
+import { isTechUser } from "@/lib/auth/roles";
 import { ThemeToggle } from "./ThemeToggle";
 
-const NAV_ITEMS = [
+const TECH_NAV_ITEMS = [
   { href: "/tech", label: "Dashboard", icon: LayoutDashboard },
   { href: "/items", label: "Inventory", icon: Package },
   { href: "/tech/approvals", label: "Approvals", icon: ShieldCheck },
+  { href: "/tech/options", label: "Options", icon: Sliders },
   { href: "/categories", label: "Categories", icon: Boxes },
   { href: "/checkouts", label: "Checkouts", icon: ArrowLeftRight },
   { href: "/exports", label: "Exports", icon: FileSpreadsheet },
-  { href: "/staff", label: "Staff Portal", icon: Monitor },
+];
+
+const STAFF_NAV_ITEMS = [
+  { href: "/staff", label: "Overview", icon: Home },
+  { href: "/staff/devices", label: "My Devices", icon: Laptop },
 ];
 
 export function Sidebar({
   admin,
   collapsed,
   onToggle,
+  isStaffPreview = false,
+  onToggleStaffPreview,
 }: {
   admin: Admin;
   collapsed: boolean;
   onToggle: () => void;
+  isStaffPreview?: boolean;
+  onToggleStaffPreview?: () => void;
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const navItems =
-    admin.role === "super-admin"
-      ? [...NAV_ITEMS, { href: "/access", label: "Access", icon: UserRoundCog }]
-      : NAV_ITEMS;
+
+  const isStaff = !isTechUser(admin) || isStaffPreview;
+  const navItems = isStaff
+    ? STAFF_NAV_ITEMS
+    : admin.role === "super-admin"
+    ? [...TECH_NAV_ITEMS, { href: "/access", label: "Access", icon: UserRoundCog }]
+    : TECH_NAV_ITEMS;
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -93,6 +109,24 @@ export function Sidebar({
       </div>
 
       <nav className={`flex-1 py-4 space-y-1 ${collapsed ? "px-2" : "px-3"}`}>
+        {isStaffPreview && !collapsed && (
+          <div className="mb-3 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between text-xs text-amber-700 dark:text-amber-400">
+            <div className="flex items-center gap-1.5 font-semibold text-[11px]">
+              <Eye className="w-3.5 h-3.5" />
+              <span>Staff Preview</span>
+            </div>
+            {onToggleStaffPreview && (
+              <button
+                type="button"
+                onClick={onToggleStaffPreview}
+                className="underline text-[11px] font-bold hover:text-amber-800 dark:hover:text-amber-300"
+              >
+                Exit
+              </button>
+            )}
+          </div>
+        )}
+
         {navItems.map((item) => {
           const isActive =
             item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
@@ -116,6 +150,45 @@ export function Sidebar({
           );
         })}
       </nav>
+
+      {/* Super Admin Preview Toggle */}
+      {admin.role === "super-admin" && onToggleStaffPreview && (
+        <div className={`border-t border-border ${collapsed ? "p-2 flex justify-center" : "p-3"}`}>
+          {collapsed ? (
+            <button
+              type="button"
+              onClick={onToggleStaffPreview}
+              title={isStaffPreview ? "Exit Staff Preview" : "Preview Staff View"}
+              aria-label={isStaffPreview ? "Exit Staff Preview" : "Preview Staff View"}
+              className={`pressable p-2 rounded-lg text-xs transition-colors border ${
+                isStaffPreview
+                  ? "bg-amber-500/20 text-amber-600 border-amber-500/40"
+                  : "text-muted hover:bg-background hover:text-foreground border-transparent"
+              }`}
+            >
+              <Eye className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onToggleStaffPreview}
+              className={`pressable w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-colors border ${
+                isStaffPreview
+                  ? "bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400"
+                  : "bg-surface hover:bg-background border-border text-muted hover:text-foreground"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Eye className="w-3.5 h-3.5" />
+                <span>{isStaffPreview ? "Exit Preview" : "Staff View Preview"}</span>
+              </div>
+              <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300">
+                Admin
+              </span>
+            </button>
+          )}
+        </div>
+      )}
 
       {collapsed ? (
         <div className="px-2 py-4 border-t border-border flex flex-col items-center gap-3">

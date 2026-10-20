@@ -4,32 +4,44 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  Boxes,
   ArrowLeftRight,
   UserRoundCog,
-  FileSpreadsheet,
   Package,
   ShieldCheck,
-  Monitor,
+  Home,
+  Laptop,
+  Sliders,
 } from "lucide-react";
 import { Admin } from "@/types";
+import { isTechUser } from "@/lib/auth/roles";
 
-const NAV_ITEMS = [
+const TECH_NAV_ITEMS = [
   { href: "/tech", label: "Dashboard", icon: LayoutDashboard },
   { href: "/items", label: "Inventory", icon: Package },
   { href: "/tech/approvals", label: "Approvals", icon: ShieldCheck },
-  { href: "/categories", label: "Categories", icon: Boxes },
+  { href: "/tech/options", label: "Options", icon: Sliders },
   { href: "/checkouts", label: "Checkouts", icon: ArrowLeftRight },
-  { href: "/exports", label: "Exports", icon: FileSpreadsheet },
-  { href: "/staff", label: "Staff", icon: Monitor },
 ];
 
-export function MobileNav({ admin }: { admin: Admin }) {
+const STAFF_NAV_ITEMS = [
+  { href: "/staff", label: "Overview", icon: Home },
+  { href: "/staff/devices", label: "My Devices", icon: Laptop },
+];
+
+export function MobileNav({
+  admin,
+  isStaffPreview = false,
+}: {
+  admin: Admin;
+  isStaffPreview?: boolean;
+}) {
   const pathname = usePathname();
-  const navItems =
-    admin.role === "super-admin"
-      ? [...NAV_ITEMS, { href: "/access", label: "Access", icon: UserRoundCog }]
-      : NAV_ITEMS;
+  const isStaff = !isTechUser(admin) || isStaffPreview;
+  const navItems = isStaff
+    ? STAFF_NAV_ITEMS
+    : admin.role === "super-admin"
+    ? [...TECH_NAV_ITEMS, { href: "/access", label: "Access", icon: UserRoundCog }]
+    : TECH_NAV_ITEMS;
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-10">
