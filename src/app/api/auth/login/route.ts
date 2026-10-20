@@ -48,18 +48,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Super-admins and bootstrap accounts without a password hash can sign in
-    // directly. Onboarded users still need their temporary password once.
-    const passwordlessAccess = user.role === "super-admin" && !user.passwordHash;
+    // Accounts without a password hash can sign in directly with just their email.
+    const passwordlessAccess = !user.passwordHash;
     if (passwordlessAccess) {
       await createSession(user);
       const isTech = user.role === "super-admin" || user.role === "team-member";
+      const mustChangePassword = user.status === "pending";
       return NextResponse.json({
         success: true,
         isPasswordless: true,
-        mustChangePassword: false,
+        mustChangePassword,
         role: user.role,
-        redirectUrl: isTech ? "/tech" : "/staff",
+        redirectUrl: mustChangePassword ? "/change-password" : isTech ? "/tech" : "/staff",
         user: {
           id: user.id,
           name: user.name,

@@ -22,6 +22,7 @@ import {
 import { Item, Category } from "@/types";
 import { ItemFormModal } from "./ItemFormModal";
 import { ItemDetailsModal } from "./ItemDetailsModal";
+import { Select } from "@/components/common/Select";
 
 interface ItemsListProps {
   items: Item[];
@@ -214,65 +215,65 @@ export function ItemsList({ items, categories }: ItemsListProps) {
     <div className="space-y-6">
       {/* KPI Cards Header */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-5 rounded-xl border border-slate-200 bg-white shadow-xs">
+        <div className="p-5 rounded-2xl border border-border bg-surface shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted">
               Total Assets
             </span>
-            <div className="p-2 rounded-lg bg-blue-50 text-blue-600">
+            <div className="p-2.5 rounded-xl bg-brand-teal/15 text-brand-teal">
               <Boxes className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-bold text-slate-900">{kpis.total}</div>
-          <p className="mt-1 text-xs text-slate-500">All registered equipment</p>
+          <div className="mt-3 text-2xl font-black text-foreground">{kpis.total}</div>
+          <p className="mt-1 text-xs text-muted">All registered equipment</p>
         </div>
 
-        <div className="p-5 rounded-xl border border-slate-200 bg-white shadow-xs">
+        <div className="p-5 rounded-2xl border border-border bg-surface shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted">
               Available Pool
             </span>
-            <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600">
+            <div className="p-2.5 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-bold text-slate-900">{kpis.available}</div>
-          <p className="mt-1 text-xs text-slate-500">Ready for staff assignment</p>
+          <div className="mt-3 text-2xl font-black text-foreground">{kpis.available}</div>
+          <p className="mt-1 text-xs text-muted">Ready for staff assignment</p>
         </div>
 
-        <div className="p-5 rounded-xl border border-slate-200 bg-white shadow-xs">
+        <div className="p-5 rounded-2xl border border-border bg-surface shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted">
               In Custody
             </span>
-            <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600">
+            <div className="p-2.5 rounded-xl bg-blue-500/15 text-blue-600 dark:text-blue-400">
               <Laptop className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-bold text-slate-900">{kpis.checkedOut}</div>
-          <p className="mt-1 text-xs text-slate-500">Checked out by staff</p>
+          <div className="mt-3 text-2xl font-black text-foreground">{kpis.checkedOut}</div>
+          <p className="mt-1 text-xs text-muted">Checked out by staff</p>
         </div>
 
-        <div className="p-5 rounded-xl border border-slate-200 bg-white shadow-xs">
+        <div className="p-5 rounded-2xl border border-border bg-surface shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted">
               Low Stock Alerts
             </span>
-            <div className="p-2 rounded-lg bg-amber-50 text-amber-600">
+            <div className="p-2.5 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400">
               <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-bold text-slate-900">{kpis.lowStock}</div>
-          <p className="mt-1 text-xs text-slate-500">Below threshold</p>
+          <div className="mt-3 text-2xl font-black text-foreground">{kpis.lowStock}</div>
+          <p className="mt-1 text-xs text-muted">Below threshold</p>
         </div>
       </div>
 
       {/* Main Filter & Action Bar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-3">
+      <div className="bg-surface p-4 rounded-2xl border border-border shadow-xs space-y-3">
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
           {/* Search Input */}
           <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
             <input
               type="text"
               value={query}
@@ -281,7 +282,7 @@ export function ItemsList({ items, categories }: ItemsListProps) {
                 setCurrentPage(1);
               }}
               placeholder="Search by asset name, serial, category, or notes..."
-              className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-900 placeholder-slate-400 transition-colors"
+              className="w-full pl-9 pr-4 py-2 text-sm bg-surface-elevated border border-border rounded-xl focus:outline-none focus:border-brand-teal text-foreground placeholder:text-muted transition-colors"
             />
           </div>
 
@@ -290,16 +291,16 @@ export function ItemsList({ items, categories }: ItemsListProps) {
             <button
               onClick={exportCSV}
               disabled={filteredItems.length === 0}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors shadow-xs disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-foreground bg-surface border border-border hover:bg-surface-elevated rounded-xl transition-colors shadow-xs disabled:opacity-50"
               title="Export filtered items to CSV"
             >
-              <Download className="w-3.5 h-3.5" />
+              <Download className="w-3.5 h-3.5 text-brand-teal" />
               <span>Export CSV</span>
             </button>
 
             <button
               onClick={() => setShowCreate(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-xs"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-brand-navy bg-brand-yellow hover:bg-brand-yellow/90 rounded-xl transition-all shadow-xs"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add Equipment</span>
@@ -308,84 +309,92 @@ export function ItemsList({ items, categories }: ItemsListProps) {
         </div>
 
         {/* Multi-Attribute Filters Row */}
-        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
-          <div className="flex items-center gap-1 text-xs text-slate-500 mr-1">
+        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border">
+          <div className="flex items-center gap-1 text-xs text-muted mr-1">
             <Filter className="w-3.5 h-3.5" />
-            <span className="font-medium">Filter by:</span>
+            <span className="font-semibold">Filter by:</span>
           </div>
 
           {/* Category Dropdown */}
-          <select
-            value={categoryFilter}
-            onChange={(e) => {
-              setCategoryFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md text-slate-800 focus:outline-none focus:border-blue-500"
-          >
-            <option value="all">All Categories ({categories.length})</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          <div className="w-48">
+            <Select
+              value={categoryFilter}
+              onChange={(e) => {
+                setCategoryFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              triggerClassName="py-1 px-2.5 text-xs bg-surface-elevated rounded-lg"
+              options={[
+                { value: "all", label: `All Categories (${categories.length})` },
+                ...categories.map((c) => ({ value: c.id, label: c.name })),
+              ]}
+            />
+          </div>
 
           {/* Status Dropdown */}
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md text-slate-800 focus:outline-none focus:border-blue-500"
-          >
-            <option value="all">All Statuses</option>
-            <option value="available">Available</option>
-            <option value="checked-out">Assigned / Checked Out</option>
-            <option value="low-stock">Low Stock</option>
-          </select>
+          <div className="w-36">
+            <Select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              triggerClassName="py-1 px-2.5 text-xs bg-surface-elevated rounded-lg"
+              options={[
+                { value: "all", label: "All Statuses" },
+                { value: "available", label: "Available" },
+                { value: "checked-out", label: "Assigned" },
+                { value: "low-stock", label: "Low Stock" },
+              ]}
+            />
+          </div>
 
           {/* Condition Dropdown */}
-          <select
-            value={conditionFilter}
-            onChange={(e) => {
-              setConditionFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md text-slate-800 focus:outline-none focus:border-blue-500"
-          >
-            <option value="all">All Conditions</option>
-            <option value="new">New</option>
-            <option value="good">Good</option>
-            <option value="fair">Fair</option>
-            <option value="damaged">Damaged</option>
-          </select>
+          <div className="w-36">
+            <Select
+              value={conditionFilter}
+              onChange={(e) => {
+                setConditionFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              triggerClassName="py-1 px-2.5 text-xs bg-surface-elevated rounded-lg"
+              options={[
+                { value: "all", label: "All Conditions" },
+                { value: "new", label: "New" },
+                { value: "good", label: "Good" },
+                { value: "fair", label: "Fair" },
+                { value: "damaged", label: "Damaged" },
+              ]}
+            />
+          </div>
 
           {/* Identifier Type Dropdown */}
-          <select
-            value={identifierTypeFilter}
-            onChange={(e) => {
-              setIdentifierTypeFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md text-slate-800 focus:outline-none focus:border-blue-500"
-          >
-            <option value="all">All Identifier Types</option>
-            <option value="serial-number">Serial Number</option>
-            <option value="asset-tag">Asset Tag</option>
-            <option value="service-tag">Service Tag</option>
-            <option value="imei">IMEI</option>
-            <option value="model-number">Model Number</option>
-            <option value="other">Other</option>
-            <option value="none">Quantity / None</option>
-          </select>
+          <div className="w-44">
+            <Select
+              value={identifierTypeFilter}
+              onChange={(e) => {
+                setIdentifierTypeFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              triggerClassName="py-1 px-2.5 text-xs bg-surface-elevated rounded-lg"
+              options={[
+                { value: "all", label: "All Identifier Types" },
+                { value: "serial-number", label: "Serial Number" },
+                { value: "asset-tag", label: "Asset Tag" },
+                { value: "service-tag", label: "Service Tag" },
+                { value: "imei", label: "IMEI" },
+                { value: "model-number", label: "Model Number" },
+                { value: "other", label: "Other" },
+                { value: "none", label: "Quantity / None" },
+              ]}
+            />
+          </div>
 
           {/* Reset Filters */}
           {activeFiltersCount > 0 && (
             <button
               onClick={resetFilters}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100/70 border border-rose-200 rounded-md transition-colors ml-auto"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 rounded-lg transition-colors ml-auto"
             >
               <RotateCcw className="w-3 h-3" />
               <span>Reset Filters ({activeFiltersCount})</span>
@@ -395,20 +404,20 @@ export function ItemsList({ items, categories }: ItemsListProps) {
       </div>
 
       {/* Assets Table Container */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+      <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-xs">
         {filteredItems.length === 0 ? (
           <div className="p-16 text-center">
-            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+            <div className="w-12 h-12 rounded-full bg-surface-elevated flex items-center justify-center mx-auto text-muted">
               <Package className="w-6 h-6" />
             </div>
-            <h3 className="mt-4 text-base font-semibold text-slate-900">No equipment found</h3>
-            <p className="mt-1 text-sm text-slate-500 max-w-sm mx-auto">
+            <h3 className="mt-4 text-base font-semibold text-foreground">No equipment found</h3>
+            <p className="mt-1 text-sm text-muted max-w-sm mx-auto">
               No inventory assets matched your selected filter criteria. Try resetting or adjusting your query.
             </p>
             {activeFiltersCount > 0 && (
               <button
                 onClick={resetFilters}
-                className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/70 rounded-lg transition-colors"
+                className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-brand-teal hover:text-brand-teal/80 bg-brand-teal/10 hover:bg-brand-teal/20 rounded-lg transition-colors"
               >
                 Clear all filters
               </button>
@@ -420,7 +429,7 @@ export function ItemsList({ items, categories }: ItemsListProps) {
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50/80 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  <tr className="bg-surface-elevated/70 border-b border-border text-xs font-semibold text-muted uppercase tracking-wider">
                     <th className="py-3.5 px-4">Equipment & Model</th>
                     <th className="py-3.5 px-4">Category</th>
                     <th className="py-3.5 px-4">Identifier / Serial</th>
@@ -429,7 +438,7 @@ export function ItemsList({ items, categories }: ItemsListProps) {
                     <th className="py-3.5 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-sm">
+                <tbody className="divide-y divide-border text-sm">
                   {paginatedItems.map((item) => {
                     const category = categoryById.get(item.categoryId);
                     const isQuantityTracked = category?.trackingType === "quantity";
@@ -437,21 +446,21 @@ export function ItemsList({ items, categories }: ItemsListProps) {
                     return (
                       <tr
                         key={item.id}
-                        className="hover:bg-slate-50/60 transition-colors group cursor-pointer"
+                        className="hover:bg-surface-elevated/50 transition-colors group cursor-pointer"
                         onClick={() => setSelectedItem(item)}
                       >
                         {/* Equipment Name */}
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0">
+                            <div className="w-8 h-8 rounded-lg bg-brand-teal/10 border border-brand-teal/20 flex items-center justify-center text-brand-teal flex-shrink-0">
                               <Laptop className="w-4 h-4" />
                             </div>
                             <div>
-                              <div className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
+                              <div className="font-semibold text-foreground group-hover:text-brand-teal transition-colors">
                                 {item.name}
                               </div>
                               {item.registeredByStaff && (
-                                <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-purple-700 bg-purple-50 px-1.5 py-0.2 rounded border border-purple-200 mt-0.5">
+                                <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-purple-400 bg-purple-500/10 px-1.5 py-0.2 rounded border border-purple-500/20 mt-0.5">
                                   Staff Self-Registered
                                 </span>
                               )}
@@ -461,7 +470,7 @@ export function ItemsList({ items, categories }: ItemsListProps) {
 
                         {/* Category */}
                         <td className="py-3.5 px-4">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium text-slate-700 bg-slate-100 border border-slate-200">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium text-foreground bg-surface-elevated border border-border">
                             {category?.name ?? "Uncategorized"}
                           </span>
                         </td>
@@ -469,13 +478,13 @@ export function ItemsList({ items, categories }: ItemsListProps) {
                         {/* Identifier */}
                         <td className="py-3.5 px-4">
                           {isQuantityTracked ? (
-                            <span className="text-xs text-slate-400 font-mono">Bulk Tracked</span>
+                            <span className="text-xs text-muted font-mono">Bulk Tracked</span>
                           ) : item.identifierValue || item.serialNumber ? (
-                            <div className="font-mono text-xs text-slate-800 bg-slate-100 px-2 py-0.5 rounded inline-block border border-slate-200">
+                            <div className="font-mono text-xs text-foreground bg-surface-elevated px-2 py-0.5 rounded inline-block border border-border">
                               {item.identifierValue || item.serialNumber}
                             </div>
                           ) : (
-                            <span className="text-xs text-slate-400">None</span>
+                            <span className="text-xs text-muted">None</span>
                           )}
                         </td>
 
@@ -485,10 +494,10 @@ export function ItemsList({ items, categories }: ItemsListProps) {
                             <span
                               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                                 item.status === "available"
-                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                  ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                                   : item.status === "checked-out"
-                                  ? "bg-blue-50 text-blue-700 border border-blue-200"
-                                  : "bg-amber-50 text-amber-700 border border-amber-200"
+                                  ? "bg-brand-teal/10 text-brand-teal border border-brand-teal/20"
+                                  : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
                               }`}
                             >
                               {item.status === "checked-out"
@@ -496,7 +505,7 @@ export function ItemsList({ items, categories }: ItemsListProps) {
                                 : item.status.replace("-", " ").toUpperCase()}
                             </span>
                             {item.quantity !== null && (
-                              <span className="text-xs font-mono text-slate-600 font-medium">
+                              <span className="text-xs font-mono text-muted font-medium">
                                 ({item.quantity} in stock)
                               </span>
                             )}
@@ -508,12 +517,12 @@ export function ItemsList({ items, categories }: ItemsListProps) {
                           <span
                             className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${
                               item.condition === "new"
-                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                                 : item.condition === "good"
-                                ? "bg-blue-50 text-blue-700 border border-blue-200"
+                                ? "bg-brand-teal/10 text-brand-teal border border-brand-teal/20"
                                 : item.condition === "fair"
-                                ? "bg-amber-50 text-amber-700 border border-amber-200"
-                                : "bg-rose-50 text-rose-700 border border-rose-200"
+                                ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                                : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
                             }`}
                           >
                             {item.condition}
@@ -528,14 +537,14 @@ export function ItemsList({ items, categories }: ItemsListProps) {
                           <div className="flex items-center justify-end gap-1">
                             <button
                               onClick={() => setSelectedItem(item)}
-                              className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                              className="p-1.5 text-muted hover:text-foreground hover:bg-surface-elevated rounded-lg transition-colors"
                               title="Inspect Item"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => setEditing(item)}
-                              className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              className="p-1.5 text-muted hover:text-brand-teal hover:bg-brand-teal/10 rounded-lg transition-colors"
                               title="Edit Item"
                             >
                               <Pencil className="w-4 h-4" />
@@ -545,7 +554,7 @@ export function ItemsList({ items, categories }: ItemsListProps) {
                                 setDeleteError(null);
                                 setDeleting(item);
                               }}
-                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                              className="p-1.5 text-muted hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
                               title="Delete Item"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -560,7 +569,7 @@ export function ItemsList({ items, categories }: ItemsListProps) {
             </div>
 
             {/* Mobile Card Stack */}
-            <div className="md:hidden divide-y divide-slate-100">
+            <div className="md:hidden divide-y divide-border">
               {paginatedItems.map((item) => {
                 const category = categoryById.get(item.categoryId);
                 const isQuantityTracked = category?.trackingType === "quantity";
@@ -568,19 +577,19 @@ export function ItemsList({ items, categories }: ItemsListProps) {
                 return (
                   <div
                     key={item.id}
-                    className="p-4 space-y-3 bg-white active:bg-slate-50 transition-colors cursor-pointer"
+                    className="p-4 space-y-3 bg-surface active:bg-surface-elevated transition-colors cursor-pointer"
                     onClick={() => setSelectedItem(item)}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                        <div className="w-9 h-9 rounded-xl bg-brand-teal/10 border border-brand-teal/20 flex items-center justify-center text-brand-teal shrink-0">
                           <Laptop className="w-4 h-4" />
                         </div>
                         <div>
-                          <h4 className="font-semibold text-slate-900 text-sm">
+                          <h4 className="font-semibold text-foreground text-sm">
                             {item.name}
                           </h4>
-                          <span className="inline-flex items-center text-[11px] text-slate-500">
+                          <span className="inline-flex items-center text-[11px] text-muted">
                             {category?.name ?? "Uncategorized"}
                           </span>
                         </div>
@@ -589,10 +598,10 @@ export function ItemsList({ items, categories }: ItemsListProps) {
                       <span
                         className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold capitalize shrink-0 ${
                           item.status === "available"
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                             : item.status === "checked-out"
-                            ? "bg-blue-50 text-blue-700 border border-blue-200"
-                            : "bg-amber-50 text-amber-700 border border-amber-200"
+                            ? "bg-brand-teal/10 text-brand-teal border border-brand-teal/20"
+                            : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
                         }`}
                       >
                         {item.status === "checked-out" ? "Assigned" : item.status.replace("-", " ")}
@@ -602,11 +611,11 @@ export function ItemsList({ items, categories }: ItemsListProps) {
                     <div className="flex items-center justify-between gap-2 pt-1 text-xs">
                       <div className="flex items-center gap-2 flex-wrap">
                         {isQuantityTracked ? (
-                          <span className="font-mono text-[11px] text-slate-500">
+                          <span className="font-mono text-[11px] text-muted">
                             Bulk Tracked
                           </span>
                         ) : item.identifierValue || item.serialNumber ? (
-                          <span className="font-mono text-[11px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200">
+                          <span className="font-mono text-[11px] bg-surface-elevated text-foreground px-2 py-0.5 rounded border border-border">
                             {item.identifierValue || item.serialNumber}
                           </span>
                         ) : null}
@@ -614,12 +623,12 @@ export function ItemsList({ items, categories }: ItemsListProps) {
                         <span
                           className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium capitalize ${
                             item.condition === "new"
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                               : item.condition === "good"
-                              ? "bg-blue-50 text-blue-700 border border-blue-200"
+                              ? "bg-brand-teal/10 text-brand-teal border border-brand-teal/20"
                               : item.condition === "fair"
-                              ? "bg-amber-50 text-amber-700 border border-amber-200"
-                              : "bg-rose-50 text-rose-700 border border-rose-200"
+                              ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                              : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
                           }`}
                         >
                           {item.condition}
@@ -627,7 +636,7 @@ export function ItemsList({ items, categories }: ItemsListProps) {
                       </div>
 
                       {item.quantity !== null && (
-                        <span className="font-mono text-xs text-slate-500">
+                        <span className="font-mono text-xs text-muted">
                           Qty: {item.quantity}
                         </span>
                       )}
@@ -635,19 +644,19 @@ export function ItemsList({ items, categories }: ItemsListProps) {
 
                     {/* Mobile Card Action Bar */}
                     <div
-                      className="flex items-center justify-end gap-1 pt-2 border-t border-slate-100"
+                      className="flex items-center justify-end gap-1 pt-2 border-t border-border"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <button
                         onClick={() => setSelectedItem(item)}
-                        className="px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-md transition-colors flex items-center gap-1"
+                        className="px-2.5 py-1 text-xs font-medium text-muted hover:text-foreground hover:bg-surface-elevated rounded-md transition-colors flex items-center gap-1"
                       >
                         <Eye className="w-3.5 h-3.5" />
                         <span>View</span>
                       </button>
                       <button
                         onClick={() => setEditing(item)}
-                        className="px-2.5 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-md transition-colors flex items-center gap-1"
+                        className="px-2.5 py-1 text-xs font-medium text-brand-teal hover:bg-brand-teal/10 rounded-md transition-colors flex items-center gap-1"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                         <span>Edit</span>
@@ -657,7 +666,7 @@ export function ItemsList({ items, categories }: ItemsListProps) {
                           setDeleteError(null);
                           setDeleting(item);
                         }}
-                        className="px-2.5 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50 rounded-md transition-colors flex items-center gap-1"
+                        className="px-2.5 py-1 text-xs font-medium text-rose-400 hover:bg-rose-500/10 rounded-md transition-colors flex items-center gap-1"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                         <span>Delete</span>
@@ -669,57 +678,60 @@ export function ItemsList({ items, categories }: ItemsListProps) {
             </div>
 
             {/* Pagination Controls */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-slate-100 bg-slate-50/50 text-xs text-slate-500">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-border bg-surface-elevated/40 text-xs text-muted">
               <div className="flex items-center gap-2">
                 <span>
                   Showing{" "}
-                  <span className="font-semibold text-slate-900">
+                  <span className="font-semibold text-foreground">
                     {(safePage - 1) * pageSize + 1}
                   </span>{" "}
                   to{" "}
-                  <span className="font-semibold text-slate-900">
+                  <span className="font-semibold text-foreground">
                     {Math.min(safePage * pageSize, filteredItems.length)}
                   </span>{" "}
                   of{" "}
-                  <span className="font-semibold text-slate-900">
+                  <span className="font-semibold text-foreground">
                     {filteredItems.length}
                   </span>{" "}
                   equipment records
                 </span>
 
-                <select
-                  value={pageSize}
-                  onChange={(e) => {
-                    setPageSize(Number(e.target.value));
-                    setCurrentPage(1);
-                  }}
-                  className="ml-2 px-2 py-1 bg-white border border-slate-200 rounded text-slate-700 text-xs"
-                >
-                  <option value={10}>10 / page</option>
-                  <option value={15}>15 / page</option>
-                  <option value={25}>25 / page</option>
-                  <option value={50}>50 / page</option>
-                </select>
+                <div className="w-28 ml-2">
+                  <Select
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    triggerClassName="py-0.5 px-2 text-xs rounded-lg"
+                    options={[
+                      { value: "10", label: "10 / page" },
+                      { value: "15", label: "15 / page" },
+                      { value: "25", label: "25 / page" },
+                      { value: "50", label: "50 / page" },
+                    ]}
+                  />
+                </div>
               </div>
 
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={safePage <= 1}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition-colors shadow-2xs"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-surface border border-border rounded-lg text-foreground hover:bg-surface-elevated disabled:opacity-40 transition-colors shadow-2xs"
                 >
                   <ChevronLeft className="w-3.5 h-3.5" />
                   <span>Previous</span>
                 </button>
 
-                <div className="px-3 py-1.5 font-medium text-slate-700">
+                <div className="px-3 py-1.5 font-medium text-foreground">
                   Page {safePage} of {totalPages}
                 </div>
 
                 <button
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={safePage >= totalPages}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition-colors shadow-2xs"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-surface border border-border rounded-lg text-foreground hover:bg-surface-elevated disabled:opacity-40 transition-colors shadow-2xs"
                 >
                   <span>Next</span>
                   <ChevronRight className="w-3.5 h-3.5" />
@@ -757,32 +769,32 @@ export function ItemsList({ items, categories }: ItemsListProps) {
 
       {/* Delete Confirmation Modal */}
       {deleting && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fade-in">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-scale-up">
-            <div className="flex items-center gap-3 text-rose-600 mb-4">
-              <div className="p-2 rounded-lg bg-rose-50 border border-rose-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-surface rounded-2xl max-w-md w-full p-6 shadow-2xl border border-border animate-scale-up">
+            <div className="flex items-center gap-3 text-rose-500 mb-4">
+              <div className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/20">
                 <Trash2 className="w-5 h-5" />
               </div>
-              <h3 className="text-base font-bold text-slate-900">Delete Equipment</h3>
+              <h3 className="text-base font-bold text-foreground">Delete Equipment</h3>
             </div>
 
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-muted">
               Are you sure you want to permanently delete{" "}
-              <span className="font-semibold text-slate-900">{deleting.name}</span>?
+              <span className="font-semibold text-foreground">{deleting.name}</span>?
               This will remove all associated tracking records from inventory.
             </p>
 
             {deleteError && (
-              <div className="mt-3 p-3 text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg">
+              <div className="mt-3 p-3 text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg">
                 {deleteError}
               </div>
             )}
 
-            <div className="flex items-center justify-end gap-3 mt-6 pt-3 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-3 mt-6 pt-3 border-t border-border">
               <button
                 type="button"
                 onClick={() => setDeleting(null)}
-                className="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-800 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                className="px-4 py-2 text-xs font-medium text-muted hover:text-foreground bg-surface border border-border rounded-lg hover:bg-surface-elevated transition-colors"
               >
                 Cancel
               </button>

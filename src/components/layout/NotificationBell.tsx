@@ -96,7 +96,7 @@ export function NotificationBell({ className = "" }: NotificationBellProps) {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className={`relative flex items-center justify-center p-2 rounded-xl text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-900/10 ${className}`}
+        className={`relative flex items-center justify-center p-2 rounded-xl text-muted hover:text-foreground hover:bg-surface-elevated transition-colors focus:outline-hidden focus:ring-2 focus:ring-brand-teal/20 ${className}`}
         aria-label={`Notifications (${unreadCount} unread)`}
         title={unreadCount > 0 ? `${unreadCount} unread notifications` : "Notifications"}
       >

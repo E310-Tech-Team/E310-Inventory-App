@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Package } from "lucide-react";
+import { E310Logo } from "@/components/common/E310Logo";
 
 export function LoginForm({ setupError }: { setupError?: string | null }) {
   const router = useRouter();
@@ -44,10 +44,10 @@ export function LoginForm({ setupError }: { setupError?: string | null }) {
     <div className="flex-1 flex items-center justify-center px-4">
       <div className="w-full max-w-sm animate-enter">
         <div className="flex flex-col items-center mb-8">
-          <div className="status-live w-12 h-12 rounded-xl bg-accent flex items-center justify-center mb-4">
-            <Package className="w-6 h-6 text-white" strokeWidth={2} />
-          </div>
-          <h1 className="text-xl font-semibold text-foreground">EThree10 Inventory App</h1>
+          <E310Logo size="lg" className="mb-3" priority />
+          <span className="text-[11px] font-semibold tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-brand-yellow/25 text-brand-navy dark:text-brand-yellow border border-brand-yellow/40">
+            Inventory & Asset Operations
+          </span>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-3">

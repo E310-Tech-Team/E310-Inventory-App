@@ -1,42 +1,124 @@
 @import "tailwindcss";
 
-:root {
-  --background: #09090b;
-  --surface: #121215;
-  --surface-elevated: #18181b;
-  --surface-glass: rgba(18, 18, 21, 0.8);
-  --border: #27272a;
-  --border-subtle: #1f1f23;
-  --foreground: #f4f4f5;
-  --foreground-muted: #a1a1aa;
-  --muted: #71717a;
-  
-  --accent: #10b981;
-  --accent-hover: #059669;
-  --accent-soft: rgba(16, 185, 129, 0.1);
+@custom-variant dark (&:where(.dark, .dark *));
 
-  --status-available: #10b981;
-  --status-available-bg: rgba(16, 185, 129, 0.1);
-  --status-checked-out: #f59e0b;
-  --status-checked-out-bg: rgba(245, 158, 11, 0.1);
-  --status-overdue: #ef4444;
-  --status-overdue-bg: rgba(239, 68, 68, 0.1);
-  --status-low-stock: #f97316;
-  --status-low-stock-bg: rgba(249, 115, 22, 0.1);
+/* ─── Bulletproof E310 Logo Theme Display ─── */
+.e310-logo-dark {
+  display: none !important;
+}
+.e310-logo-light {
+  display: block !important;
+}
+
+html.dark .e310-logo-dark,
+.dark .e310-logo-dark {
+  display: block !important;
+}
+html.dark .e310-logo-light,
+.dark .e310-logo-light {
+  display: none !important;
+}
+
+:root {
+
+  /* E310 Light Mode — matching ethree10hr.com (Pic 2) */
+  --background: #f8fafc;
+  --surface: #ffffff;
+  --surface-elevated: #f1f5f9;
+  --surface-glass: rgba(255, 255, 255, 0.85);
+  --border: #e2e8f0;
+  --border-subtle: #f1f5f9;
+  --foreground: #031629;
+  --foreground-muted: #475569;
+  --muted: #64748b;
+  --muted-bg: #f1f4f8;
+
+  /* E310 Brand Signature Accents */
+  --brand-navy: #031629;
+  --brand-yellow: #ccec63;
+  --brand-yellow-foreground: #031629;
+  --brand-teal: #05b1a4;
+  --brand-teal-soft: #ecfbf9;
+
+  --accent: #05b1a4;
+  --accent-hover: #048e83;
+  --accent-soft: rgba(5, 177, 164, 0.12);
+  --accent-foreground: #ffffff;
+
+  /* Status Colors */
+  --status-available: #05b1a4;
+  --status-available-bg: #ecfbf9;
+  --status-checked-out: #d97706;
+  --status-checked-out-bg: #fffbeb;
+  --status-overdue: #dc2626;
+  --status-overdue-bg: #fef2f2;
+  --status-low-stock: #ea580c;
+  --status-low-stock-bg: #fff7ed;
+}
+
+.dark {
+  /* E310 Dark Mode — matching ethree10hr.com (Pic 2) */
+  --background: #080f1a;
+  --surface: #0d1929;
+  --surface-elevated: #122131;
+  --surface-glass: rgba(13, 25, 41, 0.85);
+  --border: #1e3348;
+  --border-subtle: #142436;
+  --foreground: #f0f4f8;
+  --foreground-muted: #8ea0b4;
+  --muted: #6f8194;
+  --muted-bg: #111e2e;
+
+  /* E310 Brand Signature Accents */
+  --brand-navy: #031629;
+  --brand-yellow: #ccec63;
+  --brand-yellow-foreground: #031629;
+  --brand-teal: #2dd4bf;
+  --brand-teal-soft: #0d2f35;
+
+  --accent: #05b1a4;
+  --accent-hover: #049187;
+  --accent-soft: rgba(5, 177, 164, 0.18);
+  --accent-foreground: #ffffff;
+
+  /* Status Colors */
+  --status-available: #2dd4bf;
+  --status-available-bg: #0d2f35;
+  --status-checked-out: #fbbf24;
+  --status-checked-out-bg: #2a1f06;
+  --status-overdue: #f87171;
+  --status-overdue-bg: #2a0f0f;
+  --status-low-stock: #fb923c;
+  --status-low-stock-bg: #2a1405;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-surface: var(--surface);
   --color-surface-elevated: var(--surface-elevated);
+  --color-surface-glass: var(--surface-glass);
   --color-border: var(--border);
   --color-border-subtle: var(--border-subtle);
   --color-foreground: var(--foreground);
   --color-foreground-muted: var(--foreground-muted);
   --color-muted: var(--muted);
+  --color-muted-bg: var(--muted-bg);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-soft: var(--accent-soft);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-brand-yellow: var(--brand-yellow);
+  --color-brand-yellow-foreground: var(--brand-yellow-foreground);
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-teal: var(--brand-teal);
+  --color-status-available: var(--status-available);
+  --color-status-available-bg: var(--status-available-bg);
+  --color-status-checked-out: var(--status-checked-out);
+  --color-status-checked-out-bg: var(--status-checked-out-bg);
+  --color-status-overdue: var(--status-overdue);
+  --color-status-overdue-bg: var(--status-overdue-bg);
+  --color-status-low-stock: var(--status-low-stock);
+  --color-status-low-stock-bg: var(--status-low-stock-bg);
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
 }

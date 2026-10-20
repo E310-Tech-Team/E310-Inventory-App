@@ -14,6 +14,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { DeviceComplaint, ComplaintPriority } from "@/types";
+import { Select } from "@/components/common/Select";
 
 interface TechMember {
   id: string;
@@ -41,26 +42,26 @@ const PRIORITY_OPTIONS: {
   {
     value: "low",
     label: "Low",
-    badgeClass: "bg-blue-50 text-blue-700 border-blue-200",
-    activeRing: "ring-2 ring-blue-500 bg-blue-50/60 border-blue-300 text-blue-900",
+    badgeClass: "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30",
+    activeRing: "ring-2 ring-blue-500 bg-blue-500/15 border-blue-500/40 text-blue-700 dark:text-blue-300 font-bold",
   },
   {
     value: "medium",
     label: "Medium",
-    badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
-    activeRing: "ring-2 ring-amber-500 bg-amber-50/60 border-amber-300 text-amber-900",
+    badgeClass: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30",
+    activeRing: "ring-2 ring-amber-500 bg-amber-500/15 border-amber-500/40 text-amber-700 dark:text-amber-300 font-bold",
   },
   {
     value: "high",
     label: "High",
-    badgeClass: "bg-orange-50 text-orange-700 border-orange-200",
-    activeRing: "ring-2 ring-orange-500 bg-orange-50/60 border-orange-300 text-orange-900",
+    badgeClass: "bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/30",
+    activeRing: "ring-2 ring-orange-500 bg-orange-500/15 border-orange-500/40 text-orange-700 dark:text-orange-300 font-bold",
   },
   {
     value: "critical",
     label: "Urgent",
-    badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
-    activeRing: "ring-2 ring-rose-500 bg-rose-50/60 border-rose-300 text-rose-900",
+    badgeClass: "bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30",
+    activeRing: "ring-2 ring-rose-500 bg-rose-500/15 border-rose-500/40 text-rose-700 dark:text-rose-300 font-bold",
   },
 ];
 
@@ -243,30 +244,30 @@ export function AssignTicketModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-neutral-900/50 backdrop-blur-xs transition-opacity animate-in fade-in"
+        className="fixed inset-0 bg-background/80 backdrop-blur-xs transition-opacity animate-in fade-in"
         onClick={() => {
           if (!submitting) onClose();
         }}
       />
 
       {/* Modal Dialog */}
-      <div className="relative w-full max-w-xl rounded-2xl border border-neutral-200 bg-white shadow-2xl overflow-hidden transition-all animate-in zoom-in-95 duration-150">
+      <div className="relative w-full max-w-xl rounded-2xl border border-border bg-surface text-foreground shadow-2xl overflow-hidden transition-all animate-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-neutral-200/80 px-6 py-4 bg-neutral-50/50">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4 bg-surface-elevated">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-900 text-white shadow-xs">
-              <UserCheck className="h-5 w-5 text-emerald-400" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface border border-border text-foreground shadow-xs">
+              <UserCheck className="h-5 w-5 text-brand-teal" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-semibold text-neutral-900">
+                <h3 className="text-base font-bold text-foreground">
                   {ticket.assignedTechId ? "Reassign Specialist" : "Delegate Hardware Ticket"}
                 </h3>
-                <span className="font-mono text-xs font-bold text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded">
+                <span className="font-mono text-xs font-bold text-brand-teal bg-brand-teal/15 border border-brand-teal/30 px-2 py-0.5 rounded-md">
                   {ticket.ticketNumber}
                 </span>
               </div>
-              <p className="text-xs text-neutral-500">
+              <p className="text-xs text-muted">
                 Dispatch ticket to a designated technician with priority & triage guidance
               </p>
             </div>
@@ -274,7 +275,7 @@ export function AssignTicketModal({
           <button
             onClick={onClose}
             disabled={submitting}
-            className="rounded-lg p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 transition-colors"
+            className="rounded-lg p-1.5 text-muted hover:bg-surface hover:text-foreground transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -282,7 +283,7 @@ export function AssignTicketModal({
 
         {/* Error Alert */}
         {error && (
-          <div className="mx-6 mt-4 flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50/80 px-4 py-3 text-xs font-medium text-rose-700">
+          <div className="mx-6 mt-4 flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/15 px-4 py-3 text-xs font-semibold text-rose-700 dark:text-rose-400">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <span>{error}</span>
           </div>
@@ -291,40 +292,40 @@ export function AssignTicketModal({
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {/* Ticket Context Overview Card */}
-          <div className="rounded-xl border border-neutral-200/80 bg-neutral-50/70 p-4 space-y-2.5">
+          <div className="rounded-xl border border-border bg-surface-elevated p-4 space-y-2.5">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted">
                   Issue Summary
                 </span>
-                <h4 className="text-sm font-bold text-neutral-900 mt-0.5">
+                <h4 className="text-sm font-bold text-foreground mt-0.5">
                   {ticket.title || ticket.issueType}
                 </h4>
               </div>
-              <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border bg-neutral-100 text-neutral-700 border-neutral-200">
+              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full border bg-surface text-foreground-muted border-border">
                 {ticket.status.replace("-", " ").toUpperCase()}
               </span>
             </div>
 
             {ticket.description && (
-              <p className="text-xs text-neutral-600 line-clamp-2">
+              <p className="text-xs text-muted line-clamp-2">
                 {ticket.description}
               </p>
             )}
 
-            <div className="pt-2 border-t border-neutral-200/60 flex flex-wrap items-center justify-between gap-y-1 text-xs text-neutral-500">
+            <div className="pt-2 border-t border-border flex flex-wrap items-center justify-between gap-y-1 text-xs text-muted">
               <div className="flex items-center gap-1.5">
-                <Briefcase className="w-3.5 h-3.5 text-neutral-400" />
+                <Briefcase className="w-3.5 h-3.5 text-brand-teal" />
                 <span>
-                  Staff: <strong className="text-neutral-800">{ticket.userName}</strong>
+                  Staff: <strong className="text-foreground">{ticket.userName}</strong>
                   {ticket.userDepartment ? ` (${ticket.userDepartment})` : ""}
                 </span>
               </div>
               {ticket.itemName && (
                 <div className="flex items-center gap-1.5">
-                  <Laptop className="w-3.5 h-3.5 text-neutral-400" />
+                  <Laptop className="w-3.5 h-3.5 text-brand-teal" />
                   <span>
-                    Device: <strong className="text-neutral-800">{ticket.itemName}</strong>
+                    Device: <strong className="text-foreground">{ticket.itemName}</strong>
                     {ticket.itemSerial ? ` [${ticket.itemSerial}]` : ""}
                   </span>
                 </div>
@@ -335,65 +336,56 @@ export function AssignTicketModal({
           {/* Specialist Selection with Workload Indicators */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label htmlFor="tech-select" className="text-xs font-semibold uppercase tracking-wider text-neutral-700">
+              <label htmlFor="tech-select" className="text-xs font-semibold uppercase tracking-wider text-foreground">
                 Assign To Technician <span className="text-rose-500">*</span>
               </label>
-              <span className="text-xs text-neutral-500">
+              <span className="text-xs text-muted">
                 {techList.length} specialists available
               </span>
             </div>
 
             {loadingTechs ? (
-              <div className="flex items-center justify-center p-4 rounded-xl border border-neutral-200 bg-neutral-50/50 text-xs text-neutral-500 gap-2">
-                <Loader2 className="w-4 h-4 animate-spin text-neutral-600" />
+              <div className="flex items-center justify-center p-4 rounded-xl border border-border bg-surface-elevated text-xs text-muted gap-2">
+                <Loader2 className="w-4 h-4 animate-spin text-brand-teal" />
                 <span>Checking technician workloads...</span>
               </div>
             ) : techList.length === 0 ? (
-              <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 text-xs text-amber-800">
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/15 p-4 text-xs font-semibold text-amber-700 dark:text-amber-400">
                 No active tech team members available for assignment.
               </div>
             ) : (
               <div className="space-y-2">
-                <div className="relative">
-                  <select
-                    id="tech-select"
-                    value={selectedTechId}
-                    onChange={(e) => setSelectedTechId(e.target.value)}
-                    className="w-full appearance-none rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 pr-10 text-sm font-medium text-neutral-900 shadow-xs outline-none transition-colors focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
-                    required
-                  >
-                    <option value="" disabled>
-                      Select an authorized tech specialist...
-                    </option>
-                    {techList.map((t) => {
-                      const load = workloadMap[t.id] ?? 0;
-                      return (
-                        <option key={t.id} value={t.id}>
-                          {t.name} ({t.role === "super-admin" ? "Lead Admin" : "Specialist"}) — {load} open {load === 1 ? "ticket" : "tickets"}
-                        </option>
-                      );
-                    })}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                </div>
+                <Select
+                  value={selectedTechId}
+                  onChange={(e) => setSelectedTechId(e.target.value)}
+                  placeholder="Select an authorized tech specialist..."
+                  required
+                  options={techList.map((t) => {
+                    const load = workloadMap[t.id] ?? 0;
+                    return {
+                      value: t.id,
+                      label: `${t.name} (${t.role === "super-admin" ? "Lead Admin" : "Specialist"}) — ${load} open ${load === 1 ? "ticket" : "tickets"}`,
+                    };
+                  })}
+                />
 
                 {/* Selected Specialist Workload Pill Card */}
                 {selectedTechnician && (
-                  <div className="flex items-center justify-between p-3 rounded-xl border border-neutral-200/90 bg-neutral-50/80 text-xs">
+                  <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-surface-elevated text-xs">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-neutral-900 text-white flex items-center justify-center font-bold text-xs shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-brand-teal/20 text-brand-teal border border-brand-teal/30 flex items-center justify-center font-bold text-xs shrink-0">
                         {selectedTechnician.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <div className="font-semibold text-neutral-900 flex items-center gap-1.5">
+                        <div className="font-semibold text-foreground flex items-center gap-1.5">
                           {selectedTechnician.name}
                           {selectedTechnician.id === currentUserId && (
-                            <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.2 rounded font-medium">
+                            <span className="text-[10px] bg-brand-teal/20 text-brand-teal px-1.5 py-0.2 rounded font-bold">
                               You
                             </span>
                           )}
                         </div>
-                        <div className="text-[11px] text-neutral-500">{selectedTechnician.email}</div>
+                        <div className="text-[11px] text-muted">{selectedTechnician.email}</div>
                       </div>
                     </div>
 
@@ -402,22 +394,22 @@ export function AssignTicketModal({
                         const load = workloadMap[selectedTechnician.id] ?? 0;
                         if (load === 0) {
                           return (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                               Optimal (0 Active)
                             </span>
                           );
                         } else if (load <= 2) {
                           return (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                              <Clock className="w-3 h-3 text-blue-600" />
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-500/15 text-blue-700 dark:text-blue-400 border border-blue-500/30">
+                              <Clock className="w-3 h-3 text-blue-600 dark:text-blue-400" />
                               Moderate ({load} Active)
                             </span>
                           );
                         } else {
                           return (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                              <AlertCircle className="w-3 h-3 text-amber-600" />
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30">
+                              <AlertCircle className="w-3 h-3 text-amber-600 dark:text-amber-400" />
                               High Load ({load} Active)
                             </span>
                           );
@@ -432,7 +424,7 @@ export function AssignTicketModal({
 
           {/* Priority Adjuster */}
           <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase tracking-wider text-neutral-700 block">
+            <label className="text-xs font-semibold uppercase tracking-wider text-foreground block">
               Adjust Priority Level
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -446,7 +438,7 @@ export function AssignTicketModal({
                     className={`flex items-center justify-center py-2 px-3 rounded-xl border text-xs font-semibold transition-all ${
                       isSelected
                         ? opt.activeRing
-                        : "border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50"
+                        : "border-border bg-surface text-muted hover:text-foreground hover:bg-surface-elevated"
                     }`}
                   >
                     <span>{opt.label}</span>
@@ -459,10 +451,10 @@ export function AssignTicketModal({
           {/* Delegation Notes Input */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label htmlFor="delegation-notes" className="text-xs font-semibold uppercase tracking-wider text-neutral-700">
+              <label htmlFor="delegation-notes" className="text-xs font-semibold uppercase tracking-wider text-foreground">
                 Triage Instructions & Notes
               </label>
-              <span className="text-[11px] text-neutral-400">Optional</span>
+              <span className="text-[11px] text-muted">Optional</span>
             </div>
             <textarea
               id="delegation-notes"
@@ -470,24 +462,24 @@ export function AssignTicketModal({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="e.g. Inspect power delivery board, test battery cycle count, and coordinate with staff on Monday..."
-              className="w-full rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 text-xs text-neutral-900 placeholder:text-neutral-400 shadow-xs outline-none transition-colors focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
+              className="w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted shadow-xs outline-none transition-colors focus:border-brand-teal"
             />
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-neutral-200/80">
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border">
             <button
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="rounded-xl border border-neutral-200 bg-white px-4 py-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition-colors shadow-xs"
+              className="rounded-xl border border-border bg-surface px-4 py-2 text-xs font-semibold text-muted hover:text-foreground hover:bg-surface-elevated transition-colors shadow-xs"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting || !selectedTechId || loadingTechs}
-              className="inline-flex items-center gap-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 disabled:opacity-50 px-5 py-2 text-xs font-semibold text-white transition-colors shadow-sm"
+              className="inline-flex items-center gap-2 rounded-xl bg-brand-yellow hover:bg-brand-yellow/90 disabled:opacity-50 px-5 py-2 text-xs font-bold text-brand-navy transition-all shadow-xs"
             >
               {submitting ? (
                 <>
@@ -496,7 +488,7 @@ export function AssignTicketModal({
                 </>
               ) : (
                 <>
-                  <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <UserCheck className="w-3.5 h-3.5 text-brand-navy" />
                   <span>Assign Specialist</span>
                 </>
               )}

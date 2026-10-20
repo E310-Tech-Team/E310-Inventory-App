@@ -27,16 +27,39 @@ function getInitialTheme(): ThemeMode {
 }
 
 export function ThemeToggle({ compact = false }: { compact?: boolean }) {
-  const [theme, setTheme] = useState<ThemeMode>(getInitialTheme);
+  const [mounted, setMounted] = useState(false);
+  const [theme, setTheme] = useState<ThemeMode>("light");
 
   useEffect(() => {
-    applyTheme(theme);
-  }, [theme]);
+    setMounted(true);
+    const initial = getInitialTheme();
+    setTheme(initial);
+    applyTheme(initial);
+  }, []);
 
   function toggleTheme() {
     const nextTheme: ThemeMode = theme === "dark" ? "light" : "dark";
     setTheme(nextTheme);
+    applyTheme(nextTheme);
     window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+  }
+
+  if (!mounted) {
+    return (
+      <button
+        type="button"
+        aria-label="Toggle theme"
+        disabled
+        className={
+          compact
+            ? "p-2 rounded-lg border border-border bg-surface text-muted transition-colors opacity-70"
+            : "w-full inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-muted transition-colors opacity-70"
+        }
+      >
+        <div className="w-4 h-4" />
+        {!compact && <span>Theme</span>}
+      </button>
+    );
   }
 
   return (
@@ -51,9 +74,9 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
       }
     >
       {theme === "dark" ? (
-        <SunMedium className="w-4 h-4" />
+        <SunMedium className="w-4 h-4 text-brand-yellow" />
       ) : (
-        <Moon className="w-4 h-4" />
+        <Moon className="w-4 h-4 text-foreground" />
       )}
       {!compact && (theme === "dark" ? "Light mode" : "Dark mode")}
     </button>

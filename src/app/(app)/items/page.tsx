@@ -15,10 +15,10 @@ export default async function ItemsPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
           Equipment & Asset Catalog
         </h1>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-muted">
           Complete inventory registry of all company-owned hardware, computing devices, and tracked equipment.
         </p>
       </div>

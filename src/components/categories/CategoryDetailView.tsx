@@ -84,7 +84,7 @@ export function CategoryDetailView({
         action={
           <button
             onClick={() => setShowCreate(true)}
-            className="pressable flex items-center justify-center gap-1.5 p-2.5 sm:px-3.5 sm:py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium transition-colors"
+            className="pressable flex items-center justify-center gap-1.5 p-2.5 sm:px-3.5 sm:py-2 rounded-lg bg-brand-yellow hover:brightness-105 text-brand-navy text-sm font-bold shadow-xs transition-all"
             aria-label="New item"
           >
             <Plus className="w-4 h-4" />
@@ -114,7 +114,7 @@ export function CategoryDetailView({
             <p className="text-sm text-muted mb-4">No items recorded in this category yet.</p>
             <button
               onClick={() => setShowCreate(true)}
-              className="pressable inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium transition-colors"
+              className="pressable inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-brand-yellow hover:brightness-105 text-brand-navy text-sm font-bold shadow-xs transition-all"
             >
               <Plus className="w-4 h-4" />
               New item

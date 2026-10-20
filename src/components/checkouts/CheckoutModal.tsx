@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Category, DepartmentUser, Item, ItemCondition } from "@/types";
+import { Select } from "@/components/common/Select";
 import { Modal } from "@/components/ui/Modal";
 import { FormField, inputClass } from "@/components/ui/FormField";
 import { getItemIdentifierLabel } from "@/lib/items";
@@ -89,20 +90,18 @@ export function CheckoutModal({
 
   return (
     <Modal title="Assign item" onClose={onClose}>
-      <form onSubmit={handleSubmit}>
-        <FormField label="Item">
-          <select
-            className={inputClass}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Select
+            label="Item"
             value={itemId}
             onChange={(e) => setItemId(e.target.value)}
-          >
-            {availableItems.map((i) => (
-              <option key={i.id} value={i.id}>
-                {i.name} - {getItemIdentifierLabel(i)}
-              </option>
-            ))}
-          </select>
-        </FormField>
+            options={availableItems.map((i) => ({
+              value: i.id,
+              label: `${i.name} - ${getItemIdentifierLabel(i)}`,
+            }))}
+          />
+        </div>
 
         {isQuantityTracked && (
           <FormField label={`Quantity (${item?.quantity ?? 0} in stock)`}>
@@ -149,36 +148,33 @@ export function CheckoutModal({
           />
         </FormField>
 
-        <FormField label="Assigned by">
-          <select
-            className={inputClass}
+        <div>
+          <Select
+            label="Assigned by"
             value={assignedBy}
             onChange={(e) => setAssignedBy(e.target.value)}
+            placeholder="Select the assigning admin"
             required
-          >
-            <option value="" disabled>
-              Select the assigning admin
-            </option>
-            {assigners.map((user) => (
-              <option key={user.id} value={user.name}>
-                {user.name} — {user.email}
-              </option>
-            ))}
-          </select>
-        </FormField>
+            options={assigners.map((user) => ({
+              value: user.name,
+              label: `${user.name} — ${user.email}`,
+            }))}
+          />
+        </div>
 
-        <FormField label="Condition on collection">
-          <select
-            className={inputClass}
+        <div>
+          <Select
+            label="Condition on collection"
             value={condition}
             onChange={(e) => setCondition(e.target.value as ItemCondition)}
-          >
-            <option value="new">New</option>
-            <option value="good">Good</option>
-            <option value="fair">Fair</option>
-            <option value="damaged">Damaged</option>
-          </select>
-        </FormField>
+            options={[
+              { value: "new", label: "New" },
+              { value: "good", label: "Good" },
+              { value: "fair", label: "Fair" },
+              { value: "damaged", label: "Damaged" },
+            ]}
+          />
+        </div>
 
         {requiresDueDate && (
           <FormField label="Due back by">
@@ -206,7 +202,7 @@ export function CheckoutModal({
         <button
           type="submit"
           disabled={saving}
-          className="pressable w-full py-2.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium transition-colors disabled:opacity-50"
+          className="pressable w-full py-2.5 rounded-lg bg-brand-yellow hover:brightness-105 text-brand-navy text-sm font-bold transition-all disabled:opacity-50 shadow-sm"
         >
           {saving ? "Assigning..." : "Assign item"}
         </button>

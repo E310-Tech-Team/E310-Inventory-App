@@ -8,6 +8,7 @@ const PUBLIC_PATHS = [
   "/offline.html",
   "/favicon.ico",
   "/icons",
+  "/branding",
   "/api/auth/login",
   "/api/auth/logout",
   "/api/auth/invite",
@@ -24,6 +25,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/_next") ||
     pathname.startsWith("/static") ||
     pathname.startsWith("/icons/") ||
+    pathname.startsWith("/branding/") ||
     PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`))
   ) {
     return NextResponse.next();

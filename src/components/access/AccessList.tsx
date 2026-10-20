@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { Modal } from "@/components/ui/Modal";
 import { FormField, inputClass } from "@/components/ui/FormField";
+import { Select } from "@/components/common/Select";
 import { AccessDetailsModal } from "./AccessDetailsModal";
 
 export function AccessList({
@@ -57,7 +58,7 @@ export function AccessList({
         action={
           <button
             onClick={() => setShowCreate(true)}
-            className="pressable flex items-center justify-center gap-1.5 p-2.5 sm:px-3.5 sm:py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium transition-colors"
+            className="pressable flex items-center justify-center gap-1.5 p-2.5 sm:px-3.5 sm:py-2 rounded-lg bg-brand-yellow hover:brightness-105 text-brand-navy text-sm font-bold shadow-xs transition-all"
             aria-label="Add member"
           >
             <UserPlus className="w-4 h-4" />
@@ -236,7 +237,12 @@ export function AccessList({
         <AccessDetailsModal user={selectedUser} onClose={() => setSelectedUser(null)} />
       )}
 
-      {showCreate && <UserFormModal onClose={() => setShowCreate(false)} />}
+      {showCreate && (
+        <UserFormModal
+          currentUserId={currentUser.id}
+          onClose={() => setShowCreate(false)}
+        />
+      )}
       {editing && (
         <UserFormModal
           user={editing}
@@ -290,7 +296,7 @@ function UserFormModal({
 }) {
   const router = useRouter();
   const isEdit = Boolean(user);
-  const editingSelf = user?.id === currentUserId;
+  const editingSelf = Boolean(user && currentUserId && user.id === currentUserId);
 
   const [name, setName] = useState(user?.name ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
@@ -353,42 +359,44 @@ function UserFormModal({
             className={inputClass}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="name@department.com"
+            placeholder="name@r4cglobal.org"
             required
           />
         </FormField>
 
-        <FormField label="Role">
-          <select
-            className={inputClass}
+        <div className="mb-4">
+          <Select
+            label="Role"
             value={role}
             onChange={(e) => setRole(e.target.value as UserRole)}
             disabled={editingSelf}
-          >
-            <option value="team-member">Team member - can manage inventory</option>
-            <option value="super-admin">Super-admin - can manage access</option>
-            <option value="viewer">Viewer - can only view inventory</option>
-          </select>
-        </FormField>
+            options={[
+              { value: "team-member", label: "Team member - can manage inventory" },
+              { value: "super-admin", label: "Super-admin - can manage access" },
+              { value: "viewer", label: "Viewer - can only view inventory" },
+            ]}
+          />
+        </div>
 
-        <FormField label="Status">
-          <select
-            className={inputClass}
+        <div className="mb-4">
+          <Select
+            label="Status"
             value={status}
             onChange={(e) => setStatus(e.target.value as UserStatus)}
             disabled={editingSelf}
-          >
-            <option value="pending">Pending</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
+            options={[
+              { value: "pending", label: "Pending" },
+              { value: "active", label: "Active" },
+              { value: "inactive", label: "Inactive" },
+            ]}
+          />
           {!user && (
             <p className="text-xs text-muted mt-2">
               New members are invited in pending state. They sign in with the temporary password
               and are prompted to set a permanent password on first login.
             </p>
           )}
-        </FormField>
+        </div>
 
         {editingSelf && (
           <p className="text-xs text-muted mb-3">
@@ -413,7 +421,7 @@ function UserFormModal({
           <button
             type="button"
             onClick={onClose}
-            className="pressable w-full py-2.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium transition-colors"
+            className="pressable w-full py-2.5 rounded-lg bg-surface-elevated hover:bg-surface-elevated/80 border border-border text-foreground text-sm font-semibold transition-colors"
           >
             Close
           </button>
@@ -421,7 +429,7 @@ function UserFormModal({
           <button
             type="submit"
             disabled={saving}
-            className="pressable w-full py-2.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium transition-colors disabled:opacity-50"
+            className="pressable w-full py-2.5 rounded-lg bg-brand-yellow hover:brightness-105 text-brand-navy text-sm font-bold transition-all disabled:opacity-50 shadow-sm"
           >
             {saving ? "Saving..." : isEdit ? "Save changes" : "Add member"}
           </button>

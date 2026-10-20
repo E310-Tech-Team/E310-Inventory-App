@@ -25,6 +25,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
   }
 
+  if (!email.endsWith("@r4cglobal.org")) {
+    return NextResponse.json(
+      { error: "Access restricted. Only @r4cglobal.org email addresses are permitted." },
+      { status: 400 }
+    );
+  }
+
   const existing = await dataStore.getUserByEmail(email);
   if (existing) {
     return NextResponse.json({ error: "A user with this email already exists" }, { status: 409 });
@@ -50,7 +57,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         ...user,
-        temporaryPassword: status === "active" ? temporaryPassword : undefined,
+        temporaryPassword: temporaryPassword ?? undefined,
       },
       { status: 201 }
     );

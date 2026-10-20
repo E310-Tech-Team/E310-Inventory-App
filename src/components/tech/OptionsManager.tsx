@@ -241,7 +241,7 @@ export function OptionsManager() {
   return (
     <div className="space-y-6">
       {/* Category Group Tabs */}
-      <div className="flex border-b border-neutral-200 overflow-x-auto scrollbar-none">
+      <div className="flex border-b border-border overflow-x-auto scrollbar-none">
         {GROUPS.map((grp) => {
           const Icon = grp.icon;
           const isActive = activeTab === grp.key;
@@ -255,16 +255,20 @@ export function OptionsManager() {
                 setEditingId(null);
                 setFeedback(null);
               }}
-              className={`flex items-center gap-2.5 px-5 py-3.5 border-b-2 text-sm font-semibold whitespace-nowrap transition-colors ${isActive
-                  ? "border-neutral-900 text-neutral-900"
-                  : "border-transparent text-neutral-500 hover:text-neutral-800 hover:border-neutral-300"
-                }`}
+              className={`flex items-center gap-2.5 px-5 py-3.5 border-b-2 text-sm font-bold whitespace-nowrap transition-colors ${
+                isActive
+                  ? "border-brand-teal text-foreground"
+                  : "border-transparent text-muted hover:text-foreground hover:border-border"
+              }`}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className="w-4 h-4 text-brand-teal" />
               <span>{grp.label}</span>
               <span
-                className={`text-xs px-2 py-0.5 rounded-full font-medium ${isActive ? "bg-neutral-100 text-neutral-900" : "bg-neutral-50 text-neutral-400"
-                  }`}
+                className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+                  isActive
+                    ? "bg-brand-teal/20 text-brand-teal border border-brand-teal/30"
+                    : "bg-surface-elevated text-muted border border-border"
+                }`}
               >
                 {count}
               </span>
@@ -275,10 +279,13 @@ export function OptionsManager() {
 
       {/* Description & Feedback Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <p className="text-xs sm:text-sm text-neutral-500">{currentGroupConfig.description}</p>
+        <p className="text-xs sm:text-sm text-muted">{currentGroupConfig.description}</p>
         <button
-          onClick={() => { setLoading(true); fetchOptions(); }}
-          className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-800 self-start transition-colors"
+          onClick={() => {
+            setLoading(true);
+            fetchOptions();
+          }}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted hover:text-foreground self-start transition-colors"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
           Refresh
@@ -287,10 +294,11 @@ export function OptionsManager() {
 
       {feedback && (
         <div
-          className={`p-3 rounded-lg text-xs font-medium border flex items-center justify-between ${feedback.type === "success"
-              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-              : "bg-rose-50 text-rose-800 border-rose-200"
-            }`}
+          className={`p-3 rounded-xl text-xs font-semibold border flex items-center justify-between ${
+            feedback.type === "success"
+              ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30"
+              : "bg-rose-500/15 text-rose-800 dark:text-rose-300 border-rose-500/30"
+          }`}
         >
           <span>{feedback.message}</span>
           <button onClick={() => setFeedback(null)} className="p-1 hover:opacity-75">
@@ -302,9 +310,9 @@ export function OptionsManager() {
       {/* Add New Option Form */}
       <form
         onSubmit={handleAddOption}
-        className="rounded-xl border border-neutral-200/80 bg-neutral-50/50 p-4 sm:p-5 space-y-3"
+        className="rounded-2xl border border-border bg-surface p-4 sm:p-5 space-y-3 shadow-xs"
       >
-        <h3 className="text-xs font-bold text-neutral-900 uppercase tracking-wider">
+        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
           Add New {currentGroupConfig.label.slice(0, -1)}
         </h3>
 
@@ -316,11 +324,16 @@ export function OptionsManager() {
               onChange={(e) => {
                 setNewLabel(e.target.value);
                 if (!newValue) {
-                  setNewValue(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""));
+                  setNewValue(
+                    e.target.value
+                      .toLowerCase()
+                      .replace(/[^a-z0-9]+/g, "-")
+                      .replace(/^-+|-+$/g, "")
+                  );
                 }
               }}
               placeholder={currentGroupConfig.placeholder}
-              className="w-full px-3.5 py-2 rounded-lg border border-neutral-200 bg-white text-sm outline-none transition-colors focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
+              className="w-full px-3.5 py-2 rounded-xl border border-border bg-surface-elevated text-foreground text-sm outline-none transition-colors focus:border-brand-teal placeholder:text-muted"
               required
             />
           </div>
@@ -331,12 +344,12 @@ export function OptionsManager() {
               value={newValue}
               onChange={(e) => setNewValue(e.target.value)}
               placeholder="Slug / ID (auto)"
-              className="flex-1 px-3 py-2 rounded-lg border border-neutral-200 bg-white font-mono text-xs outline-none transition-colors focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 text-neutral-600"
+              className="flex-1 px-3 py-2 rounded-xl border border-border bg-surface-elevated font-mono text-xs outline-none transition-colors focus:border-brand-teal text-muted placeholder:text-muted"
             />
             <button
               type="submit"
               disabled={submitting || !newLabel.trim()}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs sm:text-sm font-semibold transition-colors disabled:opacity-50 shrink-0"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-yellow hover:bg-brand-yellow/90 text-brand-navy text-xs sm:text-sm font-bold transition-all disabled:opacity-50 shrink-0 shadow-xs"
             >
               <Plus className="w-4 h-4" />
               Add
@@ -346,8 +359,8 @@ export function OptionsManager() {
       </form>
 
       {/* Options List */}
-      <div className="rounded-xl border border-neutral-200/80 bg-white shadow-xs overflow-hidden">
-        <div className="px-5 py-3 border-b border-neutral-200/80 bg-neutral-50/50 text-xs font-semibold text-neutral-500 uppercase tracking-wider grid grid-cols-12 gap-2 items-center">
+      <div className="rounded-2xl border border-border bg-surface shadow-xs overflow-hidden">
+        <div className="px-5 py-3 border-b border-border bg-surface-elevated text-xs font-bold text-muted uppercase tracking-wider grid grid-cols-12 gap-2 items-center">
           <span className="col-span-6 sm:col-span-5">Label</span>
           <span className="hidden sm:block col-span-3">System Identifier</span>
           <span className="col-span-3 sm:col-span-2 text-center">Status</span>
@@ -357,23 +370,24 @@ export function OptionsManager() {
         {loading ? (
           <div className="p-6 space-y-3">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-10 bg-neutral-50 animate-pulse rounded-lg" />
+              <div key={i} className="h-10 bg-surface-elevated animate-pulse rounded-xl" />
             ))}
           </div>
         ) : currentOptions.length === 0 ? (
-          <div className="py-12 text-center text-neutral-500 text-sm">
+          <div className="py-12 text-center text-muted text-sm">
             No options registered for this group yet.
           </div>
         ) : (
-          <div className="divide-y divide-neutral-100">
+          <div className="divide-y divide-border">
             {currentOptions.map((opt, idx) => {
               const isEditing = editingId === opt.id;
 
               return (
                 <div
                   key={opt.id}
-                  className={`px-5 py-3.5 grid grid-cols-12 gap-2 items-center transition-colors ${!opt.isActive ? "bg-neutral-50/60 opacity-60" : "hover:bg-neutral-50/40"
-                    }`}
+                  className={`px-5 py-3.5 grid grid-cols-12 gap-2 items-center transition-colors ${
+                    !opt.isActive ? "bg-surface-elevated/40 opacity-60" : "hover:bg-surface-elevated/50"
+                  }`}
                 >
                   {/* Label / Inline Edit */}
                   <div className="col-span-6 sm:col-span-5 flex items-center gap-2">
@@ -383,32 +397,32 @@ export function OptionsManager() {
                           type="text"
                           value={editLabel}
                           onChange={(e) => setEditLabel(e.target.value)}
-                          className="flex-1 px-2.5 py-1 text-sm rounded border border-neutral-300 bg-white focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                          className="flex-1 px-2.5 py-1 text-sm rounded-lg border border-border bg-surface text-foreground focus:outline-none focus:border-brand-teal"
                           autoFocus
                         />
                         <button
                           onClick={() => handleSaveEdit(opt.id)}
-                          className="p-1 rounded bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                          className="p-1 rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/25"
                           title="Save"
                         >
                           <Check className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => setEditingId(null)}
-                          className="p-1 rounded bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                          className="p-1 rounded-lg bg-surface-elevated text-muted hover:text-foreground"
                           title="Cancel"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     ) : (
-                      <span className="text-sm font-semibold text-neutral-900">{opt.label}</span>
+                      <span className="text-sm font-semibold text-foreground">{opt.label}</span>
                     )}
                   </div>
 
                   {/* Slug / Value */}
                   <div className="hidden sm:block col-span-3">
-                    <span className="font-mono text-xs text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded">
+                    <span className="font-mono text-xs text-muted bg-surface-elevated border border-border px-2 py-0.5 rounded-md">
                       {opt.value}
                     </span>
                   </div>
@@ -417,10 +431,11 @@ export function OptionsManager() {
                   <div className="col-span-3 sm:col-span-2 flex justify-center">
                     <button
                       onClick={() => handleToggleActive(opt)}
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors ${opt.isActive
-                          ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-                          : "bg-neutral-100 text-neutral-500 border-neutral-200 hover:bg-neutral-200"
-                        }`}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border transition-colors ${
+                        opt.isActive
+                          ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25"
+                          : "bg-surface-elevated text-muted border-border hover:bg-surface"
+                      }`}
                       title={opt.isActive ? "Active (Click to disable)" : "Disabled (Click to enable)"}
                     >
                       <Power className="w-3 h-3" />
@@ -433,7 +448,7 @@ export function OptionsManager() {
                     <button
                       onClick={() => handleReorder(opt, "up")}
                       disabled={idx === 0}
-                      className="p-1 text-neutral-400 hover:text-neutral-700 disabled:opacity-20 transition-colors"
+                      className="p-1 text-muted hover:text-foreground disabled:opacity-20 transition-colors"
                       title="Move up"
                     >
                       <ArrowUp className="w-3.5 h-3.5" />
@@ -441,7 +456,7 @@ export function OptionsManager() {
                     <button
                       onClick={() => handleReorder(opt, "down")}
                       disabled={idx === currentOptions.length - 1}
-                      className="p-1 text-neutral-400 hover:text-neutral-700 disabled:opacity-20 transition-colors"
+                      className="p-1 text-muted hover:text-foreground disabled:opacity-20 transition-colors"
                       title="Move down"
                     >
                       <ArrowDown className="w-3.5 h-3.5" />
@@ -451,7 +466,7 @@ export function OptionsManager() {
                         setEditingId(opt.id);
                         setEditLabel(opt.label);
                       }}
-                      className="p-1 text-neutral-400 hover:text-neutral-700 transition-colors"
+                      className="p-1 text-muted hover:text-foreground transition-colors"
                       title="Edit label"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
@@ -459,7 +474,7 @@ export function OptionsManager() {
                     {opt.isActive && (
                       <button
                         onClick={() => handleDelete(opt)}
-                        className="p-1 text-neutral-400 hover:text-rose-600 transition-colors"
+                        className="p-1 text-muted hover:text-rose-500 transition-colors"
                         title="Deactivate"
                       >
                         <Trash2 className="w-3.5 h-3.5" />

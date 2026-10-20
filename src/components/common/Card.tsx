@@ -12,10 +12,11 @@ export function Card({
 }: CardProps) {
   return (
     <div
-      className={`rounded-xl border border-zinc-800 bg-zinc-900/60 p-5 shadow-sm transition-colors ${className}`}
+      className={`rounded-2xl border border-border bg-surface text-foreground p-5 shadow-xs transition-colors ${className}`}
       {...props}
     >
       {children}
     </div>
   );
 }
+

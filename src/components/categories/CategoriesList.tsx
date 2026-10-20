@@ -47,7 +47,7 @@ export function CategoriesList({
         action={
           <button
             onClick={() => setShowCreate(true)}
-            className="pressable flex items-center justify-center gap-1.5 p-2.5 sm:px-3.5 sm:py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium transition-colors"
+            className="pressable flex items-center justify-center gap-1.5 p-2.5 sm:px-3.5 sm:py-2 rounded-lg bg-brand-yellow hover:brightness-105 text-brand-navy text-sm font-bold shadow-xs transition-all"
             aria-label="New category"
           >
             <Plus className="w-4 h-4" />

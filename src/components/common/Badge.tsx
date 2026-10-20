@@ -31,42 +31,43 @@ export function Badge({
     { badge: string; dot: string }
   > = {
     active: {
-      badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-      dot: "bg-emerald-400",
+      badge: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
+      dot: "bg-emerald-500",
     },
     available: {
-      badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-      dot: "bg-emerald-400",
+      badge: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
+      dot: "bg-emerald-500",
     },
     overdue: {
-      badge: "bg-rose-500/10 text-rose-400 border-rose-500/20",
-      dot: "bg-rose-400",
+      badge: "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/30",
+      dot: "bg-rose-500",
     },
     "under-review": {
-      badge: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-      dot: "bg-amber-400",
+      badge: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30",
+      dot: "bg-amber-500",
     },
     "in-repair": {
-      badge: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-      dot: "bg-blue-400",
+      badge: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30",
+      dot: "bg-blue-500",
     },
     submitted: {
-      badge: "bg-zinc-800 text-zinc-300 border-zinc-700",
-      dot: "bg-zinc-400",
+      badge: "bg-surface-elevated text-muted border-border",
+      dot: "bg-muted",
     },
     resolved: {
-      badge: "bg-teal-500/10 text-teal-300 border-teal-500/20",
-      dot: "bg-teal-400",
+      badge: "bg-brand-teal/15 text-brand-teal dark:text-teal-400 border-brand-teal/30",
+      dot: "bg-brand-teal dark:bg-teal-400",
     },
     pending: {
-      badge: "bg-amber-500/10 text-amber-300 border-amber-500/20",
-      dot: "bg-amber-400",
+      badge: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30",
+      dot: "bg-amber-500",
     },
     neutral: {
-      badge: "bg-zinc-800 text-zinc-300 border-zinc-700",
-      dot: "bg-zinc-400",
+      badge: "bg-surface-elevated text-muted border-border",
+      dot: "bg-muted",
     },
   };
+
 
   const currentConfig = variantStyles[variant] || variantStyles.neutral;
 
