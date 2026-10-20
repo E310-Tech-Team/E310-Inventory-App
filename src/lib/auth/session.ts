@@ -61,21 +61,5 @@ export async function destroySession(): Promise<void> {
   cookieStore.delete(STATUS_COOKIE);
 }
 
-export function isStaffUser(user: DepartmentUser): boolean {
-  return !isTechUser(user);
-}
+export { isTechUser, isStaffUser, getPortalRoute } from "./roles";
 
-export function isTechUser(user: DepartmentUser): boolean {
-  return (
-    user.role === "super-admin" ||
-    user.role === "tech-support" ||
-    user.role === "team-member"
-  );
-}
-
-export function getPortalRoute(user: DepartmentUser): string {
-  if (user.status === "pending") {
-    return "/change-password";
-  }
-  return isTechUser(user) ? "/tech" : "/staff";
-}
