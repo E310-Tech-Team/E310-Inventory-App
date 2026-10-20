@@ -19,6 +19,7 @@ import { getEffectiveStatus } from "@/lib/checkout-status";
 import { CheckInModal } from "./CheckInModal";
 import { CheckoutDetailsModal } from "./CheckoutDetailsModal";
 import { ExtendDueDateModal } from "./ExtendDueDateModal";
+import { Select } from "@/components/common/Select";
 
 interface CheckoutsListProps {
   checkouts: Checkout[];
@@ -209,16 +210,16 @@ export function CheckoutsList({
     <div className="space-y-6">
       {/* Overdue Alert Banner if items are overdue */}
       {kpis.overdue > 0 && filter !== "overdue" && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-rose-50 border border-rose-200 rounded-xl shadow-xs animate-fade-in">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-rose-500/10 border border-rose-500/25 rounded-xl shadow-xs animate-fade-in">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-rose-100 text-rose-700">
+            <div className="p-2 rounded-lg bg-rose-500/20 text-rose-400">
               <AlertTriangle className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-rose-900">
+              <p className="text-sm font-semibold text-rose-400">
                 {kpis.overdue} equipment {kpis.overdue === 1 ? "checkout is" : "checkouts are"} currently overdue!
               </p>
-              <p className="text-xs text-rose-600 mt-0.5">
+              <p className="text-xs text-muted mt-0.5">
                 Staff custodians have exceeded return deadlines. Check in or extend due dates.
               </p>
             </div>
@@ -237,93 +238,97 @@ export function CheckoutsList({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <button
           onClick={() => setFilter("active")}
-          className={`text-left p-5 rounded-xl border transition-all ${filter === "active"
-              ? "bg-blue-50/70 border-blue-300 ring-2 ring-blue-400/20 shadow-xs"
-              : "bg-white border-slate-200 hover:border-slate-300 shadow-xs"
-            }`}
+          className={`text-left p-5 rounded-xl border transition-all ${
+            filter === "active"
+              ? "bg-brand-teal/10 border-brand-teal/30 ring-2 ring-brand-teal/20 shadow-xs"
+              : "bg-surface border-border hover:border-brand-teal/40 shadow-xs"
+          }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted">
               Active Custody
             </span>
-            <div className="p-2 rounded-lg bg-blue-100 text-blue-700">
+            <div className="p-2 rounded-lg bg-brand-teal/10 text-brand-teal">
               <Laptop className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-bold text-slate-900">{kpis.active}</div>
-          <p className="mt-1 text-xs text-slate-500">Currently in staff hands</p>
+          <div className="mt-3 text-2xl font-bold text-foreground">{kpis.active}</div>
+          <p className="mt-1 text-xs text-muted">Currently in staff hands</p>
         </button>
 
         <button
           onClick={() => setFilter("overdue")}
-          className={`text-left p-5 rounded-xl border transition-all ${filter === "overdue"
-              ? "bg-rose-50/80 border-rose-300 ring-2 ring-rose-400/20 shadow-xs"
-              : "bg-white border-slate-200 hover:border-slate-300 shadow-xs"
-            }`}
+          className={`text-left p-5 rounded-xl border transition-all ${
+            filter === "overdue"
+              ? "bg-rose-500/10 border-rose-500/30 ring-2 ring-rose-500/20 shadow-xs"
+              : "bg-surface border-border hover:border-rose-500/40 shadow-xs"
+          }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-rose-600">
+            <span className="text-xs font-semibold uppercase tracking-wider text-rose-400">
               Overdue Returns
             </span>
-            <div className="p-2 rounded-lg bg-rose-100 text-rose-700">
+            <div className="p-2 rounded-lg bg-rose-500/10 text-rose-400">
               <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-bold text-rose-600">{kpis.overdue}</div>
-          <p className="mt-1 text-xs text-slate-500">Exceeded scheduled return date</p>
+          <div className="mt-3 text-2xl font-bold text-rose-400">{kpis.overdue}</div>
+          <p className="mt-1 text-xs text-muted">Exceeded scheduled return date</p>
         </button>
 
         <button
           onClick={() => setFilter("returned")}
-          className={`text-left p-5 rounded-xl border transition-all ${filter === "returned"
-              ? "bg-emerald-50/70 border-emerald-300 ring-2 ring-emerald-400/20 shadow-xs"
-              : "bg-white border-slate-200 hover:border-slate-300 shadow-xs"
-            }`}
+          className={`text-left p-5 rounded-xl border transition-all ${
+            filter === "returned"
+              ? "bg-emerald-500/10 border-emerald-500/30 ring-2 ring-emerald-500/20 shadow-xs"
+              : "bg-surface border-border hover:border-emerald-500/40 shadow-xs"
+          }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted">
               Checked In
             </span>
-            <div className="p-2 rounded-lg bg-emerald-100 text-emerald-700">
+            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-bold text-slate-900">{kpis.returned}</div>
-          <p className="mt-1 text-xs text-slate-500">Returned to inventory</p>
+          <div className="mt-3 text-2xl font-bold text-foreground">{kpis.returned}</div>
+          <p className="mt-1 text-xs text-muted">Returned to inventory</p>
         </button>
 
         <button
           onClick={() => setFilter("all")}
-          className={`text-left p-5 rounded-xl border transition-all ${filter === "all"
-              ? "bg-slate-100 border-slate-300 ring-2 ring-slate-400/20 shadow-xs"
-              : "bg-white border-slate-200 hover:border-slate-300 shadow-xs"
-            }`}
+          className={`text-left p-5 rounded-xl border transition-all ${
+            filter === "all"
+              ? "bg-surface-elevated border-border ring-2 ring-brand-teal/20 shadow-xs"
+              : "bg-surface border-border hover:border-brand-teal/30 shadow-xs"
+          }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted">
               Total Recorded
             </span>
-            <div className="p-2 rounded-lg bg-slate-100 text-slate-700">
+            <div className="p-2 rounded-lg bg-surface-elevated text-foreground">
               <ArrowLeftRight className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-bold text-slate-900">{kpis.total}</div>
-          <p className="mt-1 text-xs text-slate-500">Full checkout log history</p>
+          <div className="mt-3 text-2xl font-bold text-foreground">{kpis.total}</div>
+          <p className="mt-1 text-xs text-muted">Full checkout log history</p>
         </button>
       </div>
 
       {/* Main Filter & Search Toolbar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-3">
+      <div className="bg-surface p-4 rounded-xl border border-border shadow-xs space-y-3">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           {/* Search Input */}
           <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by equipment, staff name, email, or collected by..."
-              className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-900 placeholder-slate-400 transition-colors"
+              className="w-full pl-9 pr-4 py-2 text-sm bg-surface-elevated border border-border rounded-lg focus:outline-hidden focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal text-foreground placeholder-muted transition-colors"
             />
           </div>
 
@@ -331,7 +336,7 @@ export function CheckoutsList({
             <button
               onClick={exportCheckoutsCSV}
               disabled={filtered.length === 0}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors shadow-xs disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-foreground bg-surface border border-border hover:bg-surface-elevated rounded-lg transition-colors shadow-xs disabled:opacity-50"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Export CSV</span>
@@ -340,16 +345,17 @@ export function CheckoutsList({
         </div>
 
         {/* Filter Tabs & Category Dropdown */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
-          <div className="inline-flex p-1 bg-slate-100 rounded-lg border border-slate-200 text-xs font-medium text-slate-600">
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border">
+          <div className="inline-flex p-1 bg-surface-elevated rounded-lg border border-border text-xs font-medium text-muted">
             {(["active", "overdue", "returned", "all"] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`px-3 py-1.5 rounded-md capitalize transition-all ${filter === f
-                    ? "bg-white text-slate-900 font-semibold shadow-xs"
-                    : "text-slate-600 hover:text-slate-900"
-                  }`}
+                className={`px-3 py-1.5 rounded-md capitalize transition-all ${
+                  filter === f
+                    ? "bg-surface text-foreground font-semibold shadow-xs"
+                    : "text-muted hover:text-foreground"
+                }`}
               >
                 {f}
                 {f === "overdue" && kpis.overdue > 0 && (
@@ -362,18 +368,17 @@ export function CheckoutsList({
           </div>
 
           <div className="flex items-center gap-2">
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md text-slate-800 focus:outline-none focus:border-blue-500"
-            >
-              <option value="all">All Categories</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+            <div className="w-48">
+              <Select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                triggerClassName="py-1 px-2.5 text-xs bg-surface-elevated rounded-lg"
+                options={[
+                  { value: "all", label: "All Categories" },
+                  ...categories.map((c) => ({ value: c.id, label: c.name })),
+                ]}
+              />
+            </div>
 
             {(query.trim() || categoryFilter !== "all") && (
               <button
@@ -381,7 +386,7 @@ export function CheckoutsList({
                   setQuery("");
                   setCategoryFilter("all");
                 }}
-                className="p-1.5 text-slate-400 hover:text-slate-600 text-xs flex items-center gap-1"
+                className="p-1.5 text-muted hover:text-foreground text-xs flex items-center gap-1"
                 title="Clear filters"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -393,20 +398,20 @@ export function CheckoutsList({
       </div>
 
       {undoError && (
-        <div className="p-3 text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-xl">
+        <div className="p-3 text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-xl">
           {undoError}
         </div>
       )}
 
       {/* Checkouts Table Container */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+      <div className="bg-surface border border-border rounded-xl overflow-hidden shadow-xs">
         {filtered.length === 0 ? (
           <div className="p-16 text-center">
-            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+            <div className="w-12 h-12 rounded-full bg-surface-elevated flex items-center justify-center mx-auto text-muted">
               <ArrowLeftRight className="w-6 h-6" />
             </div>
-            <h3 className="mt-4 text-base font-semibold text-slate-900">No checkout records</h3>
-            <p className="mt-1 text-sm text-slate-500 max-w-sm mx-auto">
+            <h3 className="mt-4 text-base font-semibold text-foreground">No checkout records</h3>
+            <p className="mt-1 text-sm text-muted max-w-sm mx-auto">
               {filter === "overdue"
                 ? "Excellent! There are no overdue equipment checkouts at this time."
                 : "No custody records matched your query or filter criteria."}
@@ -418,7 +423,7 @@ export function CheckoutsList({
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50/80 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  <tr className="bg-surface-elevated/70 border-b border-border text-xs font-semibold text-muted uppercase tracking-wider">
                     <th className="py-3.5 px-4">Equipment & Model</th>
                     <th className="py-3.5 px-4">Staff Custodian</th>
                     <th className="py-3.5 px-4">Collected</th>
@@ -427,7 +432,7 @@ export function CheckoutsList({
                     <th className="py-3.5 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-sm">
+                <tbody className="divide-y divide-border text-sm">
                   {filtered.map((checkout) => {
                     const item = itemById.get(checkout.itemId);
                     const status = getEffectiveStatus(checkout);
@@ -436,8 +441,8 @@ export function CheckoutsList({
                     return (
                       <tr
                         key={checkout.id}
-                        className={`hover:bg-slate-50/70 transition-colors group cursor-pointer ${
-                          status === "overdue" ? "bg-rose-50/20" : ""
+                        className={`hover:bg-surface-elevated/50 transition-colors group cursor-pointer ${
+                          status === "overdue" ? "bg-rose-500/10" : ""
                         }`}
                         onClick={() => setSelectedCheckout(checkout)}
                       >
@@ -447,23 +452,23 @@ export function CheckoutsList({
                             <div
                               className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
                                 status === "overdue"
-                                  ? "bg-rose-100 text-rose-700 border border-rose-200"
-                                  : "bg-blue-50 text-blue-600 border border-blue-100"
+                                  ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                                  : "bg-brand-teal/10 text-brand-teal border border-brand-teal/20"
                               }`}
                             >
                               <Laptop className="w-4 h-4" />
                             </div>
                             <div>
-                              <div className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
+                              <div className="font-semibold text-foreground group-hover:text-brand-teal transition-colors">
                                 {item?.name ?? "Unknown item"}
                                 {checkout.quantity !== null && (
-                                  <span className="text-slate-500 font-normal">
+                                  <span className="text-muted font-normal">
                                     {" "}
                                     ({checkout.quantity} units)
                                   </span>
                                 )}
                               </div>
-                              <div className="text-xs text-slate-500 font-mono mt-0.5">
+                              <div className="text-xs text-muted font-mono mt-0.5">
                                 {item?.serialNumber || item?.identifierValue || "No SN"}
                               </div>
                             </div>
@@ -472,18 +477,18 @@ export function CheckoutsList({
 
                         {/* Staff Custodian */}
                         <td className="py-4 px-4">
-                          <div className="font-medium text-slate-900">
+                          <div className="font-medium text-foreground">
                             {checkout.assignedToName}
                           </div>
-                          <div className="text-xs text-slate-500 mt-0.5">
+                          <div className="text-xs text-muted mt-0.5">
                             {checkout.assignedToEmail}
                           </div>
                         </td>
 
                         {/* Date Collected */}
-                        <td className="py-4 px-4 text-xs text-slate-600">
+                        <td className="py-4 px-4 text-xs text-muted">
                           <div>{new Date(checkout.dateCollected).toLocaleDateString()}</div>
-                          <div className="text-[11px] text-slate-400 mt-0.5">
+                          <div className="text-[11px] text-muted/70 mt-0.5">
                             by {checkout.collectedBy}
                           </div>
                         </td>
@@ -493,16 +498,16 @@ export function CheckoutsList({
                           {checkout.dueDate ? (
                             <div
                               className={`font-mono font-medium ${
-                                status === "overdue" ? "text-rose-700 font-bold" : "text-slate-700"
+                                status === "overdue" ? "text-rose-400 font-bold" : "text-foreground"
                               }`}
                             >
                               {new Date(checkout.dueDate).toLocaleDateString()}
                             </div>
                           ) : (
-                            <span className="text-slate-400">Open-ended</span>
+                            <span className="text-muted">Open-ended</span>
                           )}
                           {status === "returned" && checkout.dateReturned && (
-                            <div className="text-[11px] text-emerald-600 mt-0.5">
+                            <div className="text-[11px] text-emerald-400 mt-0.5">
                               Returned {new Date(checkout.dateReturned).toLocaleDateString()}
                             </div>
                           )}
@@ -511,17 +516,17 @@ export function CheckoutsList({
                         {/* Status */}
                         <td className="py-4 px-4">
                           {status === "overdue" ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300 animate-pulse">
-                              <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse">
+                              <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
                               Overdue ({daysOverdue}d)
                             </span>
                           ) : status === "active" ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-teal/10 text-brand-teal border border-brand-teal/20">
                               <Clock className="w-3 h-3" />
                               Active Custody
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                               <CheckCircle2 className="w-3 h-3" />
                               Returned
                             </span>
@@ -538,7 +543,7 @@ export function CheckoutsList({
                               <button
                                 onClick={() => handleUndoCheckout(checkout)}
                                 disabled={undoingCheckoutId === checkout.id}
-                                className="px-2.5 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors disabled:opacity-50"
+                                className="px-2.5 py-1 text-xs font-medium text-muted hover:text-foreground bg-surface border border-border hover:bg-surface-elevated rounded-lg transition-colors disabled:opacity-50"
                               >
                                 {undoingCheckoutId === checkout.id ? "Undoing…" : "Undo"}
                               </button>
@@ -546,7 +551,7 @@ export function CheckoutsList({
                               <>
                                 <button
                                   onClick={() => setExtendingCheckout(checkout)}
-                                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100/80 border border-blue-200 rounded-lg transition-colors"
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-brand-teal bg-brand-teal/10 hover:bg-brand-teal/20 border border-brand-teal/30 rounded-lg transition-colors"
                                   title="Extend Due Date"
                                 >
                                   <CalendarClock className="w-3.5 h-3.5" />
@@ -571,7 +576,7 @@ export function CheckoutsList({
             </div>
 
             {/* Mobile Card Stack */}
-            <div className="md:hidden divide-y divide-slate-100">
+            <div className="md:hidden divide-y divide-border">
               {filtered.map((checkout) => {
                 const item = itemById.get(checkout.itemId);
                 const status = getEffectiveStatus(checkout);
@@ -580,8 +585,8 @@ export function CheckoutsList({
                 return (
                   <div
                     key={checkout.id}
-                    className={`p-4 space-y-3 cursor-pointer transition-colors active:bg-slate-50 ${
-                      status === "overdue" ? "bg-rose-50/20" : "bg-white"
+                    className={`p-4 space-y-3 cursor-pointer transition-colors active:bg-surface-elevated ${
+                      status === "overdue" ? "bg-rose-500/10" : "bg-surface"
                     }`}
                     onClick={() => setSelectedCheckout(checkout)}
                   >
@@ -590,34 +595,34 @@ export function CheckoutsList({
                         <div
                           className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
                             status === "overdue"
-                              ? "bg-rose-100 text-rose-700 border border-rose-200"
-                              : "bg-blue-50 text-blue-600 border border-blue-100"
+                              ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                              : "bg-brand-teal/10 text-brand-teal border border-brand-teal/20"
                           }`}
                         >
                           <Laptop className="w-4 h-4" />
                         </div>
                         <div>
-                          <h4 className="font-semibold text-slate-900 text-sm">
+                          <h4 className="font-semibold text-foreground text-sm">
                             {item?.name ?? "Unknown item"}
                           </h4>
-                          <span className="font-mono text-[11px] text-slate-500">
+                          <span className="font-mono text-[11px] text-muted">
                             {item?.serialNumber || item?.identifierValue || "No SN"}
                           </span>
                         </div>
                       </div>
 
                       {status === "overdue" ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300 animate-pulse shrink-0">
-                          <AlertTriangle className="w-3 h-3 text-rose-600" />
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse shrink-0">
+                          <AlertTriangle className="w-3 h-3 text-rose-400" />
                           Overdue ({daysOverdue}d)
                         </span>
                       ) : status === "active" ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-brand-teal/10 text-brand-teal border border-brand-teal/20 shrink-0">
                           <Clock className="w-3 h-3" />
                           Active
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
                           <CheckCircle2 className="w-3 h-3" />
                           Returned
                         </span>
@@ -627,20 +632,20 @@ export function CheckoutsList({
                     {/* Custodian & Due Date */}
                     <div className="grid grid-cols-2 gap-2 text-xs pt-1">
                       <div>
-                        <span className="text-[10px] text-slate-400 block">
+                        <span className="text-[10px] text-muted block">
                           Custodian
                         </span>
-                        <span className="font-medium text-slate-800 truncate block">
+                        <span className="font-medium text-foreground truncate block">
                           {checkout.assignedToName}
                         </span>
                       </div>
                       <div>
-                        <span className="text-[10px] text-slate-400 block">
+                        <span className="text-[10px] text-muted block">
                           Due Date
                         </span>
                         <span
                           className={`font-mono text-xs block ${
-                            status === "overdue" ? "text-rose-700 font-bold" : "text-slate-700"
+                            status === "overdue" ? "text-rose-400 font-bold" : "text-foreground"
                           }`}
                         >
                           {checkout.dueDate
@@ -652,14 +657,14 @@ export function CheckoutsList({
 
                     {/* Actions */}
                     <div
-                      className="flex items-center justify-end gap-1.5 pt-2 border-t border-slate-100"
+                      className="flex items-center justify-end gap-1.5 pt-2 border-t border-border"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {status === "returned" ? (
                         <button
                           onClick={() => handleUndoCheckout(checkout)}
                           disabled={undoingCheckoutId === checkout.id}
-                          className="px-3 py-1 text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded-lg transition-colors disabled:opacity-50"
+                          className="px-3 py-1 text-xs font-medium text-muted bg-surface border border-border rounded-lg transition-colors disabled:opacity-50"
                         >
                           {undoingCheckoutId === checkout.id ? "Undoing…" : "Undo"}
                         </button>
@@ -667,7 +672,7 @@ export function CheckoutsList({
                         <>
                           <button
                             onClick={() => setExtendingCheckout(checkout)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg transition-colors"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-brand-teal bg-brand-teal/10 border border-brand-teal/30 rounded-lg transition-colors"
                           >
                             <CalendarClock className="w-3.5 h-3.5" />
                             <span>Extend</span>

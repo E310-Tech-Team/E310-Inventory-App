@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { LogOut, Package, Search } from "lucide-react";
+import { LogOut, Search } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { NotificationBell } from "./NotificationBell";
+import { E310Logo } from "@/components/common/E310Logo";
 
 export function MobileHeader({ onOpenSearch }: { onOpenSearch?: () => void }) {
   const router = useRouter();
@@ -18,10 +19,10 @@ export function MobileHeader({ onOpenSearch }: { onOpenSearch?: () => void }) {
     <header className="md:hidden sticky top-0 z-20 border-b border-border bg-surface/90 backdrop-blur">
       <div className="flex items-center justify-between px-4 h-14">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center">
-            <Package className="w-3.5 h-3.5 text-white" strokeWidth={2} />
-          </div>
-          <span className="font-semibold text-sm leading-tight">EThree10 Inventory</span>
+          <E310Logo size="xs" />
+          <span className="text-[10px] font-bold tracking-wider px-1.5 py-0.5 rounded bg-brand-yellow/25 text-brand-navy dark:text-brand-yellow border border-brand-yellow/40 leading-none">
+            INVENTORY
+          </span>
         </div>
         <div className="flex items-center gap-2">
           {onOpenSearch && (

@@ -65,7 +65,7 @@ export function Modal({
     >
       {/* Frosted Glass Backdrop */}
       <div
-        className="fixed inset-0 bg-neutral-950/80 backdrop-blur-md transition-opacity duration-300 animate-fade-in"
+        className="fixed inset-0 bg-black/50 dark:bg-black/75 backdrop-blur-sm transition-opacity duration-300 animate-fade-in"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -73,19 +73,19 @@ export function Modal({
       {/* Modal Dialog Panel */}
       <div
         ref={modalRef}
-        className={`relative w-full ${sizeClasses[size]} rounded-xl border border-zinc-800 bg-zinc-900 shadow-2xl overflow-hidden modal-panel z-10 flex flex-col max-h-[90vh]`}
+        className={`relative w-full ${sizeClasses[size]} rounded-2xl border border-border bg-surface shadow-2xl overflow-hidden modal-panel z-10 flex flex-col max-h-[90vh]`}
       >
         {/* Header */}
-        <div className="flex items-start justify-between p-5 border-b border-zinc-800 bg-zinc-900/60">
+        <div className="flex items-start justify-between p-5 border-b border-border bg-surface-elevated/40">
           <div>
             <h2
               id="modal-title"
-              className="text-base font-semibold text-zinc-100"
+              className="text-base font-bold text-foreground"
             >
               {title}
             </h2>
             {description && (
-              <p className="mt-0.5 text-xs text-zinc-400">
+              <p className="mt-0.5 text-xs text-muted">
                 {description}
               </p>
             )}
@@ -94,7 +94,7 @@ export function Modal({
           {showCloseButton && (
             <button
               onClick={onClose}
-              className="rounded-md p-1 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+              className="rounded-lg p-1.5 text-muted hover:text-foreground hover:bg-surface-elevated transition-colors"
               aria-label="Close dialog"
             >
               <X className="w-4 h-4" />
@@ -103,8 +103,9 @@ export function Modal({
         </div>
 
         {/* Content Body */}
-        <div className="p-5 overflow-y-auto flex-1">{children}</div>
+        <div className="p-5 overflow-y-auto flex-1 text-foreground">{children}</div>
       </div>
     </div>
+
   );
 }

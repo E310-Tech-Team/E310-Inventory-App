@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Item, Category, ItemCondition, ItemIdentifierType } from "@/types";
+import { Select } from "@/components/common/Select";
 import { Modal } from "@/components/ui/Modal";
 import { FormField, inputClass } from "@/components/ui/FormField";
 import { ITEM_IDENTIFIER_LABELS } from "@/lib/items";
@@ -87,21 +88,16 @@ export function ItemFormModal({
 
   return (
     <Modal title={isEdit ? "Edit item" : "New item"} onClose={onClose}>
-      <form onSubmit={handleSubmit}>
-        <FormField label="Category">
-          <select
-            className={inputClass}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Select
+            label="Category"
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
             disabled={isEdit}
-          >
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </FormField>
+            options={categories.map((c) => ({ value: c.id, label: c.name }))}
+          />
+        </div>
 
         <FormField label="Name">
           <input
@@ -125,20 +121,16 @@ export function ItemFormModal({
             />
           </FormField>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-[0.9fr_1.1fr]">
-            <FormField label="Identifier type">
-              <select
-                className={inputClass}
-                value={identifierType}
-                onChange={(e) => setIdentifierType(e.target.value as ItemIdentifierType)}
-              >
-                {Object.entries(ITEM_IDENTIFIER_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </FormField>
+          <div className="grid gap-3 sm:grid-cols-[0.9fr_1.1fr] items-start">
+            <Select
+              label="Identifier type"
+              value={identifierType}
+              onChange={(e) => setIdentifierType(e.target.value as ItemIdentifierType)}
+              options={Object.entries(ITEM_IDENTIFIER_LABELS).map(([value, label]) => ({
+                value,
+                label,
+              }))}
+            />
             <FormField label="Identifier value">
               <input
                 className={`${inputClass} font-mono`}
@@ -150,18 +142,19 @@ export function ItemFormModal({
           </div>
         )}
 
-        <FormField label="Condition">
-          <select
-            className={inputClass}
+        <div>
+          <Select
+            label="Condition"
             value={condition}
             onChange={(e) => setCondition(e.target.value as ItemCondition)}
-          >
-            <option value="new">New</option>
-            <option value="good">Good</option>
-            <option value="fair">Fair</option>
-            <option value="damaged">Damaged</option>
-          </select>
-        </FormField>
+            options={[
+              { value: "new", label: "New" },
+              { value: "good", label: "Good" },
+              { value: "fair", label: "Fair" },
+              { value: "damaged", label: "Damaged" },
+            ]}
+          />
+        </div>
 
         <FormField label="Notes (optional)">
           <textarea
@@ -177,7 +170,7 @@ export function ItemFormModal({
         <button
           type="submit"
           disabled={saving}
-          className="pressable w-full py-2.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium transition-colors disabled:opacity-50"
+          className="pressable w-full py-2.5 rounded-lg bg-brand-yellow hover:brightness-105 text-brand-navy text-sm font-bold transition-all disabled:opacity-50 shadow-sm"
         >
           {saving ? "Saving…" : isEdit ? "Save changes" : "Add item"}
         </button>

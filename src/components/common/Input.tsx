@@ -31,21 +31,21 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-xs font-medium text-zinc-300"
+            className="block text-xs font-semibold text-foreground"
           >
             {label}
           </label>
         )}
 
         <div
-          className={`relative flex items-center w-full rounded-md border bg-zinc-900 transition-colors ${
+          className={`relative flex items-center w-full rounded-xl border bg-surface transition-colors ${
             error
               ? "border-rose-500/80 focus-within:ring-1 focus-within:ring-rose-500"
-              : "border-zinc-800 focus-within:border-zinc-400 focus-within:ring-1 focus-within:ring-zinc-400"
+              : "border-border focus-within:border-accent focus-within:ring-1 focus-within:ring-accent/40"
           }`}
         >
           {leftIcon && (
-            <div className="pl-3 pr-1 text-zinc-400 select-none">
+            <div className="pl-3 pr-1 text-muted select-none">
               {leftIcon}
             </div>
           )}
@@ -53,27 +53,28 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           <input
             id={inputId}
             ref={ref}
-            className={`w-full bg-transparent px-3 py-2 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
+            className={`w-full bg-transparent px-3 py-2 text-xs text-foreground placeholder:text-muted focus:outline-hidden disabled:opacity-50 disabled:cursor-not-allowed ${
               leftIcon ? "pl-1.5" : ""
             } ${className}`}
             {...props}
           />
 
           {rightIcon && (
-            <div className="pr-3 pl-1 text-zinc-400 select-none">
+            <div className="pr-3 pl-1 text-muted select-none">
               {rightIcon}
             </div>
           )}
         </div>
 
         {error ? (
-          <p className="flex items-center gap-1 text-xs text-rose-400">
+          <p className="flex items-center gap-1 text-xs text-rose-500">
             <AlertCircle className="w-3.5 h-3.5 shrink-0" />
             <span>{error}</span>
           </p>
         ) : helperText ? (
-          <p className="text-xs text-zinc-500">{helperText}</p>
+          <p className="text-xs text-muted">{helperText}</p>
         ) : null}
+
       </div>
     );
   }

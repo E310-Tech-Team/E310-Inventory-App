@@ -255,7 +255,7 @@ export function CommandSearchModal({
           {query.length > 0 && !isLoading && (
             <button
               onClick={() => handleQueryChange("")}
-              className="p-1 rounded-md text-muted hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors mr-2"
+              className="p-1 rounded-md text-muted hover:text-foreground hover:bg-surface-elevated transition-colors mr-2"
               title="Clear search"
             >
               <X className="w-4 h-4" />
@@ -301,7 +301,7 @@ export function CommandSearchModal({
                           className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
                             isSelected
                               ? "bg-accent text-white"
-                              : "bg-neutral-100 dark:bg-neutral-800 text-muted"
+                              : "bg-surface-elevated text-muted"
                           }`}
                         >
                           <Icon className="w-4 h-4" />
@@ -329,7 +329,7 @@ export function CommandSearchModal({
           ) : flattenedItems.length === 0 && !isLoading ? (
             /* No Results Found */
             <div className="py-12 text-center">
-              <div className="w-12 h-12 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center mx-auto mb-3">
+              <div className="w-12 h-12 rounded-full bg-surface-elevated flex items-center justify-center mx-auto mb-3">
                 <Search className="w-6 h-6 text-muted" />
               </div>
               <h4 className="text-sm font-semibold text-foreground">
@@ -373,7 +373,7 @@ export function CommandSearchModal({
                               className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
                                 isSelected
                                   ? "bg-accent text-white"
-                                  : "bg-neutral-100 dark:bg-neutral-800 text-muted"
+                                  : "bg-surface-elevated text-muted"
                               }`}
                             >
                               <Laptop className="w-4 h-4" />
@@ -392,10 +392,10 @@ export function CommandSearchModal({
                               <span
                                 className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${
                                   device.badgeVariant === "success"
-                                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                                     : device.badgeVariant === "info"
-                                    ? "bg-blue-50 text-blue-700 border-blue-200"
-                                    : "bg-neutral-50 text-neutral-700 border-neutral-200"
+                                    ? "bg-brand-teal/10 text-brand-teal border-brand-teal/20"
+                                    : "bg-surface-elevated text-foreground border-border"
                                 }`}
                               >
                                 {device.badge}
@@ -442,7 +442,7 @@ export function CommandSearchModal({
                               className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
                                 isSelected
                                   ? "bg-accent text-white"
-                                  : "bg-neutral-100 dark:bg-neutral-800 text-muted"
+                                  : "bg-surface-elevated text-muted"
                               }`}
                             >
                               <AlertCircle className="w-4 h-4" />
@@ -461,10 +461,10 @@ export function CommandSearchModal({
                               <span
                                 className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${
                                   ticket.badgeVariant === "success"
-                                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                                     : ticket.badgeVariant === "warning"
-                                    ? "bg-amber-50 text-amber-700 border-amber-200"
-                                    : "bg-neutral-50 text-neutral-700 border-neutral-200"
+                                    ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                    : "bg-surface-elevated text-foreground border-border"
                                 }`}
                               >
                                 {ticket.badge}
@@ -511,7 +511,7 @@ export function CommandSearchModal({
                               className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
                                 isSelected
                                   ? "bg-accent text-white"
-                                  : "bg-neutral-100 dark:bg-neutral-800 text-muted"
+                                  : "bg-surface-elevated text-muted"
                               }`}
                             >
                               <Users className="w-4 h-4" />
@@ -527,7 +527,7 @@ export function CommandSearchModal({
                           </div>
                           <div className="flex items-center gap-2 shrink-0 ml-3">
                             {member.badge && (
-                              <span className="text-[11px] font-medium px-2 py-0.5 rounded-full border bg-neutral-50 text-neutral-700 border-neutral-200">
+                              <span className="text-[11px] font-medium px-2 py-0.5 rounded-full border bg-surface-elevated text-foreground border-border">
                                 {member.badge}
                               </span>
                             )}

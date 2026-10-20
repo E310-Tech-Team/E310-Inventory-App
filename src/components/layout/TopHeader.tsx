@@ -6,6 +6,7 @@ import { Search, ExternalLink, User, Eye } from "lucide-react";
 import { Admin } from "@/types";
 import { NotificationBell } from "./NotificationBell";
 import { ThemeToggle } from "./ThemeToggle";
+import { E310Logo } from "@/components/common/E310Logo";
 
 interface TopHeaderProps {
   admin: Admin;
@@ -36,15 +37,15 @@ export function TopHeader({
     <header className="hidden md:flex h-14 items-center justify-between px-6 lg:px-8 border-b border-border bg-surface/90 backdrop-blur sticky top-0 z-20 transition-colors">
       {/* Left: Branding & Role Context Indicator */}
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-accent text-white font-bold text-xs tracking-tight shadow-xs">
-            E
-          </span>
-          <span className="text-xs font-bold uppercase tracking-wider text-foreground">
-            EThree10
-          </span>
-        </div>
-        <span className="h-3.5 w-px bg-border" />
+        <Link
+          href={isTechRole ? "/dashboard" : "/staff"}
+          className="flex items-center gap-2 hover:opacity-85 transition-opacity"
+          title="E310 Inventory App"
+        >
+          <E310Logo size="xs" />
+        </Link>
+        <span className="h-4 w-px bg-border" />
+
         {isStaffPreview ? (
           <div className="flex items-center gap-1.5">
             <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
@@ -59,7 +60,7 @@ export function TopHeader({
             <span className="text-xs font-medium text-muted">
               {isTechRole ? "Tech Command Center" : "Staff Hardware Portal"}
             </span>
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 border border-border">
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-surface-elevated text-foreground border border-border">
               {admin?.role || "Staff"}
             </span>
           </div>

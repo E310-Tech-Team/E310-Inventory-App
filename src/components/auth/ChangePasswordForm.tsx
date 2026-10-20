@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock } from "lucide-react";
+import { E310Logo } from "@/components/common/E310Logo";
 
 export function ChangePasswordForm() {
   const router = useRouter();
@@ -55,10 +56,8 @@ export function ChangePasswordForm() {
     <div className="flex-1 flex items-center justify-center px-4">
       <div className="w-full max-w-sm animate-enter">
         <div className="flex flex-col items-center mb-8">
-          <div className="status-live w-12 h-12 rounded-xl bg-accent flex items-center justify-center mb-4">
-            <Lock className="w-6 h-6 text-white" strokeWidth={2} />
-          </div>
-          <h1 className="text-xl font-semibold text-foreground">Set your password</h1>
+          <E310Logo size="lg" className="mb-3" priority />
+          <h1 className="text-xl font-semibold text-foreground">Set your permanent password</h1>
           <p className="text-sm text-muted text-center mt-2">
             You&apos;re signed in with a temporary password. Please set a permanent password for your
             account.

@@ -26,6 +26,7 @@ import {
 import { Admin, DepartmentUser } from "@/types";
 import { isTechUser } from "@/lib/auth/roles";
 import { ThemeToggle } from "./ThemeToggle";
+import { E310Logo } from "@/components/common/E310Logo";
 
 const SIDEBAR_STORAGE_KEY = "inventory-sidebar-collapsed";
 
@@ -226,20 +227,19 @@ export function Sidebar({
           className="flex items-center gap-2.5 min-w-0 group"
           title="E310 Inventory App"
         >
-          <div className="w-8 h-8 rounded-lg bg-neutral-950 dark:bg-white text-white dark:text-neutral-950 flex items-center justify-center font-bold text-xs tracking-tight shrink-0 shadow-sm transition-transform group-hover:scale-105">
-            310
-          </div>
-          {!isCollapsed && (
+          {isCollapsed ? (
+            <div className="w-8 h-8 rounded-lg bg-surface-elevated border border-border flex items-center justify-center font-black text-xs tracking-tight text-foreground shadow-xs transition-transform group-hover:scale-105">
+              E
+            </div>
+          ) : (
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-sm tracking-tight text-foreground leading-none truncate">
-                  E310
-                </span>
-                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-[#D4F868]/30 text-neutral-800 dark:text-[#D4F868] border border-[#D4F868]/50">
-                  ENT
+              <div className="flex items-center gap-2">
+                <E310Logo size="sm" />
+                <span className="text-[10px] font-bold tracking-wider px-1.5 py-0.5 rounded bg-brand-yellow/25 text-brand-navy dark:text-brand-yellow border border-brand-yellow/40 leading-none">
+                  {isStaff ? "STAFF" : "ENT"}
                 </span>
               </div>
-              <p className="text-[11px] text-muted truncate mt-0.5">
+              <p className="text-[11px] text-muted truncate mt-1">
                 {isStaff ? "Staff Self-Service" : "Tech Operations"}
               </p>
             </div>
@@ -251,7 +251,7 @@ export function Sidebar({
           onClick={handleToggle}
           title={isCollapsed ? "Expand sidebar (⌘[)" : "Collapse sidebar (⌘[)"}
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="pressable p-1.5 rounded-lg text-muted hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-foreground transition-colors shrink-0"
+          className="pressable p-1.5 rounded-lg text-muted hover:bg-surface-elevated hover:text-foreground transition-colors shrink-0"
         >
           {isCollapsed ? (
             <PanelLeftOpen className="w-4 h-4" strokeWidth={2} />
@@ -324,14 +324,14 @@ export function Sidebar({
                               : "gap-3 px-3 py-2.5 w-full"
                           } ${
                             isActive
-                              ? "bg-[#D4F868] text-neutral-950 font-semibold shadow-sm"
-                              : "text-muted hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800/60 font-medium"
+                              ? "bg-brand-yellow text-brand-navy font-semibold shadow-xs"
+                              : "text-muted hover:text-foreground hover:bg-surface-elevated font-medium"
                           }`}
                         >
                           <Icon
                             className={`w-4 h-4 shrink-0 transition-colors ${
                               isActive
-                                ? "text-neutral-950"
+                                ? "text-brand-navy"
                                 : "text-muted group-hover:text-foreground"
                             }`}
                             strokeWidth={isActive ? 2.5 : 2}
@@ -347,7 +347,7 @@ export function Sidebar({
                             <span
                               className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-medium leading-none ${
                                 isActive
-                                  ? "bg-neutral-950/15 text-neutral-950"
+                                  ? "bg-brand-navy/15 text-brand-navy"
                                   : "bg-accent/15 text-accent"
                               }`}
                             >
@@ -360,7 +360,7 @@ export function Sidebar({
                         {isCollapsed && (
                           <div
                             role="tooltip"
-                            className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 hidden group-hover:flex items-center z-50 px-2.5 py-1 text-xs font-semibold rounded-md shadow-lg whitespace-nowrap bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 animate-in fade-in zoom-in-95 duration-100"
+                            className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 hidden group-hover:flex items-center z-50 px-2.5 py-1 text-xs font-semibold rounded-md shadow-lg whitespace-nowrap bg-surface-elevated text-foreground border border-border animate-in fade-in zoom-in-95 duration-100"
                           >
                             {item.label}
                           </div>
@@ -428,7 +428,7 @@ export function Sidebar({
             </div>
             <div
               role="tooltip"
-              className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 hidden group-hover:flex flex-col z-50 px-2.5 py-1.5 text-xs rounded-md shadow-lg whitespace-nowrap bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 animate-in fade-in zoom-in-95 duration-100"
+              className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 hidden group-hover:flex flex-col z-50 px-2.5 py-1.5 text-xs rounded-md shadow-lg whitespace-nowrap bg-surface-elevated text-foreground border border-border animate-in fade-in zoom-in-95 duration-100"
             >
               <span className="font-semibold">{currentUser.name}</span>
               <span className="text-[10px] opacity-80 font-mono">
@@ -450,9 +450,9 @@ export function Sidebar({
           </button>
         </div>
       ) : (
-        <div className="border-t border-border p-3 space-y-2.5 bg-surface">
+        <div className="border-t border-border p-3 bg-surface shrink-0">
           {/* User Profile Card */}
-          <div className="flex items-center gap-2.5 p-2 rounded-xl bg-neutral-50 dark:bg-neutral-900/60 border border-border/60">
+          <div className="flex items-center gap-2.5 p-2 rounded-xl bg-surface-elevated border border-border/60">
             <div className="w-9 h-9 rounded-full bg-emerald-600 dark:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
               {userInitials}
             </div>
@@ -462,8 +462,8 @@ export function Sidebar({
               </p>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                <span className="font-mono text-[10px] text-muted truncate">
-                  ID: {currentUser.staffId || "E310-8492"}
+                <span className="text-[10px] text-muted truncate capitalize font-medium">
+                  {currentUser.role.replace("-", " ")}
                 </span>
               </div>
             </div>
@@ -476,16 +476,6 @@ export function Sidebar({
             >
               <LogOut className="w-4 h-4" strokeWidth={2} />
             </button>
-          </div>
-
-          {/* Theme Toggle & Role Info */}
-          <div className="flex items-center justify-between gap-2 px-1">
-            <span className="text-[11px] text-muted font-medium capitalize truncate">
-              {currentUser.role.replace("-", " ")}
-            </span>
-            <div className="shrink-0">
-              <ThemeToggle compact />
-            </div>
           </div>
         </div>
       )}

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Category, TrackingType, ReturnType } from "@/types";
+import { Select } from "@/components/common/Select";
 import { Modal } from "@/components/ui/Modal";
 import { FormField, inputClass } from "@/components/ui/FormField";
 
@@ -76,27 +77,29 @@ export function CategoryFormModal({
           />
         </FormField>
 
-        <FormField label="Tracking type">
-          <select
-            className={inputClass}
+        <div className="mb-4">
+          <Select
+            label="Tracking type"
             value={trackingType}
             onChange={(e) => setTrackingType(e.target.value as TrackingType)}
-          >
-            <option value="individual">Individual — each unit tracked separately</option>
-            <option value="quantity">Quantity — tracked as a count</option>
-          </select>
-        </FormField>
+            options={[
+              { value: "individual", label: "Individual — each unit tracked separately" },
+              { value: "quantity", label: "Quantity — tracked as a count" },
+            ]}
+          />
+        </div>
 
-        <FormField label="Return type">
-          <select
-            className={inputClass}
+        <div className="mb-4">
+          <Select
+            label="Return type"
             value={returnType}
             onChange={(e) => setReturnType(e.target.value as ReturnType)}
-          >
-            <option value="open-ended">Open-ended — no fixed due date</option>
-            <option value="fixed-date">Fixed date — due date required on checkout</option>
-          </select>
-        </FormField>
+            options={[
+              { value: "open-ended", label: "Open-ended — no fixed due date" },
+              { value: "fixed-date", label: "Fixed date — due date required on checkout" },
+            ]}
+          />
+        </div>
 
         {trackingType === "quantity" && (
           <FormField label="Low stock threshold">
@@ -116,7 +119,7 @@ export function CategoryFormModal({
         <button
           type="submit"
           disabled={saving}
-          className="pressable w-full py-2.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium transition-colors disabled:opacity-50"
+          className="pressable w-full py-2.5 rounded-lg bg-brand-yellow hover:brightness-105 text-brand-navy text-sm font-bold transition-all disabled:opacity-50 shadow-sm"
         >
           {saving ? "Saving…" : isEdit ? "Save changes" : "Create category"}
         </button>

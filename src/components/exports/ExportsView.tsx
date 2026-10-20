@@ -5,6 +5,7 @@ import { CalendarClock, Download, FileSpreadsheet } from "lucide-react";
 import { Category } from "@/types";
 import { inputClass } from "@/components/ui/FormField";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Select } from "@/components/common/Select";
 
 type ReportType = "assignments" | "inventory";
 type ExportFormat = "csv" | "excel";
@@ -116,55 +117,51 @@ export function ExportsView({ categories }: { categories: Category[] }) {
           onSubmit={handleDownload}
           className="interactive-card border border-border rounded-xl bg-surface p-4 md:p-5"
         >
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            <label className="block">
-              <span className="block text-sm font-medium mb-1.5">Report</span>
-              <select
-                className={inputClass}
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 items-end">
+            <div>
+              <Select
+                label="Report"
                 value={report}
                 onChange={(event) => {
                   setReport(event.target.value as ReportType);
                   setStatus("all");
                 }}
-              >
-                <option value="assignments">Assignments</option>
-                <option value="inventory">Inventory</option>
-              </select>
-            </label>
+                options={[
+                  { value: "assignments", label: "Assignments" },
+                  { value: "inventory", label: "Inventory" },
+                ]}
+              />
+            </div>
 
-            <label className="block">
-              <span className="block text-sm font-medium mb-1.5">Category</span>
-              <select
-                className={inputClass}
+            <div>
+              <Select
+                label="Category"
                 value={categoryId}
                 onChange={(event) => setCategoryId(event.target.value)}
-              >
-                <option value="all">All categories</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+                options={[
+                  { value: "all", label: "All categories" },
+                  ...categories.map((category) => ({
+                    value: category.id,
+                    label: category.name,
+                  })),
+                ]}
+              />
+            </div>
 
-            <label className="block">
-              <span className="block text-sm font-medium mb-1.5">Status</span>
-              <select
-                className={inputClass}
+            <div>
+              <Select
+                label="Status"
                 value={status}
                 onChange={(event) => setStatus(event.target.value)}
-              >
-                {statusOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+                options={statusOptions.map((opt) => ({
+                  value: opt.value,
+                  label: opt.label,
+                }))}
+              />
+            </div>
 
             <label className="block">
-              <span className="block text-sm font-medium mb-1.5">From</span>
+              <span className="block text-xs font-semibold text-foreground mb-1.5">From</span>
               <div className="relative">
                 <CalendarClock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
                 <input
@@ -177,7 +174,7 @@ export function ExportsView({ categories }: { categories: Category[] }) {
             </label>
 
             <label className="block">
-              <span className="block text-sm font-medium mb-1.5">To</span>
+              <span className="block text-xs font-semibold text-foreground mb-1.5">To</span>
               <div className="relative">
                 <CalendarClock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
                 <input
@@ -189,17 +186,17 @@ export function ExportsView({ categories }: { categories: Category[] }) {
               </div>
             </label>
 
-            <label className="block">
-              <span className="block text-sm font-medium mb-1.5">File</span>
-              <select
-                className={inputClass}
+            <div>
+              <Select
+                label="File Format"
                 value={format}
                 onChange={(event) => setFormat(event.target.value as ExportFormat)}
-              >
-                <option value="csv">CSV</option>
-                <option value="excel">Excel</option>
-              </select>
-            </label>
+                options={[
+                  { value: "csv", label: "CSV" },
+                  { value: "excel", label: "Excel" },
+                ]}
+              />
+            </div>
           </div>
 
           {error && <p className="mt-4 text-sm text-status-overdue">{error}</p>}
@@ -212,7 +209,7 @@ export function ExportsView({ categories }: { categories: Category[] }) {
             <button
               type="submit"
               disabled={downloading}
-              className="pressable inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-accent px-3.5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover disabled:opacity-50 sm:w-auto"
+              className="pressable inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-brand-yellow px-4 py-2.5 text-sm font-bold text-brand-navy shadow-xs transition-all hover:brightness-105 disabled:opacity-50 sm:w-auto"
             >
               <Download className="h-4 w-4" />
               {downloading ? "Generating..." : "Download"}

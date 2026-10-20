@@ -37,25 +37,25 @@ export default async function TechCheckoutsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Breadcrumb & Header */}
         <div className="space-y-2">
-          <div className="flex items-center gap-2 text-xs text-slate-500">
+          <div className="flex items-center gap-2 text-xs text-muted">
             <Link
               href="/dashboard"
-              className="hover:text-slate-800 transition-colors flex items-center gap-1"
+              className="hover:text-foreground transition-colors flex items-center gap-1"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Tech Dashboard</span>
             </Link>
             <span>/</span>
-            <span className="font-semibold text-slate-800">Checkouts & Returns</span>
+            <span className="font-semibold text-foreground">Checkouts & Returns</span>
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2.5">
-                <ArrowLeftRight className="w-7 h-7 text-blue-600" />
+              <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
+                <ArrowLeftRight className="w-7 h-7 text-brand-teal" />
                 <span>Custody & Returns Management</span>
               </h1>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-muted">
                 Track staff hardware assignments, overdue items, due-date extensions, and return condition inspections.
               </p>
             </div>

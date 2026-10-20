@@ -80,14 +80,14 @@ export function ExtendDueDateModal({
           </div>
         )}
 
-        <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1">
+        <div className="p-3 bg-surface-elevated rounded-xl border border-border text-xs space-y-1">
           <div className="flex justify-between">
-            <span className="text-slate-500">Staff Custodian:</span>
-            <span className="font-semibold text-slate-800">{checkout.assignedToName}</span>
+            <span className="text-muted">Staff Custodian:</span>
+            <span className="font-semibold text-foreground">{checkout.assignedToName}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-500">Current Due Date:</span>
-            <span className="font-mono text-slate-700">
+            <span className="text-muted">Current Due Date:</span>
+            <span className="font-mono text-foreground">
               {checkout.dueDate
                 ? new Date(checkout.dueDate).toLocaleDateString()
                 : "Open-ended (No due date)"}
@@ -98,7 +98,7 @@ export function ExtendDueDateModal({
         {/* Date Input */}
         <FormField label="New Due Date">
           <div className="relative">
-            <Calendar className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Calendar className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
             <input
               type="date"
               required
@@ -111,7 +111,7 @@ export function ExtendDueDateModal({
 
         {/* Quick extension shortcuts */}
         <div>
-          <span className="text-[11px] font-medium text-slate-500">Quick extensions:</span>
+          <span className="text-[11px] font-medium text-muted">Quick extensions:</span>
           <div className="flex flex-wrap gap-1.5 mt-1.5">
             {[
               { label: "+7 Days", days: 7 },
@@ -123,7 +123,7 @@ export function ExtendDueDateModal({
                 key={shortcut.label}
                 type="button"
                 onClick={() => addDays(shortcut.days)}
-                className="px-2.5 py-1 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                className="px-2.5 py-1 text-xs font-medium text-foreground bg-surface-elevated hover:bg-surface-elevated/80 border border-border rounded-md transition-colors"
               >
                 {shortcut.label}
               </button>
@@ -141,18 +141,18 @@ export function ExtendDueDateModal({
           />
         </FormField>
 
-        <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+        <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-800 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+            className="px-4 py-2 text-xs font-medium text-muted hover:text-foreground bg-surface border border-border rounded-lg hover:bg-surface-elevated transition-colors"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={saving}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-colors shadow-xs disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-yellow hover:brightness-105 text-brand-navy rounded-lg text-xs font-bold transition-all shadow-xs disabled:opacity-50"
           >
             {saving ? (
               <RefreshCw className="w-3.5 h-3.5 animate-spin" />

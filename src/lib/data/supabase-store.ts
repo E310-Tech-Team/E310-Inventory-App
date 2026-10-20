@@ -336,15 +336,17 @@ function toCheckoutUpdateRow(data: Partial<Checkout>): Partial<CheckoutRow> {
   };
 }
 
-function fromComplaintRow(row: ComplaintRow): DeviceComplaint {
+function fromComplaintRow(row: any): DeviceComplaint {
   const priority = (row.severity || row.priority || "medium") as ComplaintPriority;
+  const submitter = row.submitter || row.department_users;
+  const technician = row.technician;
   return {
     id: row.id,
     ticketNumber: row.ticket_number || "",
     userId: row.user_id,
-    userName: row.user_name || "Unknown User",
-    userEmail: row.user_email || "",
-    userDepartment: row.user_department ?? null,
+    userName: row.user_name || submitter?.name || "Unknown User",
+    userEmail: row.user_email || submitter?.email || "",
+    userDepartment: row.user_department ?? submitter?.department ?? null,
     itemId: row.item_id,
     deviceSummary: row.device_summary ?? undefined,
     title: row.title,
@@ -355,7 +357,7 @@ function fromComplaintRow(row: ComplaintRow): DeviceComplaint {
     status: row.status,
     attachmentUrls: row.attachment_urls ?? [],
     assignedTechId: row.assigned_tech_id,
-    assignedTechName: row.assigned_tech_name ?? null,
+    assignedTechName: row.assigned_tech_name ?? technician?.name ?? null,
     techNotes: row.tech_notes ?? null,
     resolutionNotes: row.resolution_notes ?? row.resolution_summary ?? null,
     resolutionSummary: row.resolution_summary ?? row.resolution_notes ?? null,
@@ -377,7 +379,6 @@ function toComplaintInsertRow(
     description: data.description.trim(),
     issue_type: data.issueType.trim(),
     severity: data.severity ?? priority,
-    priority: priority,
     status: data.status || "submitted",
     attachment_urls: data.attachmentUrls ?? [],
     assigned_tech_id: data.assignedTechId ?? null,
@@ -385,11 +386,6 @@ function toComplaintInsertRow(
     resolved_at: data.resolvedAt ?? null,
   };
   if (data.ticketNumber) row.ticket_number = data.ticketNumber;
-  if (data.userName) row.user_name = data.userName;
-  if (data.userEmail) row.user_email = data.userEmail.toLowerCase();
-  if (data.userDepartment) row.user_department = data.userDepartment;
-  if (data.techNotes) row.tech_notes = data.techNotes;
-  if (data.resolutionSummary) row.resolution_summary = data.resolutionSummary;
   return row;
 }
 
@@ -404,17 +400,15 @@ function toComplaintUpdateRow(data: Partial<DeviceComplaint>): Record<string, un
   if (data.title !== undefined) row.title = data.title.trim();
   if (data.description !== undefined) row.description = data.description.trim();
   if (data.issueType !== undefined) row.issue_type = data.issueType.trim();
-  if (data.severity !== undefined) row.severity = data.severity;
-  if (data.priority !== undefined) row.priority = data.priority;
+  if (data.severity !== undefined || data.priority !== undefined) {
+    row.severity = data.severity ?? data.priority;
+  }
   if (data.status !== undefined) row.status = data.status;
   if (data.attachmentUrls !== undefined) row.attachment_urls = data.attachmentUrls;
   if (data.assignedTechId !== undefined) row.assigned_tech_id = data.assignedTechId;
-  if (data.userName !== undefined) row.user_name = data.userName;
-  if (data.userEmail !== undefined) row.user_email = data.userEmail ? data.userEmail.toLowerCase() : null;
-  if (data.userDepartment !== undefined) row.user_department = data.userDepartment;
-  if (data.techNotes !== undefined) row.tech_notes = data.techNotes;
-  if (data.resolutionNotes !== undefined) row.resolution_notes = data.resolutionNotes;
-  if (data.resolutionSummary !== undefined) row.resolution_summary = data.resolutionSummary;
+  if (data.resolutionNotes !== undefined || data.resolutionSummary !== undefined) {
+    row.resolution_notes = data.resolutionNotes ?? data.resolutionSummary;
+  }
   if (data.resolvedAt !== undefined) row.resolved_at = data.resolvedAt;
   return row;
 }
@@ -745,7 +739,7 @@ export class SupabaseStore implements DataStore {
   async getComplaints(): Promise<DeviceComplaint[]> {
     const { data, error } = await this.supabase
       .from("device_complaints")
-      .select("*")
+      .select("*, submitter:user_id(name, email, department), technician:assigned_tech_id(name)")
       .order("created_at", { ascending: false });
     throwOnError(error);
     return ((data ?? []) as ComplaintRow[]).map(fromComplaintRow);
@@ -754,7 +748,7 @@ export class SupabaseStore implements DataStore {
   async getComplaint(id: string): Promise<DeviceComplaint | null> {
     const { data, error } = await this.supabase
       .from("device_complaints")
-      .select("*")
+      .select("*, submitter:user_id(name, email, department), technician:assigned_tech_id(name)")
       .eq("id", id)
       .maybeSingle();
     throwOnError(error);
@@ -764,7 +758,7 @@ export class SupabaseStore implements DataStore {
   async getComplaintsByUser(userId: string): Promise<DeviceComplaint[]> {
     const { data, error } = await this.supabase
       .from("device_complaints")
-      .select("*")
+      .select("*, submitter:user_id(name, email, department), technician:assigned_tech_id(name)")
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
     throwOnError(error);
@@ -777,7 +771,7 @@ export class SupabaseStore implements DataStore {
     const response = await this.supabase
       .from("device_complaints")
       .insert(toComplaintInsertRow(data))
-      .select("*")
+      .select("*, submitter:user_id(name, email, department), technician:assigned_tech_id(name)")
       .single();
     throwOnError(response.error);
     return fromComplaintRow(response.data as ComplaintRow);
@@ -791,7 +785,7 @@ export class SupabaseStore implements DataStore {
       .from("device_complaints")
       .update(toComplaintUpdateRow(data))
       .eq("id", id)
-      .select("*")
+      .select("*, submitter:user_id(name, email, department), technician:assigned_tech_id(name)")
       .single();
     throwOnError(response.error);
     return fromComplaintRow(response.data as ComplaintRow);

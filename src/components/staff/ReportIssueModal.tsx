@@ -52,36 +52,37 @@ const SEVERITY_LEVELS = [
   {
     value: "low",
     label: "Low",
-    badgeClass: "border-zinc-700 bg-zinc-800/80 text-zinc-300",
-    activeClass: "border-sky-500/50 bg-sky-500/10 text-sky-300 ring-1 ring-sky-500/40",
+    badgeClass: "border-border bg-surface-elevated text-muted",
+    activeClass: "border-sky-500/50 bg-sky-500/10 text-sky-600 dark:text-sky-300 ring-1 ring-sky-500/40",
     description: "Minor cosmetic defect, work continues normally",
     icon: Clock,
   },
   {
     value: "medium",
     label: "Medium",
-    badgeClass: "border-zinc-700 bg-zinc-800/80 text-zinc-300",
-    activeClass: "border-amber-500/50 bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/40",
+    badgeClass: "border-border bg-surface-elevated text-muted",
+    activeClass: "border-amber-500/50 bg-amber-500/10 text-amber-600 dark:text-amber-300 ring-1 ring-amber-500/40",
     description: "Performance degraded, work partially impeded",
     icon: Zap,
   },
   {
     value: "high",
     label: "High",
-    badgeClass: "border-zinc-700 bg-zinc-800/80 text-zinc-300",
-    activeClass: "border-orange-500/50 bg-orange-500/10 text-orange-300 ring-1 ring-orange-500/40",
+    badgeClass: "border-border bg-surface-elevated text-muted",
+    activeClass: "border-orange-500/50 bg-orange-500/10 text-orange-600 dark:text-orange-300 ring-1 ring-orange-500/40",
     description: "Hardware non-functional, primary work stopped",
     icon: AlertTriangle,
   },
   {
     value: "critical",
     label: "Critical",
-    badgeClass: "border-zinc-700 bg-zinc-800/80 text-zinc-300",
-    activeClass: "border-rose-500/50 bg-rose-500/10 text-rose-300 ring-1 ring-rose-500/40",
+    badgeClass: "border-border bg-surface-elevated text-muted",
+    activeClass: "border-rose-500/50 bg-rose-500/10 text-rose-600 dark:text-rose-300 ring-1 ring-rose-500/40",
     description: "Battery swelling, safety hazard, urgent outage",
     icon: Flame,
   },
 ] as const;
+
 
 export function ReportIssueModal({
   isOpen,
@@ -277,32 +278,32 @@ export function ReportIssueModal({
           </div>
 
           <div className="space-y-1">
-            <h3 className="text-xl font-semibold text-white">Ticket Successfully Registered</h3>
-            <p className="text-xs text-zinc-400 max-w-sm mx-auto">
+            <h3 className="text-xl font-bold text-foreground">Ticket Successfully Registered</h3>
+            <p className="text-xs text-muted max-w-sm mx-auto">
               Your service request has been logged and dispatched to the on-duty IT Support specialists.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 shadow-inner">
-            <span className="text-xs text-zinc-400 font-mono">Ticket #:</span>
-            <span className="text-sm font-mono font-bold text-emerald-400 tracking-wider">
+          <div className="flex items-center gap-2 bg-surface-elevated border border-border rounded-xl px-4 py-3 shadow-xs">
+            <span className="text-xs text-muted font-mono">Ticket #:</span>
+            <span className="text-sm font-mono font-bold text-brand-teal dark:text-teal-400 tracking-wider">
               {successTicket}
             </span>
             <button
               type="button"
               onClick={() => handleCopyTicket(successTicket)}
-              className="ml-2 p-1.5 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors"
+              className="ml-2 p-1.5 rounded-lg hover:bg-surface text-muted hover:text-foreground transition-colors"
               title="Copy Ticket ID"
             >
               {copiedTicket ? (
-                <Check className="w-4 h-4 text-emerald-400" />
+                <Check className="w-4 h-4 text-brand-teal dark:text-teal-400" />
               ) : (
                 <Copy className="w-4 h-4" />
               )}
             </button>
           </div>
 
-          <p className="text-[11px] text-zinc-400 max-w-xs">
+          <p className="text-[11px] text-muted max-w-xs">
             You can monitor live status updates, technician notes, and resolution progress directly in your support tracker.
           </p>
 
@@ -315,8 +316,8 @@ export function ReportIssueModal({
       ) : (
         <form onSubmit={handleSubmit} className="space-y-5">
           {error && (
-            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-2.5 text-xs text-rose-300 animate-fade-in">
-              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-2.5 text-xs text-rose-600 dark:text-rose-400 animate-fade-in">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
               <span>{error}</span>
             </div>
           )}
@@ -324,11 +325,11 @@ export function ReportIssueModal({
           {/* ─── 1. Affected Device Selection ─── */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-medium text-zinc-300">
+              <label className="text-xs font-semibold text-foreground">
                 Affected Hardware Device
               </label>
               {selectedDevice && (
-                <span className="text-[11px] text-zinc-400 font-mono">
+                <span className="text-[11px] text-muted font-mono">
                   SN: {selectedDevice.serialNumber || "N/A"}
                 </span>
               )}
@@ -343,12 +344,13 @@ export function ReportIssueModal({
                 leftIcon={<Laptop className="w-4 h-4" />}
               />
             ) : (
-              <div className="p-3 rounded-md border border-zinc-800 bg-zinc-900/50 text-xs text-zinc-400 flex items-center gap-2">
-                <Laptop className="w-4 h-4 text-zinc-400 shrink-0" />
+              <div className="p-3 rounded-xl border border-border bg-surface-elevated text-xs text-muted flex items-center gap-2">
+                <Laptop className="w-4 h-4 text-muted shrink-0" />
                 <span>General Hardware / Unassigned Equipment</span>
               </div>
             )}
           </div>
+
 
           {/* ─── 2. Category & Severity ─── */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -362,7 +364,7 @@ export function ReportIssueModal({
             />
 
             <div>
-              <label className="block text-xs font-medium text-zinc-300 mb-1.5">
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
                 Urgency & Severity Level
               </label>
               <div className="grid grid-cols-2 gap-1.5">
@@ -374,9 +376,9 @@ export function ReportIssueModal({
                       key={lvl.value}
                       type="button"
                       onClick={() => setPriority(lvl.value)}
-                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all text-left ${
+                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-medium transition-all text-left ${
                         isSelected ? lvl.activeClass : lvl.badgeClass
-                      } hover:border-zinc-600`}
+                      } hover:border-accent/40`}
                     >
                       <Icon className="w-3.5 h-3.5 shrink-0" />
                       <span className="truncate">{lvl.label}</span>
@@ -415,10 +417,10 @@ export function ReportIssueModal({
           {/* ─── 4. Detailed Description ─── */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label htmlFor={descId} className="block text-xs font-medium text-zinc-300">
+              <label htmlFor={descId} className="block text-xs font-semibold text-foreground">
                 Detailed Description of Fault
               </label>
-              <span className="text-[11px] text-zinc-400">
+              <span className="text-[11px] text-muted">
                 {description.length} chars
               </span>
             </div>
@@ -428,7 +430,7 @@ export function ReportIssueModal({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Describe what occurred, any error messages displayed, unusual sounds, and when the issue started..."
-              className="w-full rounded-md border border-zinc-800 bg-zinc-900 p-2.5 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-400 focus:border-zinc-400 transition-colors resize-none"
+              className="w-full rounded-xl border border-border bg-surface p-2.5 text-xs text-foreground placeholder:text-muted focus:outline-hidden focus:border-accent transition-colors resize-none"
               disabled={submitting}
               required
             />
@@ -436,7 +438,7 @@ export function ReportIssueModal({
 
           {/* ─── 5. Evidence / Attachment URLs ─── */}
           <div className="space-y-2">
-            <label className="block text-xs font-medium text-zinc-300">
+            <label className="block text-xs font-semibold text-foreground">
               Evidence / Photo Attachments (Optional)
             </label>
             <div className="flex gap-2">
@@ -472,14 +474,14 @@ export function ReportIssueModal({
                 {attachmentUrls.map((url, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-800/80 border border-zinc-700/80 text-[11px] text-zinc-300 max-w-xs truncate"
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-surface-elevated border border-border text-[11px] text-foreground max-w-xs truncate"
                   >
-                    <ImageIcon className="w-3 h-3 text-zinc-400 shrink-0" />
+                    <ImageIcon className="w-3 h-3 text-muted shrink-0" />
                     <span className="truncate">{url}</span>
                     <button
                       type="button"
                       onClick={() => handleRemoveAttachment(idx)}
-                      className="ml-1 p-0.5 rounded text-zinc-400 hover:text-rose-400 transition-colors"
+                      className="ml-1 p-0.5 rounded text-muted hover:text-rose-500 transition-colors"
                       title="Remove attachment"
                     >
                       <Trash2 className="w-3 h-3" />
@@ -491,8 +493,8 @@ export function ReportIssueModal({
           </div>
 
           {/* ─── Footer Controls ─── */}
-          <div className="pt-3 flex items-center justify-between border-t border-zinc-800">
-            <div className="text-[11px] text-zinc-400">
+          <div className="pt-3 flex items-center justify-between border-t border-border">
+            <div className="text-[11px] text-muted">
               Assigned IT specialists will triage ticket according to priority.
             </div>
             <div className="flex items-center gap-2">
@@ -518,6 +520,7 @@ export function ReportIssueModal({
           </div>
         </form>
       )}
+
     </Modal>
   );
 }
