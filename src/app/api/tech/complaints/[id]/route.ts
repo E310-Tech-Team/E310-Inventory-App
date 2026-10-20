@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession, isTechUser } from "@/lib/auth/session";
 import { getSupabaseAdminClient, hasSupabaseConfig } from "@/lib/supabase/server";
+import { dispatchAsyncEmail, sendTicketResolvedEmail } from "@/lib/email/service";
 
 export async function GET(
   _request: NextRequest,
@@ -274,10 +275,33 @@ export async function PATCH(
           title: `Ticket ${currentComplaint.ticket_number} Updated (${statusLabel})`,
           message: notificationMsg,
           notification_type: "complaint_status_changed",
-          link_url: `/staff/complaints/${id}`,
+          link_url: `/staff`,
           is_read: false,
-          email_sent: false,
+          email_sent: status === "resolved" || status === "closed",
         });
+
+        // If ticket was resolved or closed, dispatch resolution email to staff
+        if (status === "resolved" || status === "closed") {
+          const resolvedItem = Array.isArray(updatedComplaint.item)
+            ? updatedComplaint.item[0]
+            : updatedComplaint.item;
+
+          dispatchAsyncEmail(
+            sendTicketResolvedEmail({
+              ticketNumber: updatedComplaint.ticket_number,
+              staffName: updatedComplaint.user_name || "Staff Member",
+              staffEmail: updatedComplaint.user_email || "",
+              title: updatedComplaint.title,
+              issueType: updatedComplaint.issue_type,
+              resolutionSummary,
+              techNotes,
+              resolvedAt: updatedComplaint.resolved_at || new Date().toISOString(),
+              resolverName: user.name,
+              deviceName: resolvedItem?.name,
+            }),
+            `Ticket resolution email [${updatedComplaint.ticket_number}]`
+          );
+        }
       } catch (notifErr) {
         console.warn("Notification dispatch to staff failed:", notifErr);
       }

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { LogOut, Package } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+import { NotificationBell } from "./NotificationBell";
 
 export function MobileHeader() {
   const router = useRouter();
@@ -23,6 +24,7 @@ export function MobileHeader() {
           <span className="font-semibold text-sm leading-tight">EThree10 Inventory</span>
         </div>
         <div className="flex items-center gap-2">
+          <NotificationBell />
           <ThemeToggle compact />
           <button
             onClick={handleLogout}

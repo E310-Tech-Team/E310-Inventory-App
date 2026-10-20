@@ -6,6 +6,7 @@ import "@fontsource/inter/600.css";
 import "@fontsource/inter/700.css";
 import "@fontsource/jetbrains-mono/400.css";
 import "@fontsource/jetbrains-mono/500.css";
+import { PwaInstallPrompt } from "@/components/common/PwaInstallPrompt";
 import "./globals.css";
 
 const themeScript = `
@@ -28,18 +29,18 @@ const themeScript = `
 `;
 
 export const metadata: Metadata = {
-  title: "EThree10 Inventory App",
-  description: "EThree10 department equipment and supplies inventory tracker",
+  title: "E310 Inventory",
+  description: "EThree10 department equipment, custody, and support ticket management hub",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "EThree10 Inventory App",
+    title: "E310 Inventory",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#15803d",
+  themeColor: "#FFFFFF",
   width: "device-width",
   initialScale: 1,
 };
@@ -56,6 +57,7 @@ export default function RootLayout({
           {themeScript}
         </Script>
         {children}
+        <PwaInstallPrompt />
       </body>
     </html>
   );

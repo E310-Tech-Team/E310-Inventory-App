@@ -73,6 +73,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch associated checkout records to find the submitting staff member
     const checkoutsMap: Record<string, ApprovalCheckoutInfo> = {};
+
     if (itemIds.length > 0) {
       const { data: checkouts, error: checkoutsError } = await supabase
         .from("checkouts")

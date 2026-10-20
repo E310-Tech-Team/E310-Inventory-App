@@ -8,21 +8,25 @@ import {
   Boxes,
   Package,
   ArrowLeftRight,
-  Home,
   LogOut,
   UserRoundCog,
   FileSpreadsheet,
   PanelLeftClose,
   PanelLeftOpen,
   ShieldCheck,
+<<<<<<< HEAD
   ChevronDown,
   Monitor,
   AlertCircle,
   SlidersHorizontal,
+=======
+  Monitor,
+>>>>>>> origin/main
 } from "lucide-react";
 import { Admin, DepartmentUser } from "@/types";
 import { ThemeToggle } from "./ThemeToggle";
 
+<<<<<<< HEAD
 const SIDEBAR_STORAGE_KEY = "inventory-sidebar-collapsed";
 
 interface NavItem {
@@ -67,6 +71,16 @@ const TECH_NAV_GROUPS: NavGroup[] = [
       { href: "/access", label: "User Access", icon: UserRoundCog, superAdminOnly: true },
     ],
   },
+=======
+const NAV_ITEMS = [
+  { href: "/tech", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/items", label: "Inventory", icon: Package },
+  { href: "/tech/approvals", label: "Approvals", icon: ShieldCheck },
+  { href: "/categories", label: "Categories", icon: Boxes },
+  { href: "/checkouts", label: "Checkouts", icon: ArrowLeftRight },
+  { href: "/exports", label: "Exports", icon: FileSpreadsheet },
+  { href: "/staff", label: "Staff Portal", icon: Monitor },
+>>>>>>> origin/main
 ];
 
 const STAFF_NAV_GROUPS: NavGroup[] = [

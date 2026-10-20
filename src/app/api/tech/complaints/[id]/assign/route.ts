@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/session";
 import { getSupabaseAdminClient, hasSupabaseConfig } from "@/lib/supabase/server";
+import { dispatchAsyncEmail, sendTicketAssignedEmail } from "@/lib/email/service";
 
 export async function POST(
   request: NextRequest,
@@ -35,7 +36,7 @@ export async function POST(
       return NextResponse.json({ error: "Invalid request payload" }, { status: 400 });
     }
 
-    const { assignedTechId, notes } = body;
+    const { assignedTechId, notes, priority } = body;
 
     if (!assignedTechId || typeof assignedTechId !== "string" || assignedTechId.trim().length === 0) {
       return NextResponse.json(
@@ -102,17 +103,63 @@ export async function POST(
       ? `${existingTechNotes}\n${delegationNote}`
       : delegationNote;
 
+    const validPriorities = ["low", "medium", "high", "critical", "urgent"];
+    const normalizedPriority =
+      priority && typeof priority === "string"
+        ? priority.toLowerCase() === "urgent"
+          ? "critical"
+          : priority.toLowerCase()
+        : undefined;
+
+    const updateFields: Record<string, any> = {
+      assigned_tech_id: technician.id,
+      status: nextStatus,
+      tech_notes: updatedTechNotes,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (normalizedPriority && validPriorities.includes(normalizedPriority)) {
+      updateFields.priority = normalizedPriority;
+    }
+
     // 4. Update complaint
     const { data: updatedTicket, error: updateError } = await supabase
       .from("device_complaints")
-      .update({
-        assigned_tech_id: technician.id,
-        status: nextStatus,
-        tech_notes: updatedTechNotes,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateFields)
       .eq("id", id)
-      .select()
+      .select(`
+        id,
+        ticket_number,
+        user_id,
+        user_name,
+        user_email,
+        user_department,
+        item_id,
+        title,
+        description,
+        issue_type,
+        priority,
+        status,
+        attachment_urls,
+        assigned_tech_id,
+        tech_notes,
+        resolution_summary,
+        resolved_at,
+        created_at,
+        updated_at,
+        item:items (
+          id,
+          name,
+          serial_number,
+          identifier_type,
+          identifier_value
+        ),
+        assigned_tech:department_users!assigned_tech_id (
+          id,
+          name,
+          email
+        )
+      `)
       .single();
 
     if (updateError) {
@@ -129,7 +176,7 @@ export async function POST(
         notification_type: "complaint_assigned",
         link_url: `/tech`,
         is_read: false,
-        email_sent: false,
+        email_sent: true,
       });
     } catch (notifErr) {
       console.warn("Failed to notify assigned technician:", notifErr);
@@ -145,12 +192,34 @@ export async function POST(
           notification_type: "complaint_status_changed",
           link_url: `/staff`,
           is_read: false,
-          email_sent: false,
+          email_sent: true,
         });
       } catch (staffNotifErr) {
         console.warn("Failed to notify submitting staff member:", staffNotifErr);
       }
     }
+
+    // 7. Dispatch asynchronous multi-channel email alerts (Technician + Staff)
+    const assignedItem = Array.isArray(updatedTicket.item)
+      ? updatedTicket.item[0]
+      : updatedTicket.item;
+
+    dispatchAsyncEmail(
+      sendTicketAssignedEmail({
+        ticketNumber: updatedTicket.ticket_number,
+        technicianName: technician.name,
+        technicianEmail: technician.email,
+        staffName: updatedTicket.user_name || "Staff Member",
+        staffEmail: updatedTicket.user_email || "",
+        title: updatedTicket.title || updatedTicket.issue_type,
+        issueType: updatedTicket.issue_type,
+        priority: updatedTicket.priority,
+        triageNotes: trimmedNotes || null,
+        assignedByName: user.name,
+        deviceName: assignedItem?.name,
+      }),
+      `Ticket assignment dispatch [${updatedTicket.ticket_number}]`
+    );
 
     // 7. Record delegation event in audit_logs
     try {

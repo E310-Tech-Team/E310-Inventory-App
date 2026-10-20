@@ -13,9 +13,11 @@ import {
   FileSpreadsheet,
   CheckCircle2,
   AlertCircle,
+  UserCheck,
 } from "lucide-react";
 import { Admin, DeviceComplaint, Item, Checkout } from "@/types";
 import { LiveActivityTimeline } from "./LiveActivityTimeline";
+import { AssignTicketModal } from "./AssignTicketModal";
 
 interface DashboardMetrics {
   totalAssets: number;
@@ -36,6 +38,8 @@ export function TechDashboard({ admin }: { admin: Admin }) {
   });
   const [criticalComplaints, setCriticalComplaints] = useState<DeviceComplaint[]>([]);
   const [recentComplaints, setRecentComplaints] = useState<DeviceComplaint[]>([]);
+  const [assigningTicket, setAssigningTicket] = useState<DeviceComplaint | null>(null);
+  const [assignmentSuccessMsg, setAssignmentSuccessMsg] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadDashboardData() {
@@ -51,7 +55,32 @@ export function TechDashboard({ admin }: { admin: Admin }) {
         const items: Item[] = itemsRes && itemsRes.ok ? await itemsRes.json() : [];
         const checkouts: Checkout[] = checkoutsRes && checkoutsRes.ok ? await checkoutsRes.json() : [];
         const complaintsData = complaintsRes && complaintsRes.ok ? await complaintsRes.json() : { complaints: [] };
-        const complaints: DeviceComplaint[] = complaintsData.complaints ?? [];
+        const rawComplaints: any[] = complaintsData.complaints ?? [];
+
+        const complaints: DeviceComplaint[] = rawComplaints.map((c) => ({
+          id: c.id,
+          ticketNumber: c.ticket_number || c.ticketNumber,
+          userId: c.user_id || c.userId,
+          userName: c.user_name || c.userName || "Staff Member",
+          userEmail: c.user_email || c.userEmail || "",
+          userDepartment: c.user_department || c.userDepartment,
+          itemId: c.item_id || c.itemId,
+          itemName: c.item?.name || c.itemName,
+          itemSerial: c.item?.serial_number || c.itemSerial,
+          title: c.title,
+          description: c.description,
+          issueType: c.issue_type || c.issueType,
+          priority: c.priority || "medium",
+          status: c.status || "submitted",
+          attachmentUrls: c.attachment_urls || c.attachmentUrls || [],
+          assignedTechId: c.assigned_tech_id || c.assignedTechId,
+          assignedTechName: c.assigned_tech?.name || c.assignedTechName || null,
+          techNotes: c.tech_notes || c.techNotes,
+          resolutionSummary: c.resolution_summary || c.resolutionSummary,
+          resolvedAt: c.resolved_at || c.resolvedAt,
+          createdAt: c.created_at || c.createdAt,
+          updatedAt: c.updated_at || c.updatedAt,
+        }));
 
         const now = Date.now();
         const activeCheckouts = checkouts.filter((c) => c.status === "active");
@@ -303,6 +332,22 @@ export function TechDashboard({ admin }: { admin: Admin }) {
           </Link>
         </div>
 
+        {/* Assignment Success Alert */}
+        {assignmentSuccessMsg && (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-xs font-medium text-emerald-800 flex items-center justify-between shadow-xs animate-in fade-in">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>{assignmentSuccessMsg}</span>
+            </div>
+            <button
+              onClick={() => setAssignmentSuccessMsg(null)}
+              className="text-emerald-700 hover:text-emerald-900 text-xs font-bold"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
         {/* Live Support & Complaint Triage Queue */}
         <div className="rounded-xl border border-neutral-200/80 bg-white shadow-xs overflow-hidden">
           <div className="px-6 py-4 border-b border-neutral-200/80 flex items-center justify-between">
@@ -340,14 +385,14 @@ export function TechDashboard({ admin }: { admin: Admin }) {
                 const statusBadge =
                   ticket.status === "resolved" || ticket.status === "closed"
                     ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                    : ticket.status === "in-progress"
+                    : ticket.status === "in-progress" || ticket.status === "under-review"
                     ? "bg-purple-50 text-purple-700 border-purple-200"
                     : "bg-neutral-100 text-neutral-700 border-neutral-200";
 
                 return (
                   <div
                     key={ticket.id}
-                    className="p-4 sm:px-6 hover:bg-neutral-50/60 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                    className="p-4 sm:px-6 hover:bg-neutral-50/60 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4"
                   >
                     <div className="flex items-start gap-3">
                       <div className="p-2 rounded-lg bg-neutral-100 text-neutral-600 mt-0.5 shrink-0">
@@ -374,10 +419,34 @@ export function TechDashboard({ admin }: { admin: Admin }) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 self-end sm:self-center">
-                      <span className="text-xs text-neutral-400 font-mono">
-                        {ticket.itemSerial ? `SN: ${ticket.itemSerial}` : "No serial linked"}
+                    <div className="flex flex-wrap items-center gap-3 self-start md:self-center">
+                      <span className="text-xs text-neutral-400 font-mono hidden sm:inline">
+                        {ticket.itemSerial ? `SN: ${ticket.itemSerial}` : ""}
                       </span>
+
+                      {/* Assigned Specialist Badge */}
+                      {ticket.assignedTechName ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200/80">
+                          <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Specialist: <strong>{ticket.assignedTechName}</strong></span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                          Unassigned
+                        </span>
+                      )}
+
+                      {/* Delegate / Reassign Button for Super Admins */}
+                      {admin.role === "super-admin" && (
+                        <button
+                          type="button"
+                          onClick={() => setAssigningTicket(ticket)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 hover:border-neutral-300 text-xs font-semibold text-neutral-800 transition-colors shadow-2xs"
+                        >
+                          <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>{ticket.assignedTechId ? "Reassign" : "Assign Specialist"}</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
@@ -388,6 +457,26 @@ export function TechDashboard({ admin }: { admin: Admin }) {
 
         {/* Real-Time Live Activity Feed */}
         <LiveActivityTimeline />
+
+        {/* Ticket Assignment Modal */}
+        <AssignTicketModal
+          isOpen={Boolean(assigningTicket)}
+          ticket={assigningTicket}
+          currentUserId={admin.id}
+          onClose={() => setAssigningTicket(null)}
+          onAssigned={(updatedTicket) => {
+            setRecentComplaints((prev) =>
+              prev.map((t) => (t.id === updatedTicket.id ? { ...t, ...updatedTicket } : t))
+            );
+            setCriticalComplaints((prev) =>
+              prev.map((t) => (t.id === updatedTicket.id ? { ...t, ...updatedTicket } : t))
+            );
+            setAssignmentSuccessMsg(
+              `Ticket ${updatedTicket.ticketNumber} successfully delegated to ${updatedTicket.assignedTechName || "specialist"}.`
+            );
+            setTimeout(() => setAssignmentSuccessMsg(null), 5000);
+          }}
+        />
       </div>
     </div>
   );
