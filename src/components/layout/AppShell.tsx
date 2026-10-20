@@ -2,39 +2,22 @@
 
 import { useEffect, useState } from "react";
 import { Eye } from "lucide-react";
-import { Admin } from "@/types";
+import { Admin, DepartmentUser } from "@/types";
 import { Sidebar } from "./Sidebar";
 import { MobileNav } from "./MobileNav";
 import { MobileHeader } from "./MobileHeader";
 import { TopHeader } from "./TopHeader";
 import { CommandSearchModal } from "./CommandSearchModal";
 
-const SIDEBAR_STORAGE_KEY = "inventory-sidebar-collapsed";
-
-function getInitialCollapsed(): boolean {
-  if (typeof window === "undefined") return true;
-  const stored = window.localStorage.getItem(SIDEBAR_STORAGE_KEY);
-  return stored === null ? true : stored === "true";
-}
-
 export function AppShell({
   admin,
   children,
 }: {
-  admin: Admin;
+  admin: Admin | DepartmentUser;
   children: React.ReactNode;
 }) {
-  const [collapsed, setCollapsed] = useState(getInitialCollapsed);
   const [searchOpen, setSearchOpen] = useState(false);
   const [isStaffPreview, setIsStaffPreview] = useState(false);
-
-  function handleToggle() {
-    setCollapsed((prev) => {
-      const next = !prev;
-      window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(next));
-      return next;
-    });
-  }
 
   // Global keyboard shortcut: ⌘K or Ctrl+K opens the command search modal
   useEffect(() => {
@@ -53,8 +36,6 @@ export function AppShell({
       <div className="hidden md:block">
         <Sidebar
           admin={admin}
-          collapsed={collapsed}
-          onToggle={handleToggle}
           isStaffPreview={isStaffPreview}
           onToggleStaffPreview={() => setIsStaffPreview((prev) => !prev)}
         />
@@ -105,4 +86,3 @@ export function AppShell({
     </div>
   );
 }
-
