@@ -3,6 +3,7 @@ import { dataStore } from "@/lib/data";
 import { requireActiveUser } from "@/lib/auth/permissions";
 import { cleanOptionalString } from "@/lib/validation";
 import { getSupabaseAdminClient, hasSupabaseConfig } from "@/lib/supabase/server";
+import { Checkout } from "@/types";
 
 export async function PATCH(
   request: NextRequest,
@@ -23,7 +24,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Checkout not found" }, { status: 404 });
   }
 
-  const updatePayload: Record<string, any> = {};
+  const updatePayload: Partial<Checkout> = {};
 
   if (body.dueDate !== undefined) {
     updatePayload.dueDate = body.dueDate ? String(body.dueDate).trim() : null;

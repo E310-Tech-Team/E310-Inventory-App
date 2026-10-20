@@ -7,17 +7,12 @@ import {
   AlertTriangle,
   Clock,
   CheckCircle2,
-  Calendar,
   RotateCcw,
   Download,
-  Filter,
-  User,
   Laptop,
   ArrowLeftRight,
   ChevronRight,
-  Eye,
   CalendarClock,
-  Sparkles,
 } from "lucide-react";
 import { Checkout, Item, Category } from "@/types";
 import { getEffectiveStatus } from "@/lib/checkout-status";
@@ -29,6 +24,15 @@ interface CheckoutsListProps {
   checkouts: Checkout[];
   items: Item[];
   categories: Category[];
+}
+
+function getDaysOverdue(dueDate: string | Date | null): number {
+  if (!dueDate) return 0;
+  const due = new Date(dueDate).getTime();
+  const now = new Date().getTime();
+  const diffTime = now - due;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays > 0 ? diffDays : 0;
 }
 
 export function CheckoutsList({
@@ -55,15 +59,6 @@ export function CheckoutsList({
     () => new Map(categories.map((c) => [c.id, c])),
     [categories]
   );
-
-  // Calculate days overdue
-  const getDaysOverdue = (dueDate: string | null) => {
-    if (!dueDate) return 0;
-    const dueTime = new Date(dueDate).getTime();
-    const now = Date.now();
-    if (now <= dueTime) return 0;
-    return Math.floor((now - dueTime) / (1000 * 60 * 60 * 24)) + 1;
-  };
 
   const sorted = useMemo(
     () =>
@@ -106,8 +101,8 @@ export function CheckoutsList({
 
       setUndoingCheckoutId(null);
       router.refresh();
-    } catch (err: any) {
-      setUndoError(err.message || "Failed to undo return");
+    } catch (err: unknown) {
+      setUndoError(err instanceof Error ? err.message : "Failed to undo return");
       setUndoingCheckoutId(null);
     }
   }
@@ -242,11 +237,10 @@ export function CheckoutsList({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <button
           onClick={() => setFilter("active")}
-          className={`text-left p-5 rounded-xl border transition-all ${
-            filter === "active"
+          className={`text-left p-5 rounded-xl border transition-all ${filter === "active"
               ? "bg-blue-50/70 border-blue-300 ring-2 ring-blue-400/20 shadow-xs"
               : "bg-white border-slate-200 hover:border-slate-300 shadow-xs"
-          }`}
+            }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -262,11 +256,10 @@ export function CheckoutsList({
 
         <button
           onClick={() => setFilter("overdue")}
-          className={`text-left p-5 rounded-xl border transition-all ${
-            filter === "overdue"
+          className={`text-left p-5 rounded-xl border transition-all ${filter === "overdue"
               ? "bg-rose-50/80 border-rose-300 ring-2 ring-rose-400/20 shadow-xs"
               : "bg-white border-slate-200 hover:border-slate-300 shadow-xs"
-          }`}
+            }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-rose-600">
@@ -282,11 +275,10 @@ export function CheckoutsList({
 
         <button
           onClick={() => setFilter("returned")}
-          className={`text-left p-5 rounded-xl border transition-all ${
-            filter === "returned"
+          className={`text-left p-5 rounded-xl border transition-all ${filter === "returned"
               ? "bg-emerald-50/70 border-emerald-300 ring-2 ring-emerald-400/20 shadow-xs"
               : "bg-white border-slate-200 hover:border-slate-300 shadow-xs"
-          }`}
+            }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -302,11 +294,10 @@ export function CheckoutsList({
 
         <button
           onClick={() => setFilter("all")}
-          className={`text-left p-5 rounded-xl border transition-all ${
-            filter === "all"
+          className={`text-left p-5 rounded-xl border transition-all ${filter === "all"
               ? "bg-slate-100 border-slate-300 ring-2 ring-slate-400/20 shadow-xs"
               : "bg-white border-slate-200 hover:border-slate-300 shadow-xs"
-          }`}
+            }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -355,11 +346,10 @@ export function CheckoutsList({
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`px-3 py-1.5 rounded-md capitalize transition-all ${
-                  filter === f
+                className={`px-3 py-1.5 rounded-md capitalize transition-all ${filter === f
                     ? "bg-white text-slate-900 font-semibold shadow-xs"
                     : "text-slate-600 hover:text-slate-900"
-                }`}
+                  }`}
               >
                 {f}
                 {f === "overdue" && kpis.overdue > 0 && (
@@ -444,20 +434,18 @@ export function CheckoutsList({
                   return (
                     <tr
                       key={checkout.id}
-                      className={`hover:bg-slate-50/70 transition-colors group cursor-pointer ${
-                        status === "overdue" ? "bg-rose-50/20" : ""
-                      }`}
+                      className={`hover:bg-slate-50/70 transition-colors group cursor-pointer ${status === "overdue" ? "bg-rose-50/20" : ""
+                        }`}
                       onClick={() => setSelectedCheckout(checkout)}
                     >
                       {/* Equipment */}
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-3">
                           <div
-                            className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                              status === "overdue"
+                            className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${status === "overdue"
                                 ? "bg-rose-100 text-rose-700 border border-rose-200"
                                 : "bg-blue-50 text-blue-600 border border-blue-100"
-                            }`}
+                              }`}
                           >
                             <Laptop className="w-4 h-4" />
                           </div>
@@ -500,9 +488,8 @@ export function CheckoutsList({
                       <td className="py-4 px-4 text-xs">
                         {checkout.dueDate ? (
                           <div
-                            className={`font-mono font-medium ${
-                              status === "overdue" ? "text-rose-700 font-bold" : "text-slate-700"
-                            }`}
+                            className={`font-mono font-medium ${status === "overdue" ? "text-rose-700 font-bold" : "text-slate-700"
+                              }`}
                           >
                             {new Date(checkout.dueDate).toLocaleDateString()}
                           </div>
