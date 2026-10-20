@@ -54,8 +54,8 @@ export function CheckInModal({
 
       router.refresh();
       onClose();
-    } catch (err: any) {
-      setError(err.message || "Failed to check in item");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to check in item");
     } finally {
       setSaving(false);
     }

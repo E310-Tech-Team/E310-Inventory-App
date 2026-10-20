@@ -95,7 +95,7 @@ export async function PATCH(
       const trimmedAssetTag = assetTag ? String(assetTag).trim() : null;
       const updatedNotes = notes ? String(notes).trim() : item.notes;
 
-      const updatePayload: Record<string, any> = {
+      const updatePayload: Record<string, unknown> = {
         approval_status: "approved",
         notes: updatedNotes,
       };

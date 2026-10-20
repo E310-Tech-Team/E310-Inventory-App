@@ -207,8 +207,8 @@ export function ItemsList({ items, categories }: ItemsListProps) {
       setDeleting(null);
       setDeletingId(null);
       router.refresh();
-    } catch (err: any) {
-      setDeleteError(err.message || "Failed to delete item.");
+    } catch (err: unknown) {
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete item.");
       setDeletingId(null);
     }
   }
