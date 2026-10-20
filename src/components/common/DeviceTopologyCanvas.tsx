@@ -137,7 +137,7 @@ export function DeviceTopologyCanvas({
 
     // Render loop
     let animationFrameId: number;
-    let clock = new THREE.Clock();
+    const clock = new THREE.Clock();
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);

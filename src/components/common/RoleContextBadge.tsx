@@ -27,10 +27,10 @@ export function RoleContextBadge({
 
   return (
     <div className={`inline-flex items-center gap-2 ${className}`}>
-      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium bg-zinc-800/80 text-zinc-300 border border-zinc-700/60">
+      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium bg-surface-subtle text-foreground border border-border">
         <span
           className={`h-1.5 w-1.5 rounded-full ${
-            isWorkingAsTech ? "bg-emerald-400" : "bg-zinc-400"
+            isWorkingAsTech ? "bg-emerald-500" : "bg-muted"
           }`}
         />
         <span>{roleText}</span>
@@ -39,10 +39,10 @@ export function RoleContextBadge({
       {canSwitchPortal && (
         <Link
           href={isWorkingAsTech ? "/staff" : "/tech"}
-          className="inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+          className="inline-flex items-center gap-1 text-xs text-muted hover:text-foreground transition-colors"
           title={`Switch to ${isWorkingAsTech ? "Staff Portal" : "Tech Command Center"}`}
         >
-          <ArrowRightLeft className="w-3 h-3 text-zinc-400" />
+          <ArrowRightLeft className="w-3 h-3 text-muted" />
           <span>{isWorkingAsTech ? "Staff Portal" : "Tech Center"}</span>
         </Link>
       )}

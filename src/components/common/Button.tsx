@@ -22,7 +22,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   const baseStyles =
-    "inline-flex items-center justify-center font-medium rounded-lg transition-colors select-none disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 focus:ring-offset-zinc-950";
+    "inline-flex items-center justify-center font-medium rounded-lg transition-colors select-none disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-accent-ring focus:ring-offset-2 focus:ring-offset-background";
 
   const sizeStyles = {
     sm: "text-xs px-2.5 py-1.5 gap-1.5 h-8",
@@ -32,15 +32,15 @@ export function Button({
 
   const variantStyles = {
     primary:
-      "bg-zinc-100 hover:bg-white text-zinc-950 font-medium shadow-sm",
+      "bg-foreground text-background hover:bg-foreground/90 font-medium shadow-xs",
     secondary:
-      "bg-zinc-800/80 hover:bg-zinc-700 text-zinc-200 border border-zinc-700/70",
+      "bg-surface-subtle hover:bg-surface text-foreground border border-border shadow-xs",
     outline:
-      "bg-transparent hover:bg-zinc-800/60 text-zinc-300 border border-zinc-800 hover:border-zinc-700",
+      "bg-transparent hover:bg-surface-subtle text-foreground border border-border",
     ghost:
-      "bg-transparent hover:bg-zinc-800/60 text-zinc-400 hover:text-zinc-200",
+      "bg-transparent hover:bg-surface-subtle text-muted hover:text-foreground",
     destructive:
-      "bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20",
+      "bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 dark:text-rose-400 dark:border-rose-500/20",
   };
 
   return (

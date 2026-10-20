@@ -21,17 +21,17 @@ export function E310Logo({
     <div className={`flex items-center gap-2.5 select-none ${className}`}>
       {/* Minimalist Monogram */}
       <div
-        className={`flex items-center justify-center rounded-lg bg-zinc-800 border border-zinc-700/80 text-zinc-100 font-mono font-bold text-xs ${iconSizes[size]}`}
+        className={`flex items-center justify-center rounded-lg bg-surface-subtle border border-border text-foreground font-mono font-bold text-xs ${iconSizes[size]}`}
       >
         E
       </div>
 
       {showWordmark && (
         <div className="flex items-center gap-1.5">
-          <span className="font-semibold text-sm tracking-tight text-zinc-100">
+          <span className="font-semibold text-sm tracking-tight text-foreground">
             E310
           </span>
-          <span className="text-[11px] text-zinc-400 font-normal">
+          <span className="text-[11px] text-muted font-normal">
             Inventory
           </span>
         </div>
