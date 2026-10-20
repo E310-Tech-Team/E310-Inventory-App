@@ -113,7 +113,7 @@ export function DeviceApprovalQueue() {
           total: 0,
         }
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
     } finally {
       setLoading(false);
@@ -169,8 +169,8 @@ export function DeviceApprovalQueue() {
       setApproveModalItem(null);
       fetchQueue();
       setTimeout(() => setActionSuccess(null), 4000);
-    } catch (err: any) {
-      setActionError(err.message || "An error occurred");
+    } catch (err: unknown) {
+      setActionError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setActionLoading(false);
     }
@@ -207,8 +207,8 @@ export function DeviceApprovalQueue() {
       setRejectModalItem(null);
       fetchQueue();
       setTimeout(() => setActionSuccess(null), 4000);
-    } catch (err: any) {
-      setActionError(err.message || "An error occurred");
+    } catch (err: unknown) {
+      setActionError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setActionLoading(false);
     }

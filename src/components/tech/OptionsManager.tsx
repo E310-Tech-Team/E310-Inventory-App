@@ -70,9 +70,9 @@ export function OptionsManager() {
   const [editLabel, setEditLabel] = useState("");
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
+  // fetchOptions is used by the refresh button (event handler — allowed to call setState).
   const fetchOptions = useCallback(async () => {
     try {
-      setLoading(true);
       const res = await fetch("/api/tech/options");
       if (res.ok) {
         const data = await res.json();
@@ -86,9 +86,20 @@ export function OptionsManager() {
     }
   }, []);
 
+  // Initial load: inline promise chain so setState only fires inside async callbacks,
+  // never synchronously in the effect body (satisfies react-hooks/set-state-in-effect).
   useEffect(() => {
-    fetchOptions();
-  }, [fetchOptions]);
+    let active = true;
+    fetch("/api/tech/options")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (active && data) setOptions(data.options ?? []); })
+      .catch((err) => {
+        console.error("Failed to load options:", err);
+        if (active) setFeedback({ type: "error", message: "Failed to load options from server." });
+      })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
 
   // Current tab filtered options sorted by displayOrder
   const currentOptions = options
@@ -244,18 +255,16 @@ export function OptionsManager() {
                 setEditingId(null);
                 setFeedback(null);
               }}
-              className={`flex items-center gap-2.5 px-5 py-3.5 border-b-2 text-sm font-semibold whitespace-nowrap transition-colors ${
-                isActive
+              className={`flex items-center gap-2.5 px-5 py-3.5 border-b-2 text-sm font-semibold whitespace-nowrap transition-colors ${isActive
                   ? "border-neutral-900 text-neutral-900"
                   : "border-transparent text-neutral-500 hover:text-neutral-800 hover:border-neutral-300"
-              }`}
+                }`}
             >
               <Icon className="w-4 h-4" />
               <span>{grp.label}</span>
               <span
-                className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                  isActive ? "bg-neutral-100 text-neutral-900" : "bg-neutral-50 text-neutral-400"
-                }`}
+                className={`text-xs px-2 py-0.5 rounded-full font-medium ${isActive ? "bg-neutral-100 text-neutral-900" : "bg-neutral-50 text-neutral-400"
+                  }`}
               >
                 {count}
               </span>
@@ -268,7 +277,7 @@ export function OptionsManager() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <p className="text-xs sm:text-sm text-neutral-500">{currentGroupConfig.description}</p>
         <button
-          onClick={fetchOptions}
+          onClick={() => { setLoading(true); fetchOptions(); }}
           className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-800 self-start transition-colors"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
@@ -278,11 +287,10 @@ export function OptionsManager() {
 
       {feedback && (
         <div
-          className={`p-3 rounded-lg text-xs font-medium border flex items-center justify-between ${
-            feedback.type === "success"
+          className={`p-3 rounded-lg text-xs font-medium border flex items-center justify-between ${feedback.type === "success"
               ? "bg-emerald-50 text-emerald-800 border-emerald-200"
               : "bg-rose-50 text-rose-800 border-rose-200"
-          }`}
+            }`}
         >
           <span>{feedback.message}</span>
           <button onClick={() => setFeedback(null)} className="p-1 hover:opacity-75">
@@ -364,9 +372,8 @@ export function OptionsManager() {
               return (
                 <div
                   key={opt.id}
-                  className={`px-5 py-3.5 grid grid-cols-12 gap-2 items-center transition-colors ${
-                    !opt.isActive ? "bg-neutral-50/60 opacity-60" : "hover:bg-neutral-50/40"
-                  }`}
+                  className={`px-5 py-3.5 grid grid-cols-12 gap-2 items-center transition-colors ${!opt.isActive ? "bg-neutral-50/60 opacity-60" : "hover:bg-neutral-50/40"
+                    }`}
                 >
                   {/* Label / Inline Edit */}
                   <div className="col-span-6 sm:col-span-5 flex items-center gap-2">
@@ -410,11 +417,10 @@ export function OptionsManager() {
                   <div className="col-span-3 sm:col-span-2 flex justify-center">
                     <button
                       onClick={() => handleToggleActive(opt)}
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors ${
-                        opt.isActive
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors ${opt.isActive
                           ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
                           : "bg-neutral-100 text-neutral-500 border-neutral-200 hover:bg-neutral-200"
-                      }`}
+                        }`}
                       title={opt.isActive ? "Active (Click to disable)" : "Disabled (Click to enable)"}
                     >
                       <Power className="w-3 h-3" />

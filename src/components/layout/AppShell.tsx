@@ -1,38 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Admin } from "@/types";
+import { Admin, DepartmentUser } from "@/types";
 import { Sidebar } from "./Sidebar";
 import { MobileNav } from "./MobileNav";
 import { MobileHeader } from "./MobileHeader";
 import { TopHeader } from "./TopHeader";
 import { CommandSearchModal } from "./CommandSearchModal";
 
-const SIDEBAR_STORAGE_KEY = "inventory-sidebar-collapsed";
-
-function getInitialCollapsed(): boolean {
-  if (typeof window === "undefined") return true;
-  const stored = window.localStorage.getItem(SIDEBAR_STORAGE_KEY);
-  return stored === null ? true : stored === "true";
-}
-
 export function AppShell({
   admin,
   children,
 }: {
-  admin: Admin;
+  admin: Admin | DepartmentUser;
   children: React.ReactNode;
 }) {
-  const [collapsed, setCollapsed] = useState(getInitialCollapsed);
   const [searchOpen, setSearchOpen] = useState(false);
-
-  function handleToggle() {
-    setCollapsed((prev) => {
-      const next = !prev;
-      window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(next));
-      return next;
-    });
-  }
 
   // Global keyboard shortcut: ⌘K or Ctrl+K opens the command search modal
   useEffect(() => {
@@ -49,7 +32,7 @@ export function AppShell({
   return (
     <div className="flex min-h-screen">
       <div className="hidden md:block">
-        <Sidebar admin={admin} collapsed={collapsed} onToggle={handleToggle} />
+        <Sidebar admin={admin} />
       </div>
       <div className="flex-1 min-w-0 flex flex-col">
         <MobileHeader onOpenSearch={() => setSearchOpen(true)} />
@@ -73,4 +56,3 @@ export function AppShell({
     </div>
   );
 }
-
