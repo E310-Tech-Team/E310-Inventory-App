@@ -11,6 +11,7 @@ import {
   Home,
   Laptop,
   Sliders,
+  LifeBuoy,
 } from "lucide-react";
 import { Admin } from "@/types";
 import { isTechUser } from "@/lib/auth/roles";
@@ -26,6 +27,7 @@ const TECH_NAV_ITEMS = [
 const STAFF_NAV_ITEMS = [
   { href: "/staff", label: "Overview", icon: Home },
   { href: "/staff/devices", label: "My Devices", icon: Laptop },
+  { href: "/staff/tickets", label: "Tickets", icon: LifeBuoy },
 ];
 
 export function MobileNav({

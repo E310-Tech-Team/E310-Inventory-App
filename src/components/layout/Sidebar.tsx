@@ -21,6 +21,7 @@ import {
   Home,
   Laptop,
   Eye,
+  LifeBuoy,
 } from "lucide-react";
 import { Admin, DepartmentUser } from "@/types";
 import { isTechUser } from "@/lib/auth/roles";
@@ -79,6 +80,7 @@ const STAFF_NAV_GROUPS: NavGroup[] = [
     items: [
       { href: "/staff", label: "Staff Home", icon: Home },
       { href: "/staff/devices", label: "My Devices", icon: Laptop },
+      { href: "/staff/tickets", label: "Support Tickets", icon: LifeBuoy },
       { href: "/staff#report", label: "Report Issue", icon: AlertCircle },
     ],
   },

@@ -14,12 +14,8 @@ import {
   AlertTriangle,
   Plus,
   ShieldCheck,
-  BookOpen,
-  ArrowRight,
   Copy,
   Check,
-  Wrench,
-  HelpCircle,
   ExternalLink,
   ChevronRight,
   Clock,
@@ -239,6 +235,13 @@ export function StaffDashboard({
               <h2 className="text-base font-semibold text-zinc-100">
                 Recent Support Requests
               </h2>
+              <Link
+                href="/staff/tickets"
+                className="text-xs text-zinc-400 hover:text-zinc-200 transition-colors flex items-center gap-1"
+              >
+                <span>View all tickets</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
 
             {complaints.length === 0 ? (
@@ -250,32 +253,35 @@ export function StaffDashboard({
             ) : (
               <div className="space-y-2.5">
                 {complaints.slice(0, 4).map((ticket) => (
-                  <Card key={ticket.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs font-semibold text-zinc-300">
-                          {ticket.ticketNumber}
-                        </span>
-                        <Badge
-                          variant={
-                            ticket.status === "resolved"
-                              ? "resolved"
-                              : ticket.status === "in-repair"
-                              ? "in-repair"
-                              : "submitted"
-                          }
-                          label={ticket.status}
-                        />
+                  <Link key={ticket.id} href="/staff/tickets" className="block">
+                    <Card className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:border-zinc-700/80 transition-colors">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs font-semibold text-zinc-300">
+                            {ticket.ticketNumber}
+                          </span>
+                          <Badge
+                            variant={
+                              ticket.status === "resolved"
+                                ? "resolved"
+                                : ticket.status === "in-repair"
+                                ? "in-repair"
+                                : "submitted"
+                            }
+                            label={ticket.status}
+                          />
+                        </div>
+                        <p className="text-sm font-medium text-zinc-200">
+                          {ticket.title}
+                        </p>
                       </div>
-                      <p className="text-sm font-medium text-zinc-200">
-                        {ticket.title}
-                      </p>
-                    </div>
 
-                    <div className="text-right shrink-0 text-xs text-zinc-400">
-                      <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
-                    </div>
-                  </Card>
+                      <div className="text-right shrink-0 text-xs text-zinc-400 flex items-center gap-2">
+                        <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
+                        <ChevronRight className="w-3.5 h-3.5 text-zinc-500" />
+                      </div>
+                    </Card>
+                  </Link>
                 ))}
               </div>
             )}
