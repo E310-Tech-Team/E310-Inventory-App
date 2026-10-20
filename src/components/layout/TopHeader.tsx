@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Search, ExternalLink, User } from "lucide-react";
+import { Search, ExternalLink, User, Eye } from "lucide-react";
 import { Admin } from "@/types";
 import { NotificationBell } from "./NotificationBell";
 import { ThemeToggle } from "./ThemeToggle";
@@ -10,6 +10,8 @@ import { ThemeToggle } from "./ThemeToggle";
 interface TopHeaderProps {
   admin: Admin;
   onOpenSearch: () => void;
+  isStaffPreview?: boolean;
+  onToggleStaffPreview?: () => void;
 }
 
 function getShortcutKey(): string {
@@ -17,7 +19,12 @@ function getShortcutKey(): string {
   return /(Mac|iPhone|iPod|iPad)/i.test(navigator.userAgent) ? "⌘K" : "Ctrl+K";
 }
 
-export function TopHeader({ admin, onOpenSearch }: TopHeaderProps) {
+export function TopHeader({
+  admin,
+  onOpenSearch,
+  isStaffPreview = false,
+  onToggleStaffPreview,
+}: TopHeaderProps) {
   const [shortcutKey] = useState(getShortcutKey);
 
   const isTechRole =
@@ -38,14 +45,25 @@ export function TopHeader({ admin, onOpenSearch }: TopHeaderProps) {
           </span>
         </div>
         <span className="h-3.5 w-px bg-border" />
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs font-medium text-muted">
-            {isTechRole ? "Tech Command Center" : "Staff Hardware Portal"}
-          </span>
-          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 border border-border">
-            {admin?.role || "Staff"}
-          </span>
-        </div>
+        {isStaffPreview ? (
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+              Staff Portal Preview
+            </span>
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+              Admin Preview
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-medium text-muted">
+              {isTechRole ? "Tech Command Center" : "Staff Hardware Portal"}
+            </span>
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 border border-border">
+              {admin?.role || "Staff"}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Center: Command Bar Search Trigger (⌘K) */}
@@ -72,8 +90,22 @@ export function TopHeader({ admin, onOpenSearch }: TopHeaderProps) {
         <ThemeToggle compact />
         <span className="h-4 w-px bg-border" />
 
-        {/* Portal Switcher Button */}
-        {isTechRole ? (
+        {/* Portal Switcher Button / Preview Toggle */}
+        {admin?.role === "super-admin" && onToggleStaffPreview ? (
+          <button
+            type="button"
+            onClick={onToggleStaffPreview}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors shadow-2xs ${
+              isStaffPreview
+                ? "bg-amber-500 text-white border-amber-600 hover:bg-amber-600"
+                : "border-border bg-surface hover:bg-background text-foreground"
+            }`}
+            title={isStaffPreview ? "Exit Staff View Preview" : "Preview Staff Self-Service Portal"}
+          >
+            <Eye className="w-3 h-3" />
+            <span>{isStaffPreview ? "Exit Preview" : "Staff View"}</span>
+          </button>
+        ) : isTechRole ? (
           <Link
             href="/staff"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-surface hover:bg-background text-xs font-semibold text-foreground transition-colors shadow-2xs"
@@ -84,7 +116,7 @@ export function TopHeader({ admin, onOpenSearch }: TopHeaderProps) {
           </Link>
         ) : (
           <Link
-            href="/staff"
+            href="/staff/devices"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-surface hover:bg-background text-xs font-semibold text-foreground transition-colors shadow-2xs"
           >
             <span>My Devices</span>

@@ -19,8 +19,11 @@ import {
   AlertCircle,
   SlidersHorizontal,
   Home,
+  Laptop,
+  Eye,
 } from "lucide-react";
 import { Admin, DepartmentUser } from "@/types";
+import { isTechUser } from "@/lib/auth/roles";
 import { ThemeToggle } from "./ThemeToggle";
 
 const SIDEBAR_STORAGE_KEY = "inventory-sidebar-collapsed";
@@ -75,7 +78,7 @@ const STAFF_NAV_GROUPS: NavGroup[] = [
     label: "Self-Service",
     items: [
       { href: "/staff", label: "Staff Home", icon: Home },
-      { href: "/staff#devices", label: "My Devices", icon: Monitor },
+      { href: "/staff/devices", label: "My Devices", icon: Laptop },
       { href: "/staff#report", label: "Report Issue", icon: AlertCircle },
     ],
   },
@@ -98,12 +101,16 @@ interface SidebarProps {
   admin?: Admin | DepartmentUser | null;
   collapsed?: boolean;
   onToggle?: () => void;
+  isStaffPreview?: boolean;
+  onToggleStaffPreview?: () => void;
 }
 
 export function Sidebar({
   admin,
   collapsed: controlledCollapsed,
   onToggle: controlledOnToggle,
+  isStaffPreview = false,
+  onToggleStaffPreview,
 }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -165,9 +172,9 @@ export function Sidebar({
 
   const currentUser = admin || DEFAULT_MOCK_USER;
   const isSuperAdmin = currentUser.role === "super-admin";
-  const isViewer = currentUser.role === "viewer";
+  const isStaff = !isTechUser(currentUser) || isStaffPreview;
 
-  const rawGroups = isViewer ? STAFF_NAV_GROUPS : TECH_NAV_GROUPS;
+  const rawGroups = isStaff ? STAFF_NAV_GROUPS : TECH_NAV_GROUPS;
   const groups = rawGroups.map((group) => ({
     ...group,
     items: group.items.filter((item) => !item.superAdminOnly || isSuperAdmin),
@@ -213,7 +220,7 @@ export function Sidebar({
         }`}
       >
         <Link
-          href={isViewer ? "/staff" : "/dashboard"}
+          href={isStaff ? "/staff" : "/dashboard"}
           className="flex items-center gap-2.5 min-w-0 group"
           title="E310 Inventory App"
         >
@@ -231,7 +238,7 @@ export function Sidebar({
                 </span>
               </div>
               <p className="text-[11px] text-muted truncate mt-0.5">
-                {isViewer ? "Staff Self-Service" : "Tech Operations"}
+                {isStaff ? "Staff Self-Service" : "Tech Operations"}
               </p>
             </div>
           )}
@@ -254,6 +261,24 @@ export function Sidebar({
 
       {/* ─── Navigation Area: Multi-tier Groups ─── */}
       <nav className="flex-1 overflow-y-auto overflow-x-hidden py-3 space-y-4 px-2">
+        {isStaffPreview && !isCollapsed && (
+          <div className="mb-3 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between text-xs text-amber-700 dark:text-amber-400">
+            <div className="flex items-center gap-1.5 font-semibold text-[11px]">
+              <Eye className="w-3.5 h-3.5" />
+              <span>Staff Preview</span>
+            </div>
+            {onToggleStaffPreview && (
+              <button
+                type="button"
+                onClick={onToggleStaffPreview}
+                className="underline text-[11px] font-bold hover:text-amber-800 dark:hover:text-amber-300"
+              >
+                Exit
+              </button>
+            )}
+          </div>
+        )}
+
         {groups.map((group, groupIdx) => {
           const isGroupCollapsed = !isCollapsed && Boolean(collapsedGroups[group.id]);
 
@@ -347,6 +372,45 @@ export function Sidebar({
           );
         })}
       </nav>
+
+      {/* Super Admin Preview Toggle */}
+      {currentUser.role === "super-admin" && onToggleStaffPreview && (
+        <div className={`border-t border-border ${isCollapsed ? "p-2 flex justify-center" : "p-3"}`}>
+          {isCollapsed ? (
+            <button
+              type="button"
+              onClick={onToggleStaffPreview}
+              title={isStaffPreview ? "Exit Staff Preview" : "Preview Staff View"}
+              aria-label={isStaffPreview ? "Exit Staff Preview" : "Preview Staff View"}
+              className={`pressable p-2 rounded-lg text-xs transition-colors border ${
+                isStaffPreview
+                  ? "bg-amber-500/20 text-amber-600 border-amber-500/40"
+                  : "text-muted hover:bg-background hover:text-foreground border-transparent"
+              }`}
+            >
+              <Eye className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onToggleStaffPreview}
+              className={`pressable w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-colors border ${
+                isStaffPreview
+                  ? "bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400"
+                  : "bg-surface hover:bg-background border-border text-muted hover:text-foreground"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Eye className="w-3.5 h-3.5" />
+                <span>{isStaffPreview ? "Exit Preview" : "Staff View Preview"}</span>
+              </div>
+              <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300">
+                Admin
+              </span>
+            </button>
+          )}
+        </div>
+      )}
 
       {/* ─── Profile Footer: Avatar, Name, Staff ID & Logout ─── */}
       {isCollapsed ? (
