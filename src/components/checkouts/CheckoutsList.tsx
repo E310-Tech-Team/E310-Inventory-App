@@ -413,156 +413,278 @@ export function CheckoutsList({
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50/80 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  <th className="py-3.5 px-4">Equipment & Model</th>
-                  <th className="py-3.5 px-4">Staff Custodian</th>
-                  <th className="py-3.5 px-4">Collected</th>
-                  <th className="py-3.5 px-4">Due Date</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-sm">
-                {filtered.map((checkout) => {
-                  const item = itemById.get(checkout.itemId);
-                  const status = getEffectiveStatus(checkout);
-                  const daysOverdue = status === "overdue" ? getDaysOverdue(checkout.dueDate) : 0;
+          <div>
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/80 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                    <th className="py-3.5 px-4">Equipment & Model</th>
+                    <th className="py-3.5 px-4">Staff Custodian</th>
+                    <th className="py-3.5 px-4">Collected</th>
+                    <th className="py-3.5 px-4">Due Date</th>
+                    <th className="py-3.5 px-4">Status</th>
+                    <th className="py-3.5 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-sm">
+                  {filtered.map((checkout) => {
+                    const item = itemById.get(checkout.itemId);
+                    const status = getEffectiveStatus(checkout);
+                    const daysOverdue = status === "overdue" ? getDaysOverdue(checkout.dueDate) : 0;
 
-                  return (
-                    <tr
-                      key={checkout.id}
-                      className={`hover:bg-slate-50/70 transition-colors group cursor-pointer ${status === "overdue" ? "bg-rose-50/20" : ""
+                    return (
+                      <tr
+                        key={checkout.id}
+                        className={`hover:bg-slate-50/70 transition-colors group cursor-pointer ${
+                          status === "overdue" ? "bg-rose-50/20" : ""
                         }`}
-                      onClick={() => setSelectedCheckout(checkout)}
-                    >
-                      {/* Equipment */}
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${status === "overdue"
-                                ? "bg-rose-100 text-rose-700 border border-rose-200"
-                                : "bg-blue-50 text-blue-600 border border-blue-100"
-                              }`}
-                          >
-                            <Laptop className="w-4 h-4" />
-                          </div>
-                          <div>
-                            <div className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
-                              {item?.name ?? "Unknown item"}
-                              {checkout.quantity !== null && (
-                                <span className="text-slate-500 font-normal">
-                                  {" "}
-                                  ({checkout.quantity} units)
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-xs text-slate-500 font-mono mt-0.5">
-                              {item?.serialNumber || item?.identifierValue || "No SN"}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Staff Custodian */}
-                      <td className="py-4 px-4">
-                        <div className="font-medium text-slate-900">
-                          {checkout.assignedToName}
-                        </div>
-                        <div className="text-xs text-slate-500 mt-0.5">
-                          {checkout.assignedToEmail}
-                        </div>
-                      </td>
-
-                      {/* Date Collected */}
-                      <td className="py-4 px-4 text-xs text-slate-600">
-                        <div>{new Date(checkout.dateCollected).toLocaleDateString()}</div>
-                        <div className="text-[11px] text-slate-400 mt-0.5">
-                          by {checkout.collectedBy}
-                        </div>
-                      </td>
-
-                      {/* Due Date */}
-                      <td className="py-4 px-4 text-xs">
-                        {checkout.dueDate ? (
-                          <div
-                            className={`font-mono font-medium ${status === "overdue" ? "text-rose-700 font-bold" : "text-slate-700"
-                              }`}
-                          >
-                            {new Date(checkout.dueDate).toLocaleDateString()}
-                          </div>
-                        ) : (
-                          <span className="text-slate-400">Open-ended</span>
-                        )}
-                        {status === "returned" && checkout.dateReturned && (
-                          <div className="text-[11px] text-emerald-600 mt-0.5">
-                            Returned {new Date(checkout.dateReturned).toLocaleDateString()}
-                          </div>
-                        )}
-                      </td>
-
-                      {/* Status */}
-                      <td className="py-4 px-4">
-                        {status === "overdue" ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300 animate-pulse">
-                            <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
-                            Overdue ({daysOverdue}d)
-                          </span>
-                        ) : status === "active" ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                            <Clock className="w-3 h-3" />
-                            Active Custody
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            <CheckCircle2 className="w-3 h-3" />
-                            Returned
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Actions */}
-                      <td
-                        className="py-4 px-4 text-right"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={() => setSelectedCheckout(checkout)}
                       >
-                        <div className="flex items-center justify-end gap-1.5">
-                          {status === "returned" ? (
-                            <button
-                              onClick={() => handleUndoCheckout(checkout)}
-                              disabled={undoingCheckoutId === checkout.id}
-                              className="px-2.5 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors disabled:opacity-50"
+                        {/* Equipment */}
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                                status === "overdue"
+                                  ? "bg-rose-100 text-rose-700 border border-rose-200"
+                                  : "bg-blue-50 text-blue-600 border border-blue-100"
+                              }`}
                             >
-                              {undoingCheckoutId === checkout.id ? "Undoing…" : "Undo"}
-                            </button>
-                          ) : (
-                            <>
-                              <button
-                                onClick={() => setExtendingCheckout(checkout)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100/80 border border-blue-200 rounded-lg transition-colors"
-                                title="Extend Due Date"
-                              >
-                                <CalendarClock className="w-3.5 h-3.5" />
-                                <span>Extend</span>
-                              </button>
+                              <Laptop className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <div className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
+                                {item?.name ?? "Unknown item"}
+                                {checkout.quantity !== null && (
+                                  <span className="text-slate-500 font-normal">
+                                    {" "}
+                                    ({checkout.quantity} units)
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-xs text-slate-500 font-mono mt-0.5">
+                                {item?.serialNumber || item?.identifierValue || "No SN"}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
 
-                              <button
-                                onClick={() => setCheckingIn(checkout)}
-                                className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-xs"
-                              >
-                                <span>Check In</span>
-                              </button>
-                            </>
+                        {/* Staff Custodian */}
+                        <td className="py-4 px-4">
+                          <div className="font-medium text-slate-900">
+                            {checkout.assignedToName}
+                          </div>
+                          <div className="text-xs text-slate-500 mt-0.5">
+                            {checkout.assignedToEmail}
+                          </div>
+                        </td>
+
+                        {/* Date Collected */}
+                        <td className="py-4 px-4 text-xs text-slate-600">
+                          <div>{new Date(checkout.dateCollected).toLocaleDateString()}</div>
+                          <div className="text-[11px] text-slate-400 mt-0.5">
+                            by {checkout.collectedBy}
+                          </div>
+                        </td>
+
+                        {/* Due Date */}
+                        <td className="py-4 px-4 text-xs">
+                          {checkout.dueDate ? (
+                            <div
+                              className={`font-mono font-medium ${
+                                status === "overdue" ? "text-rose-700 font-bold" : "text-slate-700"
+                              }`}
+                            >
+                              {new Date(checkout.dueDate).toLocaleDateString()}
+                            </div>
+                          ) : (
+                            <span className="text-slate-400">Open-ended</span>
                           )}
+                          {status === "returned" && checkout.dateReturned && (
+                            <div className="text-[11px] text-emerald-600 mt-0.5">
+                              Returned {new Date(checkout.dateReturned).toLocaleDateString()}
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Status */}
+                        <td className="py-4 px-4">
+                          {status === "overdue" ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300 animate-pulse">
+                              <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+                              Overdue ({daysOverdue}d)
+                            </span>
+                          ) : status === "active" ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                              <Clock className="w-3 h-3" />
+                              Active Custody
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              <CheckCircle2 className="w-3 h-3" />
+                              Returned
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Actions */}
+                        <td
+                          className="py-4 px-4 text-right"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="flex items-center justify-end gap-1.5">
+                            {status === "returned" ? (
+                              <button
+                                onClick={() => handleUndoCheckout(checkout)}
+                                disabled={undoingCheckoutId === checkout.id}
+                                className="px-2.5 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors disabled:opacity-50"
+                              >
+                                {undoingCheckoutId === checkout.id ? "Undoing…" : "Undo"}
+                              </button>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => setExtendingCheckout(checkout)}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100/80 border border-blue-200 rounded-lg transition-colors"
+                                  title="Extend Due Date"
+                                >
+                                  <CalendarClock className="w-3.5 h-3.5" />
+                                  <span>Extend</span>
+                                </button>
+
+                                <button
+                                  onClick={() => setCheckingIn(checkout)}
+                                  className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-xs"
+                                >
+                                  <span>Check In</span>
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card Stack */}
+            <div className="md:hidden divide-y divide-slate-100">
+              {filtered.map((checkout) => {
+                const item = itemById.get(checkout.itemId);
+                const status = getEffectiveStatus(checkout);
+                const daysOverdue = status === "overdue" ? getDaysOverdue(checkout.dueDate) : 0;
+
+                return (
+                  <div
+                    key={checkout.id}
+                    className={`p-4 space-y-3 cursor-pointer transition-colors active:bg-slate-50 ${
+                      status === "overdue" ? "bg-rose-50/20" : "bg-white"
+                    }`}
+                    onClick={() => setSelectedCheckout(checkout)}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                            status === "overdue"
+                              ? "bg-rose-100 text-rose-700 border border-rose-200"
+                              : "bg-blue-50 text-blue-600 border border-blue-100"
+                          }`}
+                        >
+                          <Laptop className="w-4 h-4" />
                         </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        <div>
+                          <h4 className="font-semibold text-slate-900 text-sm">
+                            {item?.name ?? "Unknown item"}
+                          </h4>
+                          <span className="font-mono text-[11px] text-slate-500">
+                            {item?.serialNumber || item?.identifierValue || "No SN"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {status === "overdue" ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300 animate-pulse shrink-0">
+                          <AlertTriangle className="w-3 h-3 text-rose-600" />
+                          Overdue ({daysOverdue}d)
+                        </span>
+                      ) : status === "active" ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
+                          <Clock className="w-3 h-3" />
+                          Active
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                          <CheckCircle2 className="w-3 h-3" />
+                          Returned
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Custodian & Due Date */}
+                    <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+                      <div>
+                        <span className="text-[10px] text-slate-400 block">
+                          Custodian
+                        </span>
+                        <span className="font-medium text-slate-800 truncate block">
+                          {checkout.assignedToName}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 block">
+                          Due Date
+                        </span>
+                        <span
+                          className={`font-mono text-xs block ${
+                            status === "overdue" ? "text-rose-700 font-bold" : "text-slate-700"
+                          }`}
+                        >
+                          {checkout.dueDate
+                            ? new Date(checkout.dueDate).toLocaleDateString()
+                            : "Open-ended"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div
+                      className="flex items-center justify-end gap-1.5 pt-2 border-t border-slate-100"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {status === "returned" ? (
+                        <button
+                          onClick={() => handleUndoCheckout(checkout)}
+                          disabled={undoingCheckoutId === checkout.id}
+                          className="px-3 py-1 text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          {undoingCheckoutId === checkout.id ? "Undoing…" : "Undo"}
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => setExtendingCheckout(checkout)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg transition-colors"
+                          >
+                            <CalendarClock className="w-3.5 h-3.5" />
+                            <span>Extend</span>
+                          </button>
+                          <button
+                            onClick={() => setCheckingIn(checkout)}
+                            className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-xs"
+                          >
+                            <span>Check In</span>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>

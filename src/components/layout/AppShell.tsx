@@ -70,7 +70,7 @@ export function AppShell({
           </div>
         )}
 
-        <main className="flex-1 min-w-0 pb-16 md:pb-0">{children}</main>
+        <main className="flex-1 min-w-0 pb-24 md:pb-0">{children}</main>
       </div>
       <MobileNav
         admin={admin}
