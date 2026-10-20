@@ -2,6 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession, isTechUser } from "@/lib/auth/session";
 import { getSupabaseAdminClient, hasSupabaseConfig } from "@/lib/supabase/server";
 
+interface ApprovalCheckoutInfo {
+  id: string;
+  item_id: string;
+  assigned_to_name: string;
+  assigned_to_email: string;
+  assigned_to_phone: string;
+  condition_on_collection: string;
+  collection_notes: string | null;
+  date_collected: string;
+  status: string;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getSession();
@@ -71,7 +83,7 @@ export async function GET(request: NextRequest) {
     const itemIds = (items || []).map((i) => i.id);
 
     // Fetch associated checkout records to find the submitting staff member
-    let checkoutsMap: Record<string, any> = {};
+    const checkoutsMap: Record<string, ApprovalCheckoutInfo> = {};
     if (itemIds.length > 0) {
       const { data: checkouts, error: checkoutsError } = await supabase
         .from("checkouts")

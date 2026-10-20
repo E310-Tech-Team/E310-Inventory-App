@@ -9,6 +9,7 @@ import {
   Home,
   UserRoundCog,
   FileSpreadsheet,
+  Package,
   ShieldCheck,
 } from "lucide-react";
 import { Admin } from "@/types";
@@ -16,6 +17,7 @@ import { Admin } from "@/types";
 const NAV_ITEMS = [
   { href: "/", label: "Home", icon: Home },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/items", label: "Inventory", icon: Package },
   { href: "/tech/approvals", label: "Approvals", icon: ShieldCheck },
   { href: "/categories", label: "Categories", icon: Boxes },
   { href: "/checkouts", label: "Checkouts", icon: ArrowLeftRight },
