@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession, isTechUser } from "@/lib/auth/session";
 import { getSupabaseAdminClient, hasSupabaseConfig } from "@/lib/supabase/server";
+import { ApprovalCheckoutInfo } from "./ApprovalCheckoutInfo";
 
 export async function GET(request: NextRequest) {
   try {
@@ -71,7 +72,8 @@ export async function GET(request: NextRequest) {
     const itemIds = (items || []).map((i) => i.id);
 
     // Fetch associated checkout records to find the submitting staff member
-    const checkoutsMap: Record<string, any> = {};
+    const checkoutsMap: Record<string, ApprovalCheckoutInfo> = {};
+
     if (itemIds.length > 0) {
       const { data: checkouts, error: checkoutsError } = await supabase
         .from("checkouts")
@@ -105,21 +107,21 @@ export async function GET(request: NextRequest) {
         ...item,
         submitter: checkout
           ? {
-              name: checkout.assigned_to_name,
-              email: checkout.assigned_to_email,
-              phone: checkout.assigned_to_phone,
-              collectedAt: checkout.date_collected,
-              condition: checkout.condition_on_collection,
-              notes: checkout.collection_notes,
-            }
+            name: checkout.assigned_to_name,
+            email: checkout.assigned_to_email,
+            phone: checkout.assigned_to_phone,
+            collectedAt: checkout.date_collected,
+            condition: checkout.condition_on_collection,
+            notes: checkout.collection_notes,
+          }
           : {
-              name: item.created_by,
-              email: "",
-              phone: "",
-              collectedAt: item.created_at,
-              condition: item.condition,
-              notes: item.notes,
-            },
+            name: item.created_by,
+            email: "",
+            phone: "",
+            collectedAt: item.created_at,
+            condition: item.condition,
+            notes: item.notes,
+          },
       };
     });
 
