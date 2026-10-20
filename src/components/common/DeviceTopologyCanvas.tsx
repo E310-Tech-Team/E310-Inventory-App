@@ -49,8 +49,8 @@ export function DeviceTopologyCanvas({
       activeStatus === "alert"
         ? 0xf43f5e // rose
         : activeStatus === "busy"
-        ? 0xf59e0b // amber
-        : 0x10b981; // emerald
+          ? 0xf59e0b // amber
+          : 0x10b981; // emerald
 
     const secondaryColor = 0x38bdf8; // sky
 
@@ -137,7 +137,7 @@ export function DeviceTopologyCanvas({
 
     // Render loop
     let animationFrameId: number;
-    let clock = new THREE.Clock();
+    const clock = new THREE.Clock();
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
@@ -182,7 +182,7 @@ export function DeviceTopologyCanvas({
   return (
     <div
       ref={mountRef}
-      className={`relative w-full h-full min-h-[220px] pointer-events-none select-none overflow-hidden ${className}`}
+      className={`relative w-full h-full min-h-55] pointer-events-none select-none overflow-hidden ${className}`}
       aria-hidden="true"
     />
   );
