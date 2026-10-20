@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/session";
 import { getSupabaseAdminClient, hasSupabaseConfig } from "@/lib/supabase/server";
-import { StaffDevice } from "@/types";
+import { StaffDevice, ItemIdentifierType, ItemCondition, CheckoutStatus } from "@/types";
 
 interface JoinedItemCategory {
   id: string;
@@ -14,9 +14,9 @@ interface JoinedItem {
   id: string;
   name: string;
   serial_number: string | null;
-  identifier_type: any;
+  identifier_type: ItemIdentifierType | null;
   identifier_value: string | null;
-  condition: any;
+  condition: ItemCondition;
   category: JoinedItemCategory | null;
 }
 
@@ -25,7 +25,7 @@ interface RawCheckoutRow {
   item_id: string;
   date_collected: string;
   due_date: string | null;
-  status: any;
+  status: CheckoutStatus;
   item: JoinedItem | null;
 }
 

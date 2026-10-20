@@ -64,8 +64,8 @@ export function ExtendDueDateModal({
 
       router.refresh();
       onClose();
-    } catch (err: any) {
-      setError(err.message || "Failed to extend due date");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to extend due date");
     } finally {
       setSaving(false);
     }
