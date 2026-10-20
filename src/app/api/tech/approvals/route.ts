@@ -1,18 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession, isTechUser } from "@/lib/auth/session";
 import { getSupabaseAdminClient, hasSupabaseConfig } from "@/lib/supabase/server";
-
-interface ApprovalCheckoutInfo {
-  id: string;
-  item_id: string;
-  assigned_to_name: string;
-  assigned_to_email: string;
-  assigned_to_phone: string;
-  condition_on_collection: string;
-  collection_notes: string | null;
-  date_collected: string;
-  status: string;
-}
+import { ApprovalCheckoutInfo } from "./ApprovalCheckoutInfo";
 
 export async function GET(request: NextRequest) {
   try {
@@ -117,21 +106,21 @@ export async function GET(request: NextRequest) {
         ...item,
         submitter: checkout
           ? {
-              name: checkout.assigned_to_name,
-              email: checkout.assigned_to_email,
-              phone: checkout.assigned_to_phone,
-              collectedAt: checkout.date_collected,
-              condition: checkout.condition_on_collection,
-              notes: checkout.collection_notes,
-            }
+            name: checkout.assigned_to_name,
+            email: checkout.assigned_to_email,
+            phone: checkout.assigned_to_phone,
+            collectedAt: checkout.date_collected,
+            condition: checkout.condition_on_collection,
+            notes: checkout.collection_notes,
+          }
           : {
-              name: item.created_by,
-              email: "",
-              phone: "",
-              collectedAt: item.created_at,
-              condition: item.condition,
-              notes: item.notes,
-            },
+            name: item.created_by,
+            email: "",
+            phone: "",
+            collectedAt: item.created_at,
+            condition: item.condition,
+            notes: item.notes,
+          },
       };
     });
 
