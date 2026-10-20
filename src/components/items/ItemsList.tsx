@@ -17,14 +17,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
-  Tag,
-  Hash,
   Boxes,
 } from "lucide-react";
-import { Item, Category, ItemStatus, ItemCondition, ItemIdentifierType } from "@/types";
+import { Item, Category } from "@/types";
 import { ItemFormModal } from "./ItemFormModal";
 import { ItemDetailsModal } from "./ItemDetailsModal";
-import { getItemIdentifierLabel } from "@/lib/items";
 
 interface ItemsListProps {
   items: Item[];
@@ -420,7 +417,7 @@ export function ItemsList({ items, categories }: ItemsListProps) {
         ) : (
           <div>
             {/* Desktop Table View */}
-            <div className="overflow-x-auto">
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50/80 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -560,6 +557,115 @@ export function ItemsList({ items, categories }: ItemsListProps) {
                   })}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card Stack */}
+            <div className="md:hidden divide-y divide-slate-100">
+              {paginatedItems.map((item) => {
+                const category = categoryById.get(item.categoryId);
+                const isQuantityTracked = category?.trackingType === "quantity";
+
+                return (
+                  <div
+                    key={item.id}
+                    className="p-4 space-y-3 bg-white active:bg-slate-50 transition-colors cursor-pointer"
+                    onClick={() => setSelectedItem(item)}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                          <Laptop className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-slate-900 text-sm">
+                            {item.name}
+                          </h4>
+                          <span className="inline-flex items-center text-[11px] text-slate-500">
+                            {category?.name ?? "Uncategorized"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold capitalize shrink-0 ${
+                          item.status === "available"
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : item.status === "checked-out"
+                            ? "bg-blue-50 text-blue-700 border border-blue-200"
+                            : "bg-amber-50 text-amber-700 border border-amber-200"
+                        }`}
+                      >
+                        {item.status === "checked-out" ? "Assigned" : item.status.replace("-", " ")}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2 pt-1 text-xs">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {isQuantityTracked ? (
+                          <span className="font-mono text-[11px] text-slate-500">
+                            Bulk Tracked
+                          </span>
+                        ) : item.identifierValue || item.serialNumber ? (
+                          <span className="font-mono text-[11px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200">
+                            {item.identifierValue || item.serialNumber}
+                          </span>
+                        ) : null}
+
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium capitalize ${
+                            item.condition === "new"
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              : item.condition === "good"
+                              ? "bg-blue-50 text-blue-700 border border-blue-200"
+                              : item.condition === "fair"
+                              ? "bg-amber-50 text-amber-700 border border-amber-200"
+                              : "bg-rose-50 text-rose-700 border border-rose-200"
+                          }`}
+                        >
+                          {item.condition}
+                        </span>
+                      </div>
+
+                      {item.quantity !== null && (
+                        <span className="font-mono text-xs text-slate-500">
+                          Qty: {item.quantity}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Mobile Card Action Bar */}
+                    <div
+                      className="flex items-center justify-end gap-1 pt-2 border-t border-slate-100"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={() => setSelectedItem(item)}
+                        className="px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-md transition-colors flex items-center gap-1"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>View</span>
+                      </button>
+                      <button
+                        onClick={() => setEditing(item)}
+                        className="px-2.5 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-md transition-colors flex items-center gap-1"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                        <span>Edit</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDeleteError(null);
+                          setDeleting(item);
+                        }}
+                        className="px-2.5 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50 rounded-md transition-colors flex items-center gap-1"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Pagination Controls */}
