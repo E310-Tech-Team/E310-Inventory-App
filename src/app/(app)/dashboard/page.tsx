@@ -3,10 +3,11 @@ import { DashboardView } from "@/components/dashboard/DashboardView";
 import { getSession } from "@/lib/auth/session";
 
 export default async function DashboardPage() {
-  const [categories, items, checkouts, user] = await Promise.all([
+  const [categories, items, checkouts, complaints, user] = await Promise.all([
     dataStore.getCategories(),
     dataStore.getItems(),
     dataStore.getCheckouts(),
+    dataStore.getComplaints().catch(() => []),
     getSession(),
   ]);
 
@@ -19,6 +20,7 @@ export default async function DashboardPage() {
       categories={categories}
       items={items}
       checkouts={checkouts}
+      complaints={complaints}
       now={now}
       user={user}
     />

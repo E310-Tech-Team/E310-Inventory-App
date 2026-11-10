@@ -50,6 +50,7 @@ const TECH_NAV_GROUPS: NavGroup[] = [
     label: "Overview",
     items: [
       { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/tech", label: "Service Tickets", icon: LifeBuoy, badge: "Staff" },
       { href: "/tech/approvals", label: "Approvals", icon: ShieldCheck, badge: "Queue" },
     ],
   },
@@ -164,7 +165,7 @@ export function Sidebar({
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  });
+  }, [controlledCollapsed, controlledOnToggle]);
 
   const toggleGroup = (groupId: string) => {
     setCollapsedGroups((prev) => ({
@@ -196,7 +197,8 @@ export function Sidebar({
   const isItemActive = (href: string): boolean => {
     if (!pathname) return false;
     if (href === "/") return pathname === "/";
-    if (href === "/dashboard") return pathname === "/dashboard" || pathname === "/tech";
+    if (href === "/dashboard") return pathname === "/dashboard";
+    if (href === "/tech") return pathname === "/tech";
     if (href === "/staff") return pathname === "/staff";
     return pathname === href || pathname.startsWith(href + "/");
   };
@@ -235,7 +237,7 @@ export function Sidebar({
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <E310Logo size="sm" />
-                <span className="text-[10px] font-bold tracking-wider px-1.5 py-0.5 rounded bg-brand-yellow/25 text-brand-navy dark:text-brand-yellow border border-brand-yellow/40 leading-none">
+                <span className="text-[10px] font-semibold tracking-wider px-1.5 py-0.5 rounded bg-brand-teal/15 text-brand-teal border border-brand-teal/25 leading-none">
                   {isStaff ? "STAFF" : "ENT"}
                 </span>
               </div>
@@ -321,20 +323,20 @@ export function Sidebar({
                           className={`pressable flex items-center rounded-xl text-sm transition-all duration-150 ${
                             isCollapsed
                               ? "justify-center w-10 h-10 mx-auto"
-                              : "gap-3 px-3 py-2.5 w-full"
+                              : "gap-3 px-3 py-2 w-full"
                           } ${
                             isActive
-                              ? "bg-brand-yellow text-brand-navy font-semibold shadow-xs"
-                              : "text-muted hover:text-foreground hover:bg-surface-elevated font-medium"
+                              ? "bg-surface-elevated text-foreground font-semibold shadow-xs border border-border"
+                              : "text-muted hover:text-foreground hover:bg-surface-elevated/60 font-medium"
                           }`}
                         >
                           <Icon
                             className={`w-4 h-4 shrink-0 transition-colors ${
                               isActive
-                                ? "text-brand-navy"
+                                ? "text-brand-teal"
                                 : "text-muted group-hover:text-foreground"
                             }`}
-                            strokeWidth={isActive ? 2.5 : 2}
+                            strokeWidth={isActive ? 2.2 : 1.8}
                           />
 
                           {!isCollapsed && (
@@ -347,8 +349,8 @@ export function Sidebar({
                             <span
                               className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-medium leading-none ${
                                 isActive
-                                  ? "bg-brand-navy/15 text-brand-navy"
-                                  : "bg-accent/15 text-accent"
+                                  ? "bg-brand-teal/15 text-brand-teal border border-brand-teal/25"
+                                  : "bg-surface-elevated text-muted border border-border"
                               }`}
                             >
                               {item.badge}

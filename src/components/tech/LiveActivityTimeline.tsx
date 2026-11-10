@@ -107,12 +107,12 @@ export function LiveActivityTimeline() {
     fetchActivities();
   }, [fetchActivities]);
 
-  // Polling interval
+  // Calm polling interval (every 60s)
   useEffect(() => {
     if (!autoPoll) return;
     const interval = setInterval(() => {
       fetchActivities();
-    }, 15000); // Poll every 15s
+    }, 60000);
     return () => clearInterval(interval);
   }, [autoPoll, fetchActivities]);
 
@@ -124,10 +124,7 @@ export function LiveActivityTimeline() {
           <h2 className="text-base font-bold text-foreground flex items-center gap-2">
             <span>Live Activity Audit Feed</span>
             {autoPoll && (
-              <span className="flex h-2 w-2 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-teal opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-teal" />
-              </span>
+              <span className="flex h-2 w-2 rounded-full bg-brand-teal" title="Real-time audit active" />
             )}
           </h2>
           <p className="text-xs text-muted mt-0.5">

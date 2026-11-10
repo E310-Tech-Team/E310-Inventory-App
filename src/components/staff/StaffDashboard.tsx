@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { DepartmentUser, StaffDevice, DeviceComplaint } from "@/types";
+import { subscribeToTicketUpdates } from "@/lib/sync/ticket-broadcast";
 import { Card } from "@/components/common/Card";
 import { Badge } from "@/components/common/Badge";
 import { Button } from "@/components/common/Button";
@@ -60,6 +61,13 @@ export function StaffDashboard({
       console.warn("Failed to refresh staff dashboard data:", err);
     }
   };
+
+  useEffect(() => {
+    const unsubscribe = subscribeToTicketUpdates(() => {
+      refreshData();
+    });
+    return () => unsubscribe();
+  }, []);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -254,37 +262,53 @@ export function StaffDashboard({
               </Card>
             ) : (
               <div className="space-y-2.5">
-                {complaints.slice(0, 4).map((ticket) => (
-                  <Link key={ticket.id} href="/staff/tickets" className="block">
-                    <Card className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border border-border bg-surface hover:border-accent/40 transition-colors">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs font-semibold text-foreground">
-                            {ticket.ticketNumber}
-                          </span>
-                          <Badge
-                            variant={
-                              ticket.status === "resolved"
-                                ? "resolved"
-                                : ticket.status === "in-repair"
-                                ? "in-repair"
-                                : "submitted"
-                            }
-                            label={ticket.status}
-                          />
-                        </div>
-                        <p className="text-sm font-semibold text-foreground">
-                          {ticket.title}
-                        </p>
-                      </div>
+                {complaints.slice(0, 4).map((ticket: any) => {
+                  const dateVal = ticket.createdAt || ticket.created_at;
+                  let formattedDate = "Recently";
+                  if (dateVal) {
+                    const parsed = new Date(dateVal);
+                    if (!isNaN(parsed.getTime())) {
+                      formattedDate = parsed.toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      });
+                    }
+                  }
+                  const ticketNum = ticket.ticketNumber || ticket.ticket_number || "TKT";
 
-                      <div className="text-right shrink-0 text-xs text-muted flex items-center gap-2">
-                        <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
-                        <ChevronRight className="w-3.5 h-3.5 text-muted" />
-                      </div>
-                    </Card>
-                  </Link>
-                ))}
+                  return (
+                    <Link key={ticket.id} href="/staff/tickets" className="block">
+                      <Card className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border border-border bg-surface hover:border-accent/40 transition-colors">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-xs font-semibold text-foreground">
+                              {ticketNum}
+                            </span>
+                            <Badge
+                              variant={
+                                ticket.status === "resolved"
+                                  ? "resolved"
+                                  : ticket.status === "in-repair"
+                                  ? "in-repair"
+                                  : "submitted"
+                              }
+                              label={ticket.status}
+                            />
+                          </div>
+                          <p className="text-sm font-semibold text-foreground">
+                            {ticket.title}
+                          </p>
+                        </div>
+
+                        <div className="text-right shrink-0 text-xs text-muted flex items-center gap-2">
+                          <span>{formattedDate}</span>
+                          <ChevronRight className="w-3.5 h-3.5 text-muted" />
+                        </div>
+                      </Card>
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </section>

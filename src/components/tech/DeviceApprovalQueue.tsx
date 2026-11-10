@@ -74,6 +74,15 @@ export function DeviceApprovalQueue() {
   const [refreshing, setRefreshing] = useState(false);
   const [statusFilter, setStatusFilter] = useState<"pending" | "approved" | "rejected" | "all">("pending");
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  // Debounce search query to prevent aggressive refetching on every keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Modals state
   const [approveModalItem, setApproveModalItem] = useState<ApprovalItem | null>(null);
@@ -96,8 +105,8 @@ export function DeviceApprovalQueue() {
     try {
       const url = new URL("/api/tech/approvals", window.location.origin);
       url.searchParams.set("status", statusFilter);
-      if (searchQuery.trim()) {
-        url.searchParams.set("search", searchQuery.trim());
+      if (debouncedSearch.trim()) {
+        url.searchParams.set("search", debouncedSearch.trim());
       }
 
       const res = await fetch(url.toString());
@@ -120,7 +129,7 @@ export function DeviceApprovalQueue() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [statusFilter, searchQuery]);
+  }, [statusFilter, debouncedSearch]);
 
   useEffect(() => {
     fetchQueue();
@@ -429,11 +438,18 @@ export function DeviceApprovalQueue() {
                       <div className="text-[11px] text-muted mt-0.5 flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
                         <span>
-                          {new Date(item.created_at).toLocaleDateString(undefined, {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
+                          {(() => {
+                            const dateVal = item.created_at || (item as any).createdAt;
+                            if (!dateVal) return "Recently";
+                            const d = new Date(dateVal);
+                            return isNaN(d.getTime())
+                              ? "Recently"
+                              : d.toLocaleDateString(undefined, {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                });
+                          })()}
                         </span>
                       </div>
                     </td>

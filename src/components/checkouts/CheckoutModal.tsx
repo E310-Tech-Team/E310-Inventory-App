@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Category, DepartmentUser, Item, ItemCondition } from "@/types";
 import { Select } from "@/components/common/Select";
+import { DatePicker } from "@/components/common/DatePicker";
 import { Modal } from "@/components/ui/Modal";
 import { FormField, inputClass } from "@/components/ui/FormField";
 import { getItemIdentifierLabel } from "@/lib/items";
@@ -177,15 +178,15 @@ export function CheckoutModal({
         </div>
 
         {requiresDueDate && (
-          <FormField label="Due back by">
-            <input
-              type="date"
-              className={inputClass}
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              required
-            />
-          </FormField>
+          <DatePicker
+            label="Due back by"
+            required
+            value={dueDate}
+            onChange={setDueDate}
+            minDate={new Date().toISOString().split("T")[0]}
+            placeholder="Select return due date"
+            showShortcuts={true}
+          />
         )}
 
         <FormField label="Notes (optional)">

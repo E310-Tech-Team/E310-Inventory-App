@@ -1,14 +1,5 @@
 begin;
 
--- Remove the original demo inventory rows created by schema.sql.
-delete from public.categories
-where id in (
-  '00000000-0000-4000-8000-000000000001',
-  '00000000-0000-4000-8000-000000000002',
-  '00000000-0000-4000-8000-000000000003',
-  '00000000-0000-4000-8000-000000000004'
-);
-
 insert into public.categories (id, name, tracking_type, return_type, low_stock_threshold, created_by, created_at)
 values
   (

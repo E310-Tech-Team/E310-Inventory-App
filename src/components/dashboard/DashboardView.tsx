@@ -6,7 +6,6 @@ import {
   AlertTriangle,
   PackageX,
   ClipboardList,
-  Sparkles,
   ArrowUpRight,
   Boxes,
   Package,
@@ -18,9 +17,18 @@ import {
   Filter,
   Monitor,
   Laptop,
+  LifeBuoy,
+  FileSpreadsheet,
 } from "lucide-react";
+import {
+  FleetAssetsIcon,
+  PriorityCriticalIcon,
+  PriorityHighIcon,
+  PriorityMediumIcon,
+  PriorityLowIcon,
+} from "@/components/common/Icons";
 
-import { Category, Item, Checkout, DepartmentUser, Admin } from "@/types";
+import { Category, Item, Checkout, DepartmentUser, Admin, DeviceComplaint } from "@/types";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { CheckoutDetailsModal } from "@/components/checkouts/CheckoutDetailsModal";
@@ -45,12 +53,14 @@ export function DashboardView({
   categories,
   items,
   checkouts,
+  complaints = [],
   now,
   user,
 }: {
   categories: Category[];
   items: Item[];
   checkouts: Checkout[];
+  complaints?: DeviceComplaint[];
   now: number;
   user?: DepartmentUser | Admin | null;
 }) {
@@ -68,6 +78,18 @@ export function DashboardView({
   const lowStock = useMemo(() => getLowStockView(items, categories), [items, categories]);
   const recentlyAdded = useMemo(() => getRecentlyAddedView(items), [items]);
   const breakdown = useMemo(() => getCategoryBreakdown(items, categories), [items, categories]);
+
+  const openComplaints = useMemo(
+    () => complaints.filter((c) => c.status !== "resolved" && c.status !== "closed"),
+    [complaints]
+  );
+  const recentComplaints = useMemo(
+    () =>
+      [...complaints]
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 4),
+    [complaints]
+  );
 
   const people = useMemo(() => {
     const names = new Set([
@@ -124,24 +146,36 @@ export function DashboardView({
           </div>
 
           {/* Quick Action Shortcuts */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+            <Link
+              href="/tech"
+              className="pressable inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-brand-teal/10 hover:bg-brand-teal/15 text-brand-teal dark:text-teal-300 border border-brand-teal/25 font-semibold text-xs shadow-xs transition-colors"
+            >
+              <LifeBuoy className="w-4 h-4 text-brand-teal dark:text-teal-400" />
+              <span>Staff Tickets</span>
+              {openComplaints.length > 0 && (
+                <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-brand-teal text-white font-bold leading-none">
+                  {openComplaints.length}
+                </span>
+              )}
+            </Link>
             <Link
               href="/checkouts"
-              className="pressable inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-brand-yellow text-brand-navy font-bold text-xs shadow-xs hover:brightness-105 transition-all"
+              className="pressable inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface-elevated hover:bg-surface border border-border text-foreground font-medium text-xs shadow-xs transition-colors"
             >
-              <ClipboardList className="w-4 h-4" />
+              <ClipboardList className="w-4 h-4 text-muted" />
               <span>Loans & Checkouts</span>
             </Link>
             <Link
               href="/items"
-              className="pressable inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface border border-border text-foreground font-semibold text-xs hover:bg-surface-elevated transition-colors"
+              className="pressable inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface hover:bg-surface-elevated border border-border text-foreground font-medium text-xs transition-colors"
             >
               <Package className="w-4 h-4 text-muted" />
               <span>Inventory Catalog</span>
             </Link>
             <Link
               href="/tech/approvals"
-              className="pressable inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface border border-border text-foreground font-semibold text-xs hover:bg-surface-elevated transition-colors"
+              className="pressable inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface hover:bg-surface-elevated border border-border text-foreground font-medium text-xs transition-colors"
             >
               <ShieldCheck className="w-4 h-4 text-brand-teal" />
               <span>Approvals Queue</span>
@@ -176,22 +210,22 @@ export function DashboardView({
               {/* Card 1: In Active Custody */}
               <div
                 onClick={() => setActiveFilter("all")}
-                className={`interactive-card cursor-pointer rounded-2xl border p-5 transition-all duration-200 ${
+                className={`interactive-card cursor-pointer rounded-2xl border p-5 transition-all duration-200 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.06)] ${
                   activeFilter === "all"
-                    ? "border-brand-teal/50 bg-brand-teal/5 dark:bg-brand-teal/10 shadow-xs ring-1 ring-brand-teal/30"
-                    : "border-border bg-surface hover:border-brand-teal/40"
+                    ? "border-brand-teal/40 bg-brand-teal/[0.04] dark:bg-brand-teal/10 ring-1 ring-brand-teal/20"
+                    : "border-border/70 bg-surface/90 hover:border-brand-teal/30"
                 }`}
               >
                 <div className="flex items-start justify-between">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-teal/15 text-brand-teal dark:text-teal-400">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-teal/10 text-brand-teal dark:text-teal-400">
                     <ClipboardList className="h-5 w-5" />
                   </div>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-brand-teal/10 text-brand-teal dark:text-teal-400">
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-brand-teal/10 text-brand-teal dark:text-teal-400">
                     In Field
                   </span>
                 </div>
                 <div className="mt-4">
-                  <p className="text-3xl sm:text-4xl font-black tracking-tight text-foreground">
+                  <p className="text-3xl font-extrabold tracking-tight text-foreground/90">
                     {checkedOut.length}
                   </p>
                   <p className="text-xs font-semibold text-foreground/80 mt-1">
@@ -206,27 +240,27 @@ export function DashboardView({
               {/* Card 2: Overdue Returns */}
               <div
                 onClick={() => setActiveFilter("overdue")}
-                className={`interactive-card cursor-pointer rounded-2xl border p-5 transition-all duration-200 ${
+                className={`interactive-card cursor-pointer rounded-2xl border p-5 transition-all duration-200 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.06)] ${
                   activeFilter === "overdue"
-                    ? "border-rose-500/50 bg-rose-500/5 dark:bg-rose-500/10 shadow-xs ring-1 ring-rose-500/30"
-                    : "border-border bg-surface hover:border-rose-500/40"
+                    ? "border-rose-500/40 bg-rose-500/[0.04] dark:bg-rose-500/10 ring-1 ring-rose-500/20"
+                    : "border-border/70 bg-surface/90 hover:border-rose-500/30"
                 }`}
               >
                 <div className="flex items-start justify-between">
                   <div
-                    className={`flex h-11 w-11 items-center justify-center rounded-xl ${
+                    className={`flex h-10 w-10 items-center justify-center rounded-xl ${
                       overdue.length > 0
-                        ? "bg-rose-500/15 text-rose-600 dark:text-rose-400"
+                        ? "bg-rose-500/10 text-rose-600 dark:text-rose-400"
                         : "bg-surface-elevated text-muted"
                     }`}
                   >
                     <AlertTriangle className="h-5 w-5" />
                   </div>
                   <span
-                    className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                    className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
                       overdue.length > 0
-                        ? "bg-rose-500/15 text-rose-600 dark:text-rose-400"
-                        : "bg-surface-elevated text-muted"
+                        ? "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                        : "bg-surface-elevated text-muted border border-border/50"
                     }`}
                   >
                     {overdue.length > 0 ? "Urgent" : "Nominal"}
@@ -234,8 +268,8 @@ export function DashboardView({
                 </div>
                 <div className="mt-4">
                   <p
-                    className={`text-3xl sm:text-4xl font-black tracking-tight ${
-                      overdue.length > 0 ? "text-rose-600 dark:text-rose-400" : "text-foreground"
+                    className={`text-3xl font-extrabold tracking-tight ${
+                      overdue.length > 0 ? "text-rose-600 dark:text-rose-400" : "text-foreground/90"
                     }`}
                   >
                     {overdue.length}
@@ -252,23 +286,23 @@ export function DashboardView({
               {/* Card 3: Low Stock Alerts */}
               <div
                 onClick={() => setTab("By category")}
-                className="interactive-card cursor-pointer rounded-2xl border border-border bg-surface p-5 hover:border-amber-500/40 transition-all duration-200"
+                className="interactive-card cursor-pointer rounded-2xl border border-border/70 bg-surface/90 p-5 hover:border-amber-500/30 transition-all duration-200 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.06)]"
               >
                 <div className="flex items-start justify-between">
                   <div
-                    className={`flex h-11 w-11 items-center justify-center rounded-xl ${
+                    className={`flex h-10 w-10 items-center justify-center rounded-xl ${
                       lowStock.length > 0
-                        ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                        ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
                         : "bg-surface-elevated text-muted"
                     }`}
                   >
                     <PackageX className="h-5 w-5" />
                   </div>
                   <span
-                    className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                    className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
                       lowStock.length > 0
-                        ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
-                        : "bg-surface-elevated text-muted"
+                        ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                        : "bg-surface-elevated text-muted border border-border/50"
                     }`}
                   >
                     {lowStock.length > 0 ? "Restock" : "Sufficient"}
@@ -276,8 +310,8 @@ export function DashboardView({
                 </div>
                 <div className="mt-4">
                   <p
-                    className={`text-3xl sm:text-4xl font-black tracking-tight ${
-                      lowStock.length > 0 ? "text-amber-600 dark:text-amber-400" : "text-foreground"
+                    className={`text-3xl font-extrabold tracking-tight ${
+                      lowStock.length > 0 ? "text-amber-600 dark:text-amber-400" : "text-foreground/90"
                     }`}
                   >
                     {lowStock.length}
@@ -294,18 +328,18 @@ export function DashboardView({
               {/* Card 4: Total Fleet Catalog */}
               <Link
                 href="/items"
-                className="interactive-card block rounded-2xl border border-border bg-surface p-5 hover:border-brand-yellow/60 transition-all duration-200"
+                className="interactive-card block rounded-2xl border border-border/70 bg-surface/90 p-5 hover:border-brand-teal/30 transition-all duration-200 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.06)]"
               >
                 <div className="flex items-start justify-between">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-yellow/20 text-brand-navy dark:text-brand-yellow">
-                    <Sparkles className="h-5 w-5" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-teal/10 text-brand-teal dark:text-teal-400">
+                    <FleetAssetsIcon className="h-5 w-5" />
                   </div>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-brand-yellow/20 text-brand-navy dark:text-brand-yellow">
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-surface-elevated text-muted border border-border/50">
                     Catalog
                   </span>
                 </div>
                 <div className="mt-4">
-                  <p className="text-3xl sm:text-4xl font-black tracking-tight text-foreground">
+                  <p className="text-3xl font-extrabold tracking-tight text-foreground/90">
                     {items.length}
                   </p>
                   <p className="text-xs font-semibold text-foreground/80 mt-1">
@@ -427,11 +461,11 @@ export function DashboardView({
                         <div
                           key={checkout.id}
                           onClick={() => setSelectedCheckout(checkout)}
-                          className="group relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-border bg-surface-elevated/60 hover:bg-surface-elevated hover:border-accent/40 cursor-pointer transition-all duration-200"
+                          className="group relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-border/70 bg-surface/80 hover:bg-surface-elevated/70 hover:border-brand-teal/30 cursor-pointer transition-all duration-150 shadow-[0_1px_3px_rgba(0,0,0,0.02)]"
                         >
                           {/* Left: Avatar + Details */}
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-10 h-10 rounded-xl bg-brand-navy text-brand-yellow font-black text-xs flex items-center justify-center shrink-0 border border-brand-yellow/30 shadow-xs">
+                            <div className="w-9 h-9 rounded-xl bg-brand-teal/10 dark:bg-brand-teal/20 text-brand-teal dark:text-teal-300 font-bold text-xs flex items-center justify-center shrink-0 border border-brand-teal/20 shadow-xs">
                               {initials}
                             </div>
                             <div className="min-w-0">
@@ -440,7 +474,7 @@ export function DashboardView({
                                   {item?.name || "Equipment Item"}
                                 </p>
                                 {categoryName && (
-                                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-background border border-border text-muted">
+                                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-surface-elevated border border-border text-muted">
                                     {categoryName}
                                   </span>
                                 )}
@@ -491,11 +525,137 @@ export function DashboardView({
                 )}
               </div>
 
-              {/* Right Column (5 cols): Category Utilization & Fleet Operations Hub */}
+              {/* Right Column (5 cols): Staff Tickets, Category Capacity & Operations Hub */}
               <div className="lg:col-span-5 space-y-6">
-                {/* Card 1: Category Capacity Breakdown */}
-                <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-xs space-y-4">
-                  <div className="flex items-center justify-between pb-3 border-b border-border">
+                {/* Card 1: Staff Support Tickets & Complaints */}
+                <div className="rounded-2xl border border-border/70 bg-surface/90 backdrop-blur-sm p-5 sm:p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.03)] space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-border/60">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-teal/10 text-brand-teal">
+                          <LifeBuoy className="w-4 h-4" />
+                        </div>
+                        <h2 className="text-base font-bold text-foreground">
+                          Staff Support Tickets
+                        </h2>
+                        {openComplaints.length > 0 && (
+                          <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/25">
+                            {openComplaints.length} Active
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted mt-1">
+                        Complaints, repair requests & fault reports
+                      </p>
+                    </div>
+                    <Link
+                      href="/tech"
+                      className="text-xs font-semibold text-brand-teal hover:underline inline-flex items-center gap-1 group"
+                    >
+                      <span>Open Queue</span>
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                    </Link>
+                  </div>
+
+                  {recentComplaints.length === 0 ? (
+                    <div className="text-center py-6 px-3 border border-dashed border-border/70 rounded-xl space-y-2 bg-surface-elevated/20">
+                      <CheckCircle2 className="w-5 h-5 mx-auto text-brand-teal/70" />
+                      <p className="text-xs font-semibold text-foreground">No Active Tickets</p>
+                      <p className="text-[11px] text-muted">
+                        All reported staff device issues are resolved and up to date.
+                      </p>
+                      <Link
+                        href="/tech"
+                        className="inline-block mt-1 text-[11px] font-semibold text-brand-teal hover:underline"
+                      >
+                        View Tech Command Center →
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5">
+                      {recentComplaints.map((c) => {
+                        const isResolved = c.status === "resolved" || c.status === "closed";
+                        const isUnderway =
+                          c.status === "in-progress" ||
+                          c.status === "in-repair" ||
+                          c.status === "assigned" ||
+                          c.status === "under-review";
+                        return (
+                          <Link
+                            key={c.id}
+                            href={`/tech?ticket=${c.ticketNumber}`}
+                            className="group block p-3 rounded-xl border border-border/60 bg-surface-elevated/30 hover:bg-surface-elevated/80 hover:border-brand-teal/30 transition-all text-left"
+                          >
+                            <div className="flex items-center justify-between gap-2 mb-1.5">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <span className="font-mono text-[11px] font-bold text-foreground">
+                                  {c.ticketNumber}
+                                </span>
+                                {(() => {
+                                  const prio = (c.severity || c.priority || "medium").toLowerCase();
+                                  const PrioIcon =
+                                    prio === "critical"
+                                      ? PriorityCriticalIcon
+                                      : prio === "high"
+                                      ? PriorityHighIcon
+                                      : prio === "low"
+                                      ? PriorityLowIcon
+                                      : PriorityMediumIcon;
+                                  return (
+                                    <span
+                                      className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded font-medium border ${
+                                        prio === "critical"
+                                          ? "bg-rose-500/10 text-rose-600 border-rose-500/30"
+                                          : prio === "high"
+                                          ? "bg-orange-500/10 text-orange-600 border-orange-500/30"
+                                          : prio === "low"
+                                          ? "bg-sky-500/10 text-sky-600 border-sky-500/30"
+                                          : "bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/30"
+                                      }`}
+                                    >
+                                      <PrioIcon className="w-3 h-3" />
+                                      <span className="capitalize">{prio}</span>
+                                    </span>
+                                  );
+                                })()}
+                              </div>
+                              <span
+                                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${
+                                  isResolved
+                                    ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/25"
+                                    : isUnderway
+                                    ? "bg-blue-500/10 text-blue-600 border border-blue-500/25"
+                                    : "bg-amber-500/10 text-amber-600 border border-amber-500/25"
+                                }`}
+                              >
+                                {c.status.replace("-", " ")}
+                              </span>
+                            </div>
+
+                            <p className="text-xs font-semibold text-foreground truncate group-hover:text-brand-teal transition-colors">
+                              {c.title}
+                            </p>
+                            <p className="text-[11px] text-muted truncate mt-0.5">
+                              {c.itemName || c.deviceSummary || "Hardware Device"} • {c.userName || "Staff"}
+                            </p>
+                          </Link>
+                        );
+                      })}
+
+                      <Link
+                        href="/tech"
+                        className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-surface-elevated hover:bg-surface border border-border/80 text-xs font-semibold text-foreground/80 hover:text-foreground transition-colors"
+                      >
+                        <span>Go to Tech Command Center & Stepper</span>
+                        <ArrowRight className="w-3.5 h-3.5 text-brand-teal" />
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
+                {/* Card 2: Category Capacity Breakdown */}
+                <div className="rounded-2xl border border-border/70 bg-surface/90 backdrop-blur-sm p-5 sm:p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.03)] space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-border/60">
                     <div>
                       <h2 className="text-base font-bold text-foreground flex items-center gap-2">
                         <Boxes className="w-4 h-4 text-brand-teal" />
@@ -515,7 +675,7 @@ export function DashboardView({
                     </button>
                   </div>
 
-                  <div className="space-y-3.5">
+                  <div className="space-y-3">
                     {breakdown.slice(0, 6).map(({ category, totalItems, checkedOut, available, lowStock }) => {
                       const deployedPct =
                         totalItems > 0 ? Math.round((checkedOut / totalItems) * 100) : 0;
@@ -524,10 +684,10 @@ export function DashboardView({
                         <div
                           key={category.id}
                           onClick={() => setSelectedCategory(category)}
-                          className="group p-3 rounded-xl border border-border bg-surface-elevated/40 hover:bg-surface-elevated hover:border-brand-teal/40 cursor-pointer transition-all"
+                          className="group p-3 rounded-xl border border-border/60 bg-surface-elevated/30 hover:bg-surface-elevated hover:border-brand-teal/30 cursor-pointer transition-all"
                         >
                           <div className="flex items-center justify-between text-xs">
-                            <span className="font-bold text-foreground group-hover:text-accent transition-colors">
+                            <span className="font-semibold text-foreground group-hover:text-brand-teal transition-colors">
                               {category.name}
                             </span>
                             <span className="font-mono text-muted text-[11px]">
@@ -536,10 +696,10 @@ export function DashboardView({
                           </div>
 
                           {/* Capacity Progress Bar */}
-                          <div className="mt-2 w-full h-2 rounded-full bg-background overflow-hidden border border-border/40 flex">
+                          <div className="mt-2 w-full h-1.5 rounded-full bg-muted/15 overflow-hidden flex">
                             <div
                               style={{ width: `${deployedPct}%` }}
-                              className="h-full bg-brand-teal dark:bg-teal-400 transition-all duration-500 rounded-l-full"
+                              className="h-full bg-brand-teal/90 dark:bg-teal-400 transition-all duration-500 rounded-full"
                               title={`${deployedPct}% deployed`}
                             />
                             {lowStock > 0 && (
@@ -563,8 +723,8 @@ export function DashboardView({
                   </div>
                 </div>
 
-                {/* Card 2: Operations Quick Hub */}
-                <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-xs space-y-4">
+                {/* Card 3: Operations Quick Hub */}
+                <div className="rounded-2xl border border-border/70 bg-surface/90 backdrop-blur-sm p-5 sm:p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.03)] space-y-4">
                   <h3 className="text-sm font-bold text-foreground">
                     Quick Operations
                   </h3>
@@ -572,37 +732,37 @@ export function DashboardView({
                   <div className="grid grid-cols-2 gap-2.5">
                     <Link
                       href="/checkouts"
-                      className="p-3 rounded-xl border border-border bg-surface-elevated/40 hover:bg-surface-elevated hover:border-accent/40 transition-colors text-left"
+                      className="p-3 rounded-xl border border-border/60 bg-surface-elevated/30 hover:bg-surface-elevated hover:border-brand-teal/30 transition-colors text-left"
                     >
-                      <ClipboardList className="w-4 h-4 text-accent" />
-                      <p className="text-xs font-bold text-foreground mt-2">New Loan</p>
+                      <ClipboardList className="w-4 h-4 text-brand-teal" />
+                      <p className="text-xs font-semibold text-foreground mt-2">New Loan</p>
                       <p className="text-[10px] text-muted mt-0.5">Issue device to staff</p>
                     </Link>
 
                     <Link
                       href="/items"
-                      className="p-3 rounded-xl border border-border bg-surface-elevated/40 hover:bg-surface-elevated hover:border-accent/40 transition-colors text-left"
+                      className="p-3 rounded-xl border border-border/60 bg-surface-elevated/30 hover:bg-surface-elevated hover:border-brand-teal/30 transition-colors text-left"
                     >
                       <Package className="w-4 h-4 text-brand-teal" />
-                      <p className="text-xs font-bold text-foreground mt-2">Add Device</p>
+                      <p className="text-xs font-semibold text-foreground mt-2">Add Device</p>
                       <p className="text-[10px] text-muted mt-0.5">Register to catalog</p>
                     </Link>
 
                     <Link
-                      href="/staff"
-                      className="p-3 rounded-xl border border-border bg-surface-elevated/40 hover:bg-surface-elevated hover:border-accent/40 transition-colors text-left"
+                      href="/tech"
+                      className="p-3 rounded-xl border border-border/60 bg-surface-elevated/30 hover:bg-surface-elevated hover:border-brand-teal/30 transition-colors text-left"
                     >
-                      <Monitor className="w-4 h-4 text-purple-400" />
-                      <p className="text-xs font-bold text-foreground mt-2">Staff Portal</p>
-                      <p className="text-[10px] text-muted mt-0.5">Self-service & claims</p>
+                      <LifeBuoy className="w-4 h-4 text-brand-teal" />
+                      <p className="text-xs font-semibold text-foreground mt-2">Service Tickets</p>
+                      <p className="text-[10px] text-muted mt-0.5">Manage staff tickets</p>
                     </Link>
 
                     <Link
                       href="/exports"
-                      className="p-3 rounded-xl border border-border bg-surface-elevated/40 hover:bg-surface-elevated hover:border-accent/40 transition-colors text-left"
+                      className="p-3 rounded-xl border border-border/60 bg-surface-elevated/30 hover:bg-surface-elevated hover:border-brand-teal/30 transition-colors text-left"
                     >
-                      <Sparkles className="w-4 h-4 text-brand-yellow" />
-                      <p className="text-xs font-bold text-foreground mt-2">Export Data</p>
+                      <FileSpreadsheet className="w-4 h-4 text-brand-teal" />
+                      <p className="text-xs font-semibold text-foreground mt-2">Export Data</p>
                       <p className="text-[10px] text-muted mt-0.5">CSV / Excel reports</p>
                     </Link>
                   </div>

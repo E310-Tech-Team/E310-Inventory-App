@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Download, X, Share, PlusSquare, Sparkles } from "lucide-react";
+import { Download, X, Share, PlusSquare } from "lucide-react";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -136,7 +136,7 @@ export function PwaInstallPrompt() {
             </button>
             <button
               onClick={handleInstallClick}
-              className="text-xs font-bold bg-brand-yellow hover:bg-brand-yellow/90 text-brand-navy px-3.5 py-1.5 rounded-xl transition-all shadow-xs"
+              className="text-xs font-semibold bg-brand-teal hover:bg-brand-teal/90 text-white px-3.5 py-1.5 rounded-xl transition-all shadow-xs"
             >
               Install App
             </button>

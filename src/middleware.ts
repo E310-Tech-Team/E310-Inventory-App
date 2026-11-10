@@ -9,6 +9,7 @@ const PUBLIC_PATHS = [
   "/favicon.ico",
   "/icons",
   "/branding",
+  "/uploads",
   "/api/auth/login",
   "/api/auth/logout",
   "/api/auth/invite",
@@ -53,11 +54,12 @@ export async function middleware(request: NextRequest) {
 
   // 4. Resolve role & status from Supabase REST if companion cookies are absent
   let needsCookieSync = false;
-  if ((!userRole || !userStatus) && process.env.NEXT_PUBLIC_SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY)) {
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const apiKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || "";
+  if ((!userRole || !userStatus) && supabaseUrl && apiKey) {
     try {
-      const apiKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || "";
       const supabaseRes = await fetch(
-        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/department_users?id=eq.${encodeURIComponent(userId)}&select=id,role,status`,
+        `${supabaseUrl}/rest/v1/department_users?id=eq.${encodeURIComponent(userId)}&select=id,role,status`,
         {
           headers: {
             apikey: apiKey,

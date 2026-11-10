@@ -1,0 +1,111 @@
+services:
+  # Next.js Application Frontend & API Server
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    container_name: e310-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+      # Browser-facing Supabase URL (accessible from host machine)
+      - NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
+      # Server-side Supabase URL (internal docker network communication)
+      - SUPABASE_URL=http://gateway:8000
+      - SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJvbGUiOiJzZXJ2aWNlX3JvbGUiLCJpYXQiOjE2NDEwMTIwMDAsImV4cCI6MTk1NjM3MjAwMH0.UsEo-2rJcMnv7J5MvriUvPUr8LOYsMkpv8O6rgMAEAw
+      - SUPABASE_SECRET_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJvbGUiOiJzZXJ2aWNlX3JvbGUiLCJpYXQiOjE2NDEwMTIwMDAsImV4cCI6MTk1NjM3MjAwMH0.UsEo-2rJcMnv7J5MvriUvPUr8LOYsMkpv8O6rgMAEAw
+    depends_on:
+      gateway:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    networks:
+      - e310-network
+
+  # Supabase API Gateway (routes /rest/v1 to PostgREST)
+  gateway:
+    image: nginx:alpine
+    container_name: e310-supabase-gateway
+    restart: unless-stopped
+    ports:
+      - "54321:8000"
+    volumes:
+      - ./docker/gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      rest:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8000/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - e310-network
+
+  # PostgREST REST API Engine
+  rest:
+    image: postgrest/postgrest:v12.2.0
+    container_name: e310-supabase-rest
+    restart: unless-stopped
+    environment:
+      PGRST_DB_URI: postgres://authenticator:postgres@db:5432/postgres
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: super-secret-jwt-token-with-at-least-32-characters-long
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - e310-network
+
+  # PostgreSQL Database (Supabase-compatible with schema and seed data)
+  db:
+    image: postgres:15-alpine
+    container_name: e310-supabase-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "54322:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./docker/init-db/00-init-roles.sql:/docker-entrypoint-initdb.d/00-init-roles.sql:ro
+      - ./supabase/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./supabase/import-google-sheet.sql:/docker-entrypoint-initdb.d/02-import-google-sheet.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - e310-network
+
+  # Database Management GUI (Adminer)
+  adminer:
+    image: adminer:latest
+    container_name: e310-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - e310-network
+
+volumes:
+  db-data:
+
+networks:
+  e310-network:
+    driver: bridge
+

@@ -17,10 +17,10 @@ import { Admin } from "@/types";
 import { isTechUser } from "@/lib/auth/roles";
 
 const TECH_NAV_ITEMS = [
-  { href: "/tech", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/tech", label: "Tickets", icon: LifeBuoy },
   { href: "/items", label: "Inventory", icon: Package },
   { href: "/tech/approvals", label: "Approvals", icon: ShieldCheck },
-  { href: "/tech/options", label: "Options", icon: Sliders },
   { href: "/checkouts", label: "Checkouts", icon: ArrowLeftRight },
 ];
 

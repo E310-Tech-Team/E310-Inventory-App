@@ -15,9 +15,11 @@ export function NotificationBell({ className = "" }: NotificationBellProps) {
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [loading, setLoading] = useState(false);
 
-  const fetchNotifications = useCallback(async () => {
+  const fetchNotifications = useCallback(async (isManual = false) => {
     try {
-      setLoading(true);
+      if (isManual) {
+        setLoading(true);
+      }
       const res = await fetch("/api/notifications");
       if (!res.ok) return;
 
@@ -31,13 +33,13 @@ export function NotificationBell({ className = "" }: NotificationBellProps) {
     }
   }, []);
 
-  // Fetch on mount and poll every 30 seconds
+  // Fetch on mount and poll calmly every 60 seconds
   useEffect(() => {
-    fetchNotifications();
+    fetchNotifications(false);
 
     const interval = setInterval(() => {
-      fetchNotifications();
-    }, 30000);
+      fetchNotifications(false);
+    }, 60000);
 
     return () => clearInterval(interval);
   }, [fetchNotifications]);
@@ -95,7 +97,10 @@ export function NotificationBell({ className = "" }: NotificationBellProps) {
     <>
       <button
         type="button"
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          setIsOpen(true);
+          fetchNotifications();
+        }}
         className={`relative flex items-center justify-center p-2 rounded-xl text-muted hover:text-foreground hover:bg-surface-elevated transition-colors focus:outline-hidden focus:ring-2 focus:ring-brand-teal/20 ${className}`}
         aria-label={`Notifications (${unreadCount} unread)`}
         title={unreadCount > 0 ? `${unreadCount} unread notifications` : "Notifications"}
@@ -104,14 +109,9 @@ export function NotificationBell({ className = "" }: NotificationBellProps) {
 
         {/* Unread Badge Counter */}
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white shadow-xs animate-in zoom-in-75">
+          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-brand-teal text-[10px] font-semibold text-white shadow-xs">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
-        )}
-
-        {/* Subtle Pulse Animation when there are unread items */}
-        {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-emerald-400 opacity-40 animate-ping pointer-events-none" />
         )}
       </button>
 

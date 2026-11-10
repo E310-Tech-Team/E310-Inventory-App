@@ -94,3 +94,20 @@ To maintain code quality across multiple contributors:
    npm run dev
    ```
    Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## Quick Start (Docker Environment)
+
+You can also run the entire full stack (Next.js + local Supabase backend + database GUI) via Docker Compose:
+
+```bash
+docker compose up --build -d
+```
+
+* **Next.js App:** [http://localhost:3000](http://localhost:3000)
+* **Supabase REST Gateway:** [http://localhost:54321](http://localhost:54321)
+* **Database Manager (Adminer):** [http://localhost:8080](http://localhost:8080)
+* **PostgreSQL Direct Connection:** `localhost:54322` (`postgres://postgres:postgres@localhost:54322/postgres`)
+
+For full details, backend-only Docker mode, and live reload workflows, see 👉 **[DOCKER.md](./DOCKER.md)**.

@@ -20,7 +20,7 @@ export function MobileHeader({ onOpenSearch }: { onOpenSearch?: () => void }) {
       <div className="flex items-center justify-between px-4 h-14">
         <div className="flex items-center gap-2">
           <E310Logo size="xs" />
-          <span className="text-[10px] font-bold tracking-wider px-1.5 py-0.5 rounded bg-brand-yellow/25 text-brand-navy dark:text-brand-yellow border border-brand-yellow/40 leading-none">
+          <span className="text-[10px] font-semibold tracking-wider px-1.5 py-0.5 rounded bg-brand-teal/15 text-brand-teal border border-brand-teal/25 leading-none">
             INVENTORY
           </span>
         </div>

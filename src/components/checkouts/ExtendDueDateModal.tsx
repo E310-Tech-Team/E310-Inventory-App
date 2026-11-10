@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Checkout } from "@/types";
 import { Modal } from "@/components/ui/Modal";
 import { FormField, inputClass } from "@/components/ui/FormField";
+import { DatePicker } from "@/components/common/DatePicker";
 import { Calendar, Clock, RefreshCw, Check } from "lucide-react";
 
 export function ExtendDueDateModal({
@@ -95,41 +96,16 @@ export function ExtendDueDateModal({
           </div>
         </div>
 
-        {/* Date Input */}
-        <FormField label="New Due Date">
-          <div className="relative">
-            <Calendar className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
-            <input
-              type="date"
-              required
-              value={newDueDate}
-              onChange={(e) => setNewDueDate(e.target.value)}
-              className={`${inputClass} pl-9 font-mono`}
-            />
-          </div>
-        </FormField>
-
-        {/* Quick extension shortcuts */}
-        <div>
-          <span className="text-[11px] font-medium text-muted">Quick extensions:</span>
-          <div className="flex flex-wrap gap-1.5 mt-1.5">
-            {[
-              { label: "+7 Days", days: 7 },
-              { label: "+14 Days", days: 14 },
-              { label: "+30 Days", days: 30 },
-              { label: "+60 Days", days: 60 },
-            ].map((shortcut) => (
-              <button
-                key={shortcut.label}
-                type="button"
-                onClick={() => addDays(shortcut.days)}
-                className="px-2.5 py-1 text-xs font-medium text-foreground bg-surface-elevated hover:bg-surface-elevated/80 border border-border rounded-md transition-colors"
-              >
-                {shortcut.label}
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* Date Input with Themed Calendar */}
+        <DatePicker
+          label="New Due Date"
+          required
+          value={newDueDate}
+          onChange={setNewDueDate}
+          minDate={new Date().toISOString().split("T")[0]}
+          placeholder="Select new due date"
+          showShortcuts={true}
+        />
 
         <FormField label="Extension Justification / Notes (optional)">
           <textarea
