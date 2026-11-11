@@ -170,7 +170,7 @@ export function ItemFormModal({
         <button
           type="submit"
           disabled={saving}
-          className="pressable w-full py-2.5 rounded-lg bg-brand-yellow hover:brightness-105 text-brand-navy text-sm font-bold transition-all disabled:opacity-50 shadow-sm"
+          className="pressable w-full py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-sm font-semibold transition-all disabled:opacity-50 shadow-2xs"
         >
           {saving ? "Saving…" : isEdit ? "Save changes" : "Add item"}
         </button>

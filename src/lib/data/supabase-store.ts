@@ -134,7 +134,15 @@ interface AuditLogRow {
 }
 
 function throwOnError(error: { message: string } | null): void {
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (error.message && error.message.includes("fetch failed")) {
+      const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "unknown";
+      throw new Error(
+        `Failed to connect to backend database at ${url}. If you are running locally with Docker, make sure your Docker containers are started with 'docker compose up -d'. (${error.message})`
+      );
+    }
+    throw new Error(error.message);
+  }
 }
 
 function fromUserRow(row: DepartmentUserRow): DepartmentUser {

@@ -12,9 +12,12 @@ import {
   Laptop,
   CheckCircle2,
   ChevronDown,
+  ImageIcon,
+  ExternalLink,
 } from "lucide-react";
 import { DeviceComplaint, ComplaintPriority } from "@/types";
 import { Select } from "@/components/common/Select";
+import { broadcastTicketUpdate } from "@/lib/sync/ticket-broadcast";
 
 interface TechMember {
   id: string;
@@ -230,6 +233,7 @@ export function AssignTicketModal({
       };
 
       onAssigned(updatedTicket);
+      broadcastTicketUpdate(ticket.id, updatedTicket.status);
       onClose();
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred during delegation");
@@ -311,6 +315,36 @@ export function AssignTicketModal({
               <p className="text-xs text-muted line-clamp-2">
                 {ticket.description}
               </p>
+            )}
+
+            {ticket.attachmentUrls && ticket.attachmentUrls.length > 0 && (
+              <div className="pt-2 border-t border-border space-y-1.5">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">
+                  Attached Evidence ({ticket.attachmentUrls.length}):
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {ticket.attachmentUrls.map((url, idx) => (
+                    <a
+                      key={idx}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-center gap-1.5 p-1 pr-2.5 rounded-lg bg-surface border border-border hover:border-brand-teal text-[11px] text-foreground transition-all"
+                    >
+                      <img
+                        src={url}
+                        alt={`Evidence ${idx + 1}`}
+                        className="w-6 h-6 object-cover rounded border border-border"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                      <span>Photo {idx + 1}</span>
+                      <ExternalLink className="w-3 h-3 text-muted group-hover:text-foreground" />
+                    </a>
+                  ))}
+                </div>
+              </div>
             )}
 
             <div className="pt-2 border-t border-border flex flex-wrap items-center justify-between gap-y-1 text-xs text-muted">

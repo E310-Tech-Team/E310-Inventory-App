@@ -52,7 +52,7 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
         disabled
         className={
           compact
-            ? "p-2 rounded-lg border border-border bg-surface text-muted transition-colors opacity-70"
+            ? "p-2 rounded-xl text-muted transition-colors opacity-70"
             : "w-full inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-muted transition-colors opacity-70"
         }
       >
@@ -69,14 +69,14 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
       title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
       className={
         compact
-          ? "pressable p-2 rounded-lg border border-border bg-surface text-foreground hover:bg-background transition-colors"
+          ? "p-2 rounded-xl text-muted hover:text-foreground hover:bg-surface-elevated transition-colors cursor-pointer"
           : "pressable w-full inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-background"
       }
     >
       {theme === "dark" ? (
         <SunMedium className="w-4 h-4 text-brand-yellow" />
       ) : (
-        <Moon className="w-4 h-4 text-foreground" />
+        <Moon className="w-4 h-4" />
       )}
       {!compact && (theme === "dark" ? "Light mode" : "Dark mode")}
     </button>

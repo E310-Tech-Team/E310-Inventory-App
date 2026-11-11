@@ -9,6 +9,7 @@ import { StatusPill } from "@/components/ui/StatusPill";
 import { Modal } from "@/components/ui/Modal";
 import { FormField, inputClass } from "@/components/ui/FormField";
 import { Select } from "@/components/common/Select";
+import { ShowMoreBar } from "@/components/ui/ShowMoreBar";
 import { AccessDetailsModal } from "./AccessDetailsModal";
 
 export function AccessList({
@@ -24,6 +25,7 @@ export function AccessList({
   const [selectedUser, setSelectedUser] = useState<DepartmentUser | null>(null);
   const [deleting, setDeleting] = useState<DepartmentUser | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [mobileLimit, setMobileLimit] = useState(8);
 
   const sortedUsers = useMemo(
     () =>
@@ -53,116 +55,123 @@ export function AccessList({
   return (
     <div>
       <PageHeader
-        title="Access"
-        description="Manage who can update department inventory"
+        title="User Access"
+        description="Manage who can view or administer department inventory"
         action={
           <button
+            type="button"
             onClick={() => setShowCreate(true)}
-            className="pressable flex items-center justify-center gap-1.5 p-2.5 sm:px-3.5 sm:py-2 rounded-lg bg-brand-yellow hover:brightness-105 text-brand-navy text-sm font-bold shadow-xs transition-all"
+            className="pressable inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-2xs transition-colors"
             aria-label="Add member"
           >
-            <UserPlus className="w-4 h-4" />
-            <span className="hidden sm:inline">Add member</span>
+            <UserPlus className="w-3.5 h-3.5" />
+            <span>Add member</span>
           </button>
         }
       />
 
-      <div className="px-4 md:px-8 pb-8 animate-enter">
-        {/* Mobile: stacked cards */}
-        <ul className="md:hidden space-y-3">
-          {sortedUsers.map((user) => {
-            const isOtherSuperAdmin = user.role === "super-admin" && user.id !== currentUser.id;
-            return (
-              <li
-                key={user.id}
-                className="interactive-card cursor-pointer rounded-xl border border-border bg-surface p-4"
-                role="button"
-                tabIndex={0}
-                onClick={() => {
-                  if (!isOtherSuperAdmin) setSelectedUser(user);
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
+      <div className="px-4 md:px-8 pb-6 sm:pb-12 animate-enter">
+        {/* Mobile: compact hairline list */}
+        <div className="md:hidden rounded-2xl border border-border/70 bg-surface overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
+          <ul className="divide-y divide-border/50">
+            {sortedUsers.slice(0, mobileLimit).map((user) => {
+              const isOtherSuperAdmin = user.role === "super-admin" && user.id !== currentUser.id;
+              return (
+                <li
+                  key={user.id}
+                  className="cursor-pointer px-3.5 py-2.5 hover:bg-surface-elevated/40 transition-colors"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => {
                     if (!isOtherSuperAdmin) setSelectedUser(user);
-                  }
-                }}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="font-semibold text-sm text-foreground break-words">
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      if (!isOtherSuperAdmin) setSelectedUser(user);
+                    }
+                  }}
+                >
+                  <div className="flex items-center justify-between gap-2.5">
+                    <p className="font-semibold text-sm text-foreground truncate min-w-0">
                       {user.name}
                       {user.id === currentUser.id && (
-                        <span className="ml-2 text-xs text-muted font-normal">(you)</span>
+                        <span className="ml-1.5 text-xs text-muted font-normal">(you)</span>
                       )}
                     </p>
-                    <p className="text-xs text-muted mt-0.5 break-words font-mono">{user.email}</p>
+                    <div className="shrink-0">
+                      <StatusPill status={user.status} />
+                    </div>
                   </div>
-                  <div className="shrink-0">
-                    <StatusPill status={user.status} />
-                  </div>
-                </div>
 
-                <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                  <div className="min-w-0">
-                    <p className="text-muted">Role</p>
-                    <p className="text-foreground capitalize">{user.role.replace("-", " ")}</p>
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-muted">Invited by</p>
-                    <p className="text-foreground truncate">{user.invitedBy ?? "-"}</p>
-                  </div>
-                </div>
+                  <div className="mt-1 flex items-center justify-between gap-2">
+                    <p className="text-xs text-muted truncate min-w-0">
+                      <span className="font-mono">{user.email}</span>
+                      {" · "}
+                      <span className="capitalize">{user.role.replace("-", " ")}</span>
+                    </p>
 
-                <div
-                  className="mt-3 flex items-center justify-end gap-1 border-t border-border pt-3"
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  <button
-                    onClick={() => {
-                      if (!isOtherSuperAdmin) setEditing(user);
-                    }}
-                    className="pressable p-2 rounded-lg hover:bg-background text-muted hover:text-foreground"
-                    aria-label={`Edit ${user.name}`}
-                    disabled={isOtherSuperAdmin}
-                    title={
-                      isOtherSuperAdmin ? "Cannot edit another super-admin" : undefined
-                    }
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setDeleting(user)}
-                    className="pressable p-2 rounded-lg hover:bg-background text-muted hover:text-status-overdue disabled:opacity-40 disabled:hover:text-muted"
-                    aria-label={`Remove ${user.name}`}
-                    disabled={user.id === currentUser.id}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+                    <div
+                      className="flex items-center gap-0.5 shrink-0"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!isOtherSuperAdmin) setEditing(user);
+                        }}
+                        className="pressable p-1.5 rounded-lg hover:bg-surface-elevated text-muted hover:text-foreground transition-colors"
+                        aria-label={`Edit ${user.name}`}
+                        disabled={isOtherSuperAdmin}
+                        title={
+                          isOtherSuperAdmin ? "Cannot edit another super-admin" : undefined
+                        }
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleting(user)}
+                        className="pressable p-1.5 rounded-lg hover:bg-rose-500/10 text-muted hover:text-rose-600 dark:hover:text-rose-400 disabled:opacity-40 disabled:hover:text-muted transition-colors"
+                        aria-label={`Remove ${user.name}`}
+                        disabled={user.id === currentUser.id}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          <ShowMoreBar
+            visibleCount={Math.min(mobileLimit, sortedUsers.length)}
+            totalCount={sortedUsers.length}
+            initialLimit={8}
+            noun="members"
+            onShowMore={() => setMobileLimit((prev) => prev + 8)}
+            onCollapse={() => setMobileLimit(8)}
+          />
+        </div>
 
         {/* Desktop: full table */}
-        <div className="hidden md:block interactive-card border border-border rounded-xl overflow-hidden bg-surface overflow-x-auto">
+        <div className="hidden md:block border border-border/70 rounded-2xl overflow-hidden bg-surface shadow-[0_1px_4px_rgba(0,0,0,0.02)] overflow-x-auto">
           <table className="w-full min-w-[820px] text-sm">
             <thead>
-              <tr className="border-b border-border bg-background text-left text-xs text-muted uppercase tracking-wide">
-                <th className="px-4 py-3 font-medium">Name</th>
+              <tr className="border-b border-border/60 bg-surface-elevated/40 text-left text-xs font-medium text-muted">
+                <th className="px-5 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Email</th>
                 <th className="px-4 py-3 font-medium">Role</th>
                 <th className="px-4 py-3 font-medium">Access</th>
                 <th className="px-4 py-3 font-medium">Invited by</th>
-                <th className="px-4 py-3 font-medium w-20"></th>
+                <th className="px-5 py-3 font-medium w-24 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-border/50">
               {sortedUsers.map((user) => (
                 <tr
                   key={user.id}
-                  className="table-row cursor-pointer border-b border-border last:border-0 hover:bg-accent-soft/70 text-foreground"
+                  className="cursor-pointer hover:bg-surface-elevated/40 text-foreground transition-colors"
                   role="button"
                   tabIndex={0}
                   onClick={() => {
@@ -179,30 +188,31 @@ export function AccessList({
                     }
                   }}
                 >
-                  <td className="px-4 py-3 font-medium">
+                  <td className="px-5 py-3.5 font-medium">
                     {user.name}
                     {user.id === currentUser.id && (
                       <span className="ml-2 text-xs text-muted font-normal">(you)</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-foreground font-mono text-xs">{user.email}</td>
-                  <td className="px-4 py-3 text-foreground capitalize">
+                  <td className="px-4 py-3.5 text-muted font-mono text-xs">{user.email}</td>
+                  <td className="px-4 py-3.5 text-foreground capitalize">
                     {user.role.replace("-", " ")}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3.5">
                     <StatusPill status={user.status} />
                   </td>
-                  <td className="px-4 py-3 text-foreground">{user.invitedBy ?? "-"}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3.5 text-muted">{user.invitedBy ?? "—"}</td>
+                  <td className="px-5 py-3.5">
                     <div className="flex items-center gap-1 justify-end">
                       <button
+                        type="button"
                         onClick={(event) => {
                           event.stopPropagation();
                           if (!(user.role === "super-admin" && user.id !== currentUser.id)) {
                             setEditing(user);
                           }
                         }}
-                        className="pressable p-1.5 rounded hover:bg-background text-muted hover:text-foreground"
+                        className="pressable p-1.5 rounded-lg hover:bg-surface-elevated text-muted hover:text-foreground transition-colors"
                         aria-label={`Edit ${user.name}`}
                         disabled={user.role === "super-admin" && user.id !== currentUser.id}
                         title={
@@ -214,11 +224,12 @@ export function AccessList({
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                       <button
+                        type="button"
                         onClick={(event) => {
                           event.stopPropagation();
                           setDeleting(user);
                         }}
-                        className="pressable p-1.5 rounded hover:bg-background text-muted hover:text-status-overdue disabled:opacity-40 disabled:hover:text-muted"
+                        className="pressable p-1.5 rounded-lg hover:bg-rose-500/10 text-muted hover:text-rose-600 dark:hover:text-rose-400 disabled:opacity-40 disabled:hover:text-muted transition-colors"
                         aria-label={`Remove ${user.name}`}
                         disabled={user.id === currentUser.id}
                       >
@@ -251,29 +262,31 @@ export function AccessList({
         />
       )}
       {deleting && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="modal-panel bg-surface rounded-2xl border border-border max-w-sm w-full p-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs px-4">
+          <div className="modal-panel bg-surface rounded-2xl border border-border/70 max-w-sm w-full p-5 shadow-xl">
             <h2 className="font-semibold text-sm mb-1.5">Remove access</h2>
             <p className="text-sm text-muted mb-4">
               This removes access for &ldquo;{deleting.name}&rdquo;. Existing checkout history keeps
               their name for audit context.
             </p>
             {deleteError && (
-              <p className="text-sm text-status-overdue mb-3">{deleteError}</p>
+              <p className="text-xs text-rose-600 dark:text-rose-400 mb-3">{deleteError}</p>
             )}
             <div className="flex gap-2">
               <button
+                type="button"
                 onClick={() => {
                   setDeleting(null);
                   setDeleteError(null);
                 }}
-                className="pressable flex-1 py-2 rounded-lg border border-border text-sm font-medium"
+                className="pressable flex-1 py-2 rounded-xl border border-border/80 text-xs font-medium hover:bg-surface-elevated transition-colors"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={confirmDelete}
-                className="pressable flex-1 py-2 rounded-lg bg-status-overdue text-white text-sm font-medium"
+                className="pressable flex-1 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold transition-colors"
               >
                 Remove
               </button>
@@ -429,7 +442,7 @@ function UserFormModal({
           <button
             type="submit"
             disabled={saving}
-            className="pressable w-full py-2.5 rounded-lg bg-brand-yellow hover:brightness-105 text-brand-navy text-sm font-bold transition-all disabled:opacity-50 shadow-sm"
+            className="pressable w-full py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs sm:text-sm font-semibold transition-colors disabled:opacity-50 shadow-2xs"
           >
             {saving ? "Saving..." : isEdit ? "Save changes" : "Add member"}
           </button>

@@ -38,19 +38,16 @@ export async function GET(request: NextRequest) {
         id,
         ticket_number,
         user_id,
-        user_name,
-        user_email,
-        user_department,
         item_id,
+        device_summary,
         title,
         description,
         issue_type,
-        priority,
+        severity,
         status,
         attachment_urls,
         assigned_tech_id,
-        tech_notes,
-        resolution_summary,
+        resolution_notes,
         resolved_at,
         created_at,
         updated_at,
@@ -60,6 +57,12 @@ export async function GET(request: NextRequest) {
           serial_number,
           identifier_type,
           identifier_value
+        ),
+        submitter:user_id (
+          id,
+          name,
+          email,
+          department
         ),
         assigned_tech:department_users!assigned_tech_id (
           id,
@@ -81,7 +84,7 @@ export async function GET(request: NextRequest) {
 
     // Apply priority / severity filter
     if (priority && priority.trim() !== "all") {
-      query = query.eq("priority", priority.trim());
+      query = query.eq("severity", priority.trim());
     }
 
     // Apply assigned tech filter
@@ -93,22 +96,67 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Apply text search across ticket number, title, and submitter name/email
+    // Apply text search across ticket number, title, and description
     if (search && search.trim().length > 0) {
       const q = search.trim();
       query = query.or(
-        `ticket_number.ilike.%${q}%,title.ilike.%${q}%,user_name.ilike.%${q}%,user_email.ilike.%${q}%,description.ilike.%${q}%`
+        `ticket_number.ilike.%${q}%,title.ilike.%${q}%,description.ilike.%${q}%`
       );
     }
 
-    const { data: complaints, error } = await query;
+    const { data: rawComplaints, error } = await query;
 
     if (error) {
       console.error("Error querying tech complaints:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ complaints: complaints ?? [] });
+    const complaints = (rawComplaints ?? []).map((c: any) => ({
+      id: c.id,
+      ticket_number: c.ticket_number,
+      ticketNumber: c.ticket_number,
+      user_id: c.user_id,
+      userId: c.user_id,
+      user_name: c.submitter?.name ?? "Staff Member",
+      userName: c.submitter?.name ?? "Staff Member",
+      user_email: c.submitter?.email ?? "",
+      userEmail: c.submitter?.email ?? "",
+      user_department: c.submitter?.department ?? null,
+      userDepartment: c.submitter?.department ?? null,
+      item_id: c.item_id,
+      itemId: c.item_id,
+      device_summary: c.device_summary,
+      deviceSummary: c.device_summary,
+      title: c.title,
+      description: c.description,
+      issue_type: c.issue_type,
+      issueType: c.issue_type,
+      priority: c.severity,
+      severity: c.severity,
+      status: c.status,
+      attachment_urls: c.attachment_urls ?? [],
+      attachmentUrls: c.attachment_urls ?? [],
+      assigned_tech_id: c.assigned_tech_id,
+      assignedTechId: c.assigned_tech_id,
+      assigned_tech: c.assigned_tech,
+      assignedTech: c.assigned_tech,
+      assignedTechName: c.assigned_tech?.name ?? null,
+      tech_notes: c.resolution_notes,
+      techNotes: c.resolution_notes,
+      resolution_summary: c.resolution_notes,
+      resolutionSummary: c.resolution_notes,
+      resolved_at: c.resolved_at,
+      resolvedAt: c.resolved_at,
+      created_at: c.created_at,
+      createdAt: c.created_at,
+      updated_at: c.updated_at,
+      updatedAt: c.updated_at,
+      item: c.item,
+      itemName: c.item?.name ?? null,
+      itemSerial: c.item?.serial_number ?? null,
+    }));
+
+    return NextResponse.json({ complaints });
   } catch (error) {
     console.error("Tech complaints GET error:", error);
     return NextResponse.json(

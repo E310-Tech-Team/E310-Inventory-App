@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { getSession, isTechUser } from "@/lib/auth/session";
+import { getSession } from "@/lib/auth/session";
 import { getSupabaseAdminClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import {
   DeviceComplaint,
@@ -9,12 +8,8 @@ import {
   ItemIdentifierType,
   ItemCondition,
 } from "@/types";
-import { E310Logo } from "@/components/common/E310Logo";
-import { RoleContextBadge } from "@/components/common/RoleContextBadge";
-import { NotificationBell } from "@/components/layout/NotificationBell";
-import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { StaffHeader } from "@/components/staff/StaffHeader";
 import { TicketStatusTracker } from "@/components/staff/TicketStatusTracker";
-import { ArrowLeft, LogOut } from "lucide-react";
 
 interface SupabaseComplaintRow {
   id: string;
@@ -88,18 +83,16 @@ export default async function StaffTicketsPage() {
           id,
           ticket_number,
           user_id,
-          user_name,
-          user_email,
           item_id,
+          device_summary,
           title,
           description,
           issue_type,
-          priority,
+          severity,
           status,
           attachment_urls,
           assigned_tech_id,
-          tech_notes,
-          resolution_summary,
+          resolution_notes,
           resolved_at,
           created_at,
           updated_at,
@@ -115,26 +108,28 @@ export default async function StaffTicketsPage() {
         .order("created_at", { ascending: false });
 
       if (rawComplaintRows) {
-        const complaintRows = rawComplaintRows as unknown as SupabaseComplaintRow[];
-        complaints = complaintRows.map((c) => ({
+        complaints = (rawComplaintRows as any[]).map((c) => ({
           id: c.id,
           ticketNumber: c.ticket_number,
           userId: c.user_id,
-          userName: c.user_name,
-          userEmail: c.user_email,
+          userName: user.name,
+          userEmail: user.email,
+          userDepartment: user.department ?? null,
           itemId: c.item_id,
           itemName: c.item?.name ?? null,
           itemSerial: c.item?.serial_number ?? null,
+          deviceSummary: c.device_summary ?? null,
           title: c.title,
           description: c.description,
           issueType: c.issue_type,
-          priority: c.priority,
+          priority: c.severity || "medium",
+          severity: c.severity || "medium",
           status: c.status,
           attachmentUrls: c.attachment_urls ?? [],
           assignedTechId: c.assigned_tech_id ?? null,
           assignedTechName: c.assigned_tech?.name ?? null,
-          techNotes: c.tech_notes ?? null,
-          resolutionSummary: c.resolution_summary ?? null,
+          techNotes: c.resolution_notes ?? null,
+          resolutionSummary: c.resolution_notes ?? null,
           resolvedAt: c.resolved_at ?? null,
           createdAt: c.created_at,
           updatedAt: c.updated_at,
@@ -191,49 +186,10 @@ export default async function StaffTicketsPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Top Header */}
-      <header className="border-b border-border bg-surface/80 backdrop-blur-md px-6 py-3 sticky top-0 z-30">
-        <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link
-              href="/staff"
-              className="flex items-center gap-2 text-xs text-muted hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Back to Dashboard</span>
-            </Link>
-            <div className="h-3.5 w-[1px] bg-border" />
-            <E310Logo size="sm" />
-          </div>
-
-          <div className="flex items-center gap-3">
-            <RoleContextBadge
-              role={user.role}
-              currentPortal="staff"
-              canSwitchPortal={isTechUser(user)}
-            />
-            <div className="h-3.5 w-[1px] bg-border" />
-            <NotificationBell />
-            <ThemeToggle compact />
-            <div className="hidden sm:block text-right">
-              <p className="text-xs font-medium text-foreground">{user.name}</p>
-              <p className="text-[11px] text-muted">{user.email}</p>
-            </div>
-            <form action="/api/auth/logout" method="POST">
-              <button
-                type="submit"
-                className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-muted hover:bg-surface-elevated hover:text-foreground transition-colors"
-                title="Sign out"
-              >
-                <LogOut className="h-3.5 w-3.5" />
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
+      <StaffHeader user={user} activePath="/staff/tickets" />
 
       {/* Main Content */}
-      <main className="mx-auto max-w-6xl px-6 py-8">
+      <main className="mx-auto max-w-6xl px-4 sm:px-6 py-4 sm:py-7 pb-8">
         <TicketStatusTracker initialComplaints={complaints} devices={devices} />
       </main>
     </div>

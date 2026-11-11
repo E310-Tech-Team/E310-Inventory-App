@@ -1,12 +1,37 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { Admin, DepartmentUser } from "@/types";
 import { Sidebar } from "./Sidebar";
 import { MobileNav } from "./MobileNav";
 import { MobileHeader } from "./MobileHeader";
 import { TopHeader } from "./TopHeader";
 import { CommandSearchModal } from "./CommandSearchModal";
+
+const SIDEBAR_STORAGE_KEY = "inventory-sidebar-collapsed";
+const SIDEBAR_CHANGE_EVENT = "e310-sidebar-collapsed-change";
+let memorySidebarCollapsed = false;
+
+function subscribeSidebarCollapsed(callback: () => void) {
+  window.addEventListener("storage", callback);
+  window.addEventListener(SIDEBAR_CHANGE_EVENT, callback);
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener(SIDEBAR_CHANGE_EVENT, callback);
+  };
+}
+
+function getSidebarCollapsedSnapshot(): boolean {
+  try {
+    return window.localStorage.getItem(SIDEBAR_STORAGE_KEY) === "true";
+  } catch {
+    return memorySidebarCollapsed;
+  }
+}
+
+function getSidebarCollapsedServerSnapshot(): boolean {
+  return false;
+}
 
 export function AppShell({
   admin,
@@ -17,6 +42,23 @@ export function AppShell({
 }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [isStaffPreview, setIsStaffPreview] = useState(false);
+
+  const sidebarCollapsed = useSyncExternalStore(
+    subscribeSidebarCollapsed,
+    getSidebarCollapsedSnapshot,
+    getSidebarCollapsedServerSnapshot
+  );
+
+  const toggleSidebar = useCallback(() => {
+    const next = !getSidebarCollapsedSnapshot();
+    memorySidebarCollapsed = next;
+    try {
+      window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(next));
+    } catch (err) {
+      console.warn("Unable to persist sidebar state to localStorage:", err);
+    }
+    window.dispatchEvent(new Event(SIDEBAR_CHANGE_EVENT));
+  }, []);
 
   // Global keyboard shortcut: ⌘K or Ctrl+K opens the command search modal
   useEffect(() => {
@@ -35,6 +77,8 @@ export function AppShell({
       <div className="hidden md:block">
         <Sidebar
           admin={admin}
+          collapsed={sidebarCollapsed}
+          onToggle={toggleSidebar}
           isStaffPreview={isStaffPreview}
           onToggleStaffPreview={() => setIsStaffPreview((prev) => !prev)}
         />
@@ -48,10 +92,11 @@ export function AppShell({
           onOpenSearch={() => setSearchOpen(true)}
           isStaffPreview={isStaffPreview}
           onToggleStaffPreview={() => setIsStaffPreview((prev) => !prev)}
+          sidebarCollapsed={sidebarCollapsed}
         />
 
 
-        <main className="flex-1 min-w-0 pb-24 md:pb-0">{children}</main>
+        <main className="flex-1 min-w-0 pb-20 md:pb-0">{children}</main>
       </div>
       <MobileNav
         admin={admin}

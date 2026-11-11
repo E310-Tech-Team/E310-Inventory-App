@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useId } from "react";
+import React, { useState, useEffect, useId, useRef } from "react";
 import { Modal } from "@/components/common/Modal";
 import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
@@ -15,13 +15,15 @@ import {
   Copy,
   Plus,
   Trash2,
-  ImageIcon,
-  MapPin,
   Clock,
-  Zap,
-  Flame,
   ShieldAlert,
   ArrowRight,
+  UploadCloud,
+  Camera,
+  Link as LinkIcon,
+  Loader2,
+  ExternalLink,
+  AppWindow,
 } from "lucide-react";
 
 export interface ReportIssueModalProps {
@@ -37,52 +39,85 @@ interface DropdownOption {
   label: string;
 }
 
-const DEFAULT_ISSUE_TYPES: DropdownOption[] = [
-  { value: "Hardware Failure", label: "Hardware Failure / Defective Part" },
-  { value: "Physical Damage", label: "Physical Damage (Screen, Casing, Ports)" },
-  { value: "Battery & Power", label: "Battery Drain / Won't Power On / Charger" },
-  { value: "Software & OS", label: "OS Crash / Bootloop / Kernel Panic" },
-  { value: "Network & Connectivity", label: "Wi-Fi / Ethernet / Bluetooth Issue" },
-  { value: "Peripheral / Accessory", label: "Monitor / Docking Station / Keyboard / Mouse" },
-  { value: "Performance Lag", label: "Severe Overheating / System Throttling" },
-  { value: "Other", label: "Other General Inconvenience" },
+const HARDWARE_ISSUE_TYPES: DropdownOption[] = [
+  { value: "Screen / Display Damage", label: "Screen / Display Damage (Cracked, Lines, Flickering)" },
+  { value: "Battery & Charging Issue", label: "Battery Drain / Won't Charge / Power Adapter" },
+  { value: "Physical Hardware Damage", label: "Physical Casing / Hinge / Port Damage" },
+  { value: "Keyboard & Trackpad Malfunction", label: "Keyboard Keys Stuck / Trackpad Unresponsive" },
+  { value: "Power Failure", label: "Device Won't Turn On / Power Cutting Out" },
+  { value: "Audio, Speaker & Camera Fault", label: "Microphone Muffled / Speaker Distorted / Webcam Dead" },
+  { value: "Overheating & Fan Noise", label: "Excessive Heat / Fan Spinning at Max Speed" },
+  { value: "Peripheral / Cable Fault", label: "Docking Station / External Monitor / Cables" },
+  { value: "Other Hardware Defect", label: "Other Physical Hardware Defect" },
 ];
+
+const SOFTWARE_ISSUE_TYPES: DropdownOption[] = [
+  { value: "Operating System Crash", label: "OS Crash / Bootloop / Kernel Panic / BSOD" },
+  { value: "Application Freeze & Crash", label: "Application Crashing on Launch / Freezing" },
+  { value: "Account Access & SSO", label: "Login Failed / SSO Permissions / Password Lockout" },
+  { value: "License & Activation Error", label: "Software License Expired / Activation Error" },
+  { value: "VPN & Network Connectivity", label: "VPN Connection Failing / Proxy / Network Error" },
+  { value: "Cloud Sync & Storage Error", label: "Google Drive / OneDrive / Cloud File Sync Error" },
+  { value: "Email & Calendar Malfunction", label: "Email Client Won't Send / Calendar Sync Bug" },
+  { value: "Security Alert / Malware", label: "Antivirus Alert / Suspicious Software Warning" },
+  { value: "Other Software Bug", label: "Other Application or Software Bug" },
+];
+
+const SOFTWARE_OPTIONS: DropdownOption[] = [
+  { value: "Google Workspace", label: "Google Workspace (Gmail, Drive, Docs)" },
+  { value: "Slack", label: "Slack" },
+  { value: "Microsoft 365", label: "Microsoft 365 / Office / Teams" },
+  { value: "Zoom", label: "Zoom Video Conferencing" },
+  { value: "macOS Operating System", label: "macOS Operating System" },
+  { value: "Windows Operating System", label: "Windows Operating System" },
+  { value: "Company VPN", label: "Company VPN / Remote Gateway" },
+  { value: "Figma", label: "Figma / Design Suite" },
+  { value: "Adobe Creative Cloud", label: "Adobe Creative Cloud" },
+  { value: "E310 Internal Tools", label: "E310 Internal Tools / Web Portals" },
+  { value: "Custom / Other App", label: "Other Application / Software" },
+];
+
+import {
+  PriorityCriticalIcon,
+  PriorityHighIcon,
+  PriorityMediumIcon,
+  PriorityLowIcon,
+} from "@/components/common/Icons";
 
 const SEVERITY_LEVELS = [
   {
     value: "low",
     label: "Low",
-    badgeClass: "border-border bg-surface-elevated text-muted",
-    activeClass: "border-sky-500/50 bg-sky-500/10 text-sky-600 dark:text-sky-300 ring-1 ring-sky-500/40",
-    description: "Minor cosmetic defect, work continues normally",
-    icon: Clock,
+    badgeClass: "border-border/80 bg-surface text-muted hover:text-foreground",
+    activeClass: "border-sky-500/40 bg-sky-500/10 text-sky-600 dark:text-sky-300 ring-1 ring-sky-500/30",
+    description: "Minor issue / Cosmetic — Scheduled maintenance",
+    icon: PriorityLowIcon,
   },
   {
     value: "medium",
     label: "Medium",
-    badgeClass: "border-border bg-surface-elevated text-muted",
-    activeClass: "border-amber-500/50 bg-amber-500/10 text-amber-600 dark:text-amber-300 ring-1 ring-amber-500/40",
-    description: "Performance degraded, work partially impeded",
-    icon: Zap,
+    badgeClass: "border-border/80 bg-surface text-muted hover:text-foreground",
+    activeClass: "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-300 ring-1 ring-amber-500/30",
+    description: "Impaired functionality — Standard queue",
+    icon: PriorityMediumIcon,
   },
   {
     value: "high",
     label: "High",
-    badgeClass: "border-border bg-surface-elevated text-muted",
-    activeClass: "border-orange-500/50 bg-orange-500/10 text-orange-600 dark:text-orange-300 ring-1 ring-orange-500/40",
-    description: "Hardware non-functional, primary work stopped",
-    icon: AlertTriangle,
+    badgeClass: "border-border/80 bg-surface text-muted hover:text-foreground",
+    activeClass: "border-orange-500/40 bg-orange-500/10 text-orange-600 dark:text-orange-300 ring-1 ring-orange-500/30",
+    description: "Primary work blocked — Urgent service",
+    icon: PriorityHighIcon,
   },
   {
     value: "critical",
     label: "Critical",
-    badgeClass: "border-border bg-surface-elevated text-muted",
-    activeClass: "border-rose-500/50 bg-rose-500/10 text-rose-600 dark:text-rose-300 ring-1 ring-rose-500/40",
-    description: "Battery swelling, safety hazard, urgent outage",
-    icon: Flame,
+    badgeClass: "border-border/80 bg-surface text-muted hover:text-foreground",
+    activeClass: "border-rose-500/40 bg-rose-500/10 text-rose-600 dark:text-rose-300 ring-1 ring-rose-500/30",
+    description: "Full device outage / Safety hazard",
+    icon: PriorityCriticalIcon,
   },
 ] as const;
-
 
 export function ReportIssueModal({
   isOpen,
@@ -91,8 +126,8 @@ export function ReportIssueModal({
   devices = [],
   preselectedDevice = null,
 }: ReportIssueModalProps) {
-  const [issueTypes, setIssueTypes] = useState<DropdownOption[]>(DEFAULT_ISSUE_TYPES);
-  const [loadingOptions, setLoadingOptions] = useState(false);
+  // Domain switcher: Hardware vs Software
+  const [issueDomain, setIssueDomain] = useState<"hardware" | "software">("hardware");
 
   // Form state
   const [selectedItemId, setSelectedItemId] = useState<string>(
@@ -108,13 +143,20 @@ export function ReportIssueModal({
     setSelectedItemId(preselectedDevice.itemId);
   }
 
-  const [issueType, setIssueType] = useState<string>("");
+  const [issueType, setIssueType] = useState<string>(HARDWARE_ISSUE_TYPES[0].value);
+  const [softwareName, setSoftwareName] = useState<string>("Google Workspace");
+  const [customSoftwareName, setCustomSoftwareName] = useState<string>("");
+  const [softwareOs, setSoftwareOs] = useState<string>("");
   const [priority, setPriority] = useState<"low" | "medium" | "high" | "critical">("medium");
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [location, setLocation] = useState<string>("");
   const [attachmentInput, setAttachmentInput] = useState<string>("");
   const [attachmentUrls, setAttachmentUrls] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState<"upload" | "url">("upload");
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Submission & Feedback state
   const [submitting, setSubmitting] = useState(false);
@@ -124,34 +166,76 @@ export function ReportIssueModal({
 
   const descId = useId();
 
-  // Load issue categories dynamically from API
-  useEffect(() => {
-    if (!isOpen) return;
+  // Reset category whenever switching between hardware and software
+  const handleDomainChange = (domain: "hardware" | "software") => {
+    setIssueDomain(domain);
+    setIssueType(domain === "hardware" ? HARDWARE_ISSUE_TYPES[0].value : SOFTWARE_ISSUE_TYPES[0].value);
+    setError(null);
+  };
 
-    let mounted = true;
-    async function loadOptions() {
-      try {
-        setLoadingOptions(true);
-        const res = await fetch("/api/staff/options");
-        if (!res.ok) throw new Error("Failed to load options");
-        const data = await res.json();
-        if (mounted && Array.isArray(data.issueTypes) && data.issueTypes.length > 0) {
-          setIssueTypes(data.issueTypes);
-          setIssueType((current) => current || data.issueTypes[0].value);
-        }
-      } catch (err) {
-        console.warn("Using fallback issue categories:", err);
-      } finally {
-        if (mounted) setLoadingOptions(false);
-      }
+  const processFile = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setError("Please select a valid image file (PNG, JPG, WEBP, GIF).");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Image size exceeds the 10MB limit. Please choose a smaller photo.");
+      return;
     }
 
-    loadOptions();
+    try {
+      setIsUploading(true);
+      setError(null);
 
-    return () => {
-      mounted = false;
-    };
-  }, [isOpen]);
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.url) {
+          setAttachmentUrls((prev) => [...prev, data.url]);
+          return;
+        }
+      }
+
+      // Resilient fallback: read as Base64 Data URL if server upload fails
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        if (result) {
+          setAttachmentUrls((prev) => [...prev, result]);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.warn("Upload failed, falling back to data URL:", err);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        if (result) {
+          setAttachmentUrls((prev) => [...prev, result]);
+        }
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    for (let i = 0; i < files.length; i++) {
+      await processFile(files[i]);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const handleAddAttachment = () => {
     const trimmed = attachmentInput.trim();
@@ -176,11 +260,18 @@ export function ReportIssueModal({
   };
 
   const resetForm = () => {
+    setIssueDomain("hardware");
+    setIssueType(HARDWARE_ISSUE_TYPES[0].value);
+    setSoftwareName("Google Workspace");
+    setCustomSoftwareName("");
+    setSoftwareOs("");
     setTitle("");
     setDescription("");
     setLocation("");
     setAttachmentInput("");
     setAttachmentUrls([]);
+    setIsUploading(false);
+    setActiveTab("upload");
     setPriority("medium");
     setError(null);
     setSuccessTicket(null);
@@ -206,15 +297,36 @@ export function ReportIssueModal({
       setError("Please select an issue category.");
       return;
     }
+    if (attachmentUrls.length === 0) {
+      setError(
+        issueDomain === "software"
+          ? "Evidence is compulsory: Please upload or attach at least one screenshot showing the software error or bug."
+          : "Evidence is compulsory: Please upload or attach at least one photo showing the hardware defect."
+      );
+      return;
+    }
 
     try {
       setSubmitting(true);
       setError(null);
 
-      // Construct description with optional location detail
+      const domainPrefix = issueDomain === "software" ? "[Software]" : "[Hardware]";
+      const effectiveSoftware =
+        softwareName === "Custom / Other App" && customSoftwareName.trim()
+          ? customSoftwareName.trim()
+          : softwareName;
+
+      // Construct description with optional environment details
       let finalDescription = description.trim();
-      if (location.trim()) {
-        finalDescription += `\n\n[Location/Workstation]: ${location.trim()}`;
+      if (issueDomain === "hardware" && location.trim()) {
+        finalDescription += `\n\n[Physical Location / Desk]: ${location.trim()}`;
+      } else if (issueDomain === "software") {
+        if (effectiveSoftware.trim()) {
+          finalDescription += `\n\n[Affected Application]: ${effectiveSoftware.trim()}`;
+        }
+        if (softwareOs.trim()) {
+          finalDescription += `\n[Environment / OS Version]: ${softwareOs.trim()}`;
+        }
       }
 
       const res = await fetch("/api/staff/complaints", {
@@ -223,7 +335,7 @@ export function ReportIssueModal({
         body: JSON.stringify({
           title: title.trim(),
           description: finalDescription,
-          issueType,
+          issueType: `${domainPrefix} ${issueType}`,
           priority,
           itemId: selectedItemId || undefined,
           attachmentUrls,
@@ -267,8 +379,12 @@ export function ReportIssueModal({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="File a Complaint / Repair Request"
-      description="Report a hardware defect or request technical service from the E310 IT team."
+      title={issueDomain === "hardware" ? "File a Hardware Complaint / Repair Request" : "Report a Software Issue / Technical Bug"}
+      description={
+        issueDomain === "hardware"
+          ? "Report a hardware defect or request technical service from the E310 IT team."
+          : "Report an application crash, operating system fault, or software access issue."
+      }
       size="lg"
     >
       {successTicket ? (
@@ -322,44 +438,118 @@ export function ReportIssueModal({
             </div>
           )}
 
-          {/* ─── 1. Affected Device Selection ─── */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold text-foreground">
-                Affected Hardware Device
-              </label>
-              {selectedDevice && (
-                <span className="text-[11px] text-muted font-mono">
-                  SN: {selectedDevice.serialNumber || "N/A"}
-                </span>
-              )}
-            </div>
+          {/* ─── Domain Switcher: Hardware vs Software ─── */}
+          <div className="grid grid-cols-2 p-1 rounded-xl bg-surface-elevated/70 border border-border/80 gap-1">
+            <button
+              type="button"
+              onClick={() => handleDomainChange("hardware")}
+              className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-semibold text-xs transition-all ${
+                issueDomain === "hardware"
+                  ? "bg-surface text-foreground shadow-xs border border-border/70"
+                  : "text-muted hover:text-foreground"
+              }`}
+            >
+              <Laptop className="w-4 h-4 text-brand-teal shrink-0" />
+              <span>Hardware Device</span>
+            </button>
 
-            {devices.length > 0 ? (
-              <Select
-                value={selectedItemId}
-                onChange={(e) => setSelectedItemId(e.target.value)}
-                options={deviceOptions}
-                disabled={submitting}
-                leftIcon={<Laptop className="w-4 h-4" />}
-              />
-            ) : (
-              <div className="p-3 rounded-xl border border-border bg-surface-elevated text-xs text-muted flex items-center gap-2">
-                <Laptop className="w-4 h-4 text-muted shrink-0" />
-                <span>General Hardware / Unassigned Equipment</span>
-              </div>
-            )}
+            <button
+              type="button"
+              onClick={() => handleDomainChange("software")}
+              className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-semibold text-xs transition-all ${
+                issueDomain === "software"
+                  ? "bg-surface text-foreground shadow-xs border border-border/70"
+                  : "text-muted hover:text-foreground"
+              }`}
+            >
+              <AppWindow className="w-4 h-4 text-brand-teal shrink-0" />
+              <span>Software & Systems</span>
+            </button>
           </div>
 
+          {/* ─── 1. Affected Target (Device vs Software) ─── */}
+          {issueDomain === "hardware" ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-foreground">
+                  Affected Hardware Device <span className="text-rose-500">*</span>
+                </label>
+                {selectedDevice && (
+                  <span className="text-[11px] text-muted font-mono">
+                    SN: {selectedDevice.serialNumber || "N/A"}
+                  </span>
+                )}
+              </div>
+
+              {devices.length > 0 ? (
+                <Select
+                  value={selectedItemId}
+                  onChange={(e) => setSelectedItemId(e.target.value)}
+                  options={deviceOptions}
+                  disabled={submitting}
+                  leftIcon={<Laptop className="w-4 h-4" />}
+                />
+              ) : (
+                <div className="p-3 rounded-xl border border-border bg-surface-elevated text-xs text-muted flex items-center gap-2">
+                  <Laptop className="w-4 h-4 text-muted shrink-0" />
+                  <span>General Hardware / Unassigned Equipment</span>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-foreground">
+                  Affected Application / System <span className="text-rose-500">*</span>
+                </label>
+                <Select
+                  value={softwareName}
+                  onChange={(e) => setSoftwareName(e.target.value)}
+                  options={SOFTWARE_OPTIONS}
+                  disabled={submitting}
+                  leftIcon={<AppWindow className="w-4 h-4" />}
+                />
+                {softwareName === "Custom / Other App" && (
+                  <div className="pt-1.5">
+                    <Input
+                      placeholder="Specify application name (e.g. Docker, Postman)"
+                      value={customSoftwareName}
+                      onChange={(e) => setCustomSoftwareName(e.target.value)}
+                      disabled={submitting}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-foreground">
+                  Running on Device (Optional)
+                </label>
+                <Select
+                  value={selectedItemId}
+                  onChange={(e) => setSelectedItemId(e.target.value)}
+                  options={[
+                    { value: "", label: "General / Cloud / Not Device Specific" },
+                    ...devices.map((d) => ({
+                      value: d.itemId,
+                      label: `${d.name} (${d.serialNumber || "No SN"})`,
+                    })),
+                  ]}
+                  disabled={submitting}
+                  leftIcon={<Laptop className="w-4 h-4" />}
+                />
+              </div>
+            </div>
+          )}
 
           {/* ─── 2. Category & Severity ─── */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Select
-              label="Issue Category"
+              label={issueDomain === "hardware" ? "Hardware Issue Category" : "Software Issue Category"}
               value={issueType}
               onChange={(e) => setIssueType(e.target.value)}
-              options={issueTypes}
-              disabled={loadingOptions || submitting}
+              options={issueDomain === "hardware" ? HARDWARE_ISSUE_TYPES : SOFTWARE_ISSUE_TYPES}
+              disabled={submitting}
               required
             />
 
@@ -389,28 +579,41 @@ export function ReportIssueModal({
             </div>
           </div>
 
-          {/* ─── 3. Title & Location ─── */}
+          {/* ─── 3. Title & Location / OS ─── */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="sm:col-span-2">
               <Input
                 label="Brief Summary of Issue"
-                placeholder="e.g. Screen flickering or battery discharging in 20 minutes"
+                placeholder={
+                  issueDomain === "hardware"
+                    ? "e.g. Display backlight intermittent, trackpad unresponsive"
+                    : "e.g. SSO login timeout on VPN, Slack crashing on launch"
+                }
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 disabled={submitting}
-                leftIcon={<AlertTriangle className="w-4 h-4" />}
                 required
               />
             </div>
-            <div>
-              <Input
-                label="Desk / Location (Optional)"
-                placeholder="e.g. Floor 2, Desk 14"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                disabled={submitting}
-                leftIcon={<MapPin className="w-4 h-4" />}
-              />
+
+            <div className="sm:col-span-1">
+              {issueDomain === "hardware" ? (
+                <Input
+                  label="Desk / Location (Optional)"
+                  placeholder="e.g. Floor 2, Desk 14"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  disabled={submitting}
+                />
+              ) : (
+                <Input
+                  label="OS / Environment (Optional)"
+                  placeholder="e.g. macOS Sonoma, Chrome 124"
+                  value={softwareOs}
+                  onChange={(e) => setSoftwareOs(e.target.value)}
+                  disabled={submitting}
+                />
+              )}
             </div>
           </div>
 
@@ -418,7 +621,7 @@ export function ReportIssueModal({
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label htmlFor={descId} className="block text-xs font-semibold text-foreground">
-                Detailed Description of Fault
+                {issueDomain === "hardware" ? "Detailed Description of Fault" : "Bug Description & Steps to Reproduce"}
               </label>
               <span className="text-[11px] text-muted">
                 {description.length} chars
@@ -429,65 +632,206 @@ export function ReportIssueModal({
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe what occurred, any error messages displayed, unusual sounds, and when the issue started..."
+              placeholder={
+                issueDomain === "hardware"
+                  ? "Describe physical damage, error symptoms, unusual sounds, and when the issue started..."
+                  : "Describe what occurred, exact error messages displayed, steps to reproduce, and what you expected..."
+              }
               className="w-full rounded-xl border border-border bg-surface p-2.5 text-xs text-foreground placeholder:text-muted focus:outline-hidden focus:border-accent transition-colors resize-none"
               disabled={submitting}
               required
             />
           </div>
 
-          {/* ─── 5. Evidence / Attachment URLs ─── */}
-          <div className="space-y-2">
-            <label className="block text-xs font-semibold text-foreground">
-              Evidence / Photo Attachments (Optional)
-            </label>
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <Input
-                  placeholder="Paste image / screenshot URL (e.g. https://...)"
-                  value={attachmentInput}
-                  onChange={(e) => setAttachmentInput(e.target.value)}
-                  disabled={submitting}
-                  leftIcon={<ImageIcon className="w-4 h-4" />}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleAddAttachment();
-                    }
-                  }}
-                />
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleAddAttachment}
-                disabled={!attachmentInput.trim() || submitting}
-                leftIcon={<Plus className="w-3.5 h-3.5" />}
-              >
-                Attach
-              </Button>
+          {/* ─── 5. Evidence / Photo Attachments (Compulsory) ─── */}
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold text-foreground">
+                {issueDomain === "hardware"
+                  ? "Evidence / Photo Attachments"
+                  : "Evidence / Error Screenshots"}{" "}
+                <span className="text-rose-500">*</span>
+              </label>
+              <span className="text-[11px]">
+                {attachmentUrls.length === 0 ? (
+                  <span className="text-rose-500 font-semibold flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3 inline" />
+                    Compulsory: At least 1 {issueDomain === "hardware" ? "photo" : "screenshot"} required
+                  </span>
+                ) : (
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 inline" />
+                    {attachmentUrls.length} {issueDomain === "hardware" ? "photo" : "screenshot"}
+                    {attachmentUrls.length > 1 ? "s" : ""} attached
+                  </span>
+                )}
+              </span>
             </div>
 
-            {attachmentUrls.length > 0 && (
-              <div className="flex flex-wrap gap-2 pt-1">
-                {attachmentUrls.map((url, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-surface-elevated border border-border text-[11px] text-foreground max-w-xs truncate"
-                  >
-                    <ImageIcon className="w-3 h-3 text-muted shrink-0" />
-                    <span className="truncate">{url}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveAttachment(idx)}
-                      className="ml-1 p-0.5 rounded text-muted hover:text-rose-500 transition-colors"
-                      title="Remove attachment"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
+            {/* Mode Selector Tabs */}
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-surface-elevated border border-border w-fit text-xs">
+              <button
+                type="button"
+                onClick={() => setActiveTab("upload")}
+                className={`px-3 py-1 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+                  activeTab === "upload"
+                    ? "bg-surface text-foreground shadow-xs border border-border"
+                    : "text-muted hover:text-foreground"
+                }`}
+              >
+                <Camera className="w-3.5 h-3.5" />
+                Upload Photo / Screenshot
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("url")}
+                className={`px-3 py-1 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+                  activeTab === "url"
+                    ? "bg-surface text-foreground shadow-xs border border-border"
+                    : "text-muted hover:text-foreground"
+                }`}
+              >
+                <LinkIcon className="w-3.5 h-3.5" />
+                Paste Image Link
+              </button>
+            </div>
+
+            {/* Hidden native file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => handleFiles(e.target.files)}
+              disabled={submitting || isUploading}
+            />
+
+            {/* Upload Area / Dropzone */}
+            {activeTab === "upload" ? (
+              <div
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDragging(true);
+                }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDragging(false);
+                  handleFiles(e.dataTransfer.files);
+                }}
+                onClick={() => !isUploading && fileInputRef.current?.click()}
+                className={`relative flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
+                  isDragging
+                    ? "border-accent bg-accent/10"
+                    : attachmentUrls.length === 0
+                    ? "border-rose-400/60 bg-rose-500/5 hover:border-accent hover:bg-surface-elevated"
+                    : "border-border bg-surface hover:border-accent hover:bg-surface-elevated"
+                }`}
+              >
+                {isUploading ? (
+                  <div className="flex items-center gap-2 text-xs text-muted py-2">
+                    <Loader2 className="w-5 h-5 animate-spin text-brand-teal" />
+                    <span>Uploading photo evidence...</span>
                   </div>
-                ))}
+                ) : (
+                  <div className="flex flex-col items-center text-center gap-1.5 py-1">
+                    <div className="w-10 h-10 rounded-full bg-surface-elevated border border-border flex items-center justify-center text-muted">
+                      <UploadCloud className="w-5 h-5 text-brand-teal" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-semibold text-foreground">
+                        Click to select photo
+                      </span>
+                      <span className="text-xs text-muted"> or drag & drop here</span>
+                    </div>
+                    <span className="text-[10px] text-muted">
+                      Supports JPG, PNG, WEBP, GIF or camera capture (up to 10MB)
+                    </span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <Input
+                    placeholder="Paste image / screenshot URL (e.g. https://...)"
+                    value={attachmentInput}
+                    onChange={(e) => setAttachmentInput(e.target.value)}
+                    disabled={submitting}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddAttachment();
+                      }
+                    }}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddAttachment}
+                  disabled={!attachmentInput.trim() || submitting}
+                  leftIcon={<Plus className="w-3.5 h-3.5" />}
+                >
+                  Attach
+                </Button>
+              </div>
+            )}
+
+            {/* Attached Photo Preview Cards */}
+            {attachmentUrls.length > 0 && (
+              <div className="space-y-1.5 pt-1">
+                <div className="text-[11px] font-semibold text-muted uppercase tracking-wider">
+                  Attached Photos ({attachmentUrls.length}):
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {attachmentUrls.map((url, idx) => (
+                    <div
+                      key={idx}
+                      className="group relative flex items-center gap-2.5 p-2 rounded-xl bg-surface-elevated border border-border text-xs text-foreground transition-all hover:border-border/80"
+                    >
+                      <div className="w-12 h-12 rounded-lg bg-surface border border-border overflow-hidden shrink-0 flex items-center justify-center">
+                        <img
+                          src={url}
+                          alt={`Evidence #${idx + 1}`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).style.display = "none";
+                          }}
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-xs text-foreground truncate">
+                          Photo #{idx + 1}
+                        </p>
+                        <p className="text-[10px] text-muted truncate max-w-[150px]">
+                          {url.startsWith("data:") ? "Direct Image Upload" : url}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1.5 rounded-lg text-muted hover:text-foreground hover:bg-surface transition-colors"
+                          title="Open photo"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveAttachment(idx)}
+                          className="p-1.5 rounded-lg text-muted hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
+                          title="Remove photo"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -495,7 +839,7 @@ export function ReportIssueModal({
           {/* ─── Footer Controls ─── */}
           <div className="pt-3 flex items-center justify-between border-t border-border">
             <div className="text-[11px] text-muted">
-              Assigned IT specialists will triage ticket according to priority.
+              Tickets are routed directly to the on-duty IT engineering queue.
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -512,9 +856,8 @@ export function ReportIssueModal({
                 variant="primary"
                 size="sm"
                 isLoading={submitting}
-                leftIcon={submitting ? undefined : <ShieldAlert className="w-3.5 h-3.5" />}
               >
-                Submit Service Ticket
+                {issueDomain === "hardware" ? "Submit Hardware Ticket" : "Submit Bug Report"}
               </Button>
             </div>
           </div>

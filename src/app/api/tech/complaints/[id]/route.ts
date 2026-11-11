@@ -3,6 +3,55 @@ import { getSession, isTechUser } from "@/lib/auth/session";
 import { getSupabaseAdminClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import { dispatchAsyncEmail, sendTicketResolvedEmail } from "@/lib/email/service";
 
+function mapComplaintResponse(c: Record<string, any>) {
+  return {
+    id: c.id,
+    ticket_number: c.ticket_number,
+    ticketNumber: c.ticket_number,
+    user_id: c.user_id,
+    userId: c.user_id,
+    user_name: c.submitter?.name ?? "Staff Member",
+    userName: c.submitter?.name ?? "Staff Member",
+    user_email: c.submitter?.email ?? "",
+    userEmail: c.submitter?.email ?? "",
+    user_department: c.submitter?.department ?? null,
+    userDepartment: c.submitter?.department ?? null,
+    item_id: c.item_id,
+    itemId: c.item_id,
+    device_summary: c.device_summary,
+    deviceSummary: c.device_summary,
+    title: c.title,
+    description: c.description,
+    issue_type: c.issue_type,
+    issueType: c.issue_type,
+    severity: c.severity || "medium",
+    priority: c.severity || "medium",
+    status: c.status,
+    attachment_urls: c.attachment_urls ?? [],
+    attachmentUrls: c.attachment_urls ?? [],
+    assigned_tech_id: c.assigned_tech_id,
+    assignedTechId: c.assigned_tech_id,
+    assigned_tech: c.assigned_tech,
+    assignedTech: c.assigned_tech,
+    assignedTechName: c.assigned_tech?.name ?? null,
+    tech_notes: c.resolution_notes,
+    techNotes: c.resolution_notes,
+    resolution_notes: c.resolution_notes,
+    resolutionNotes: c.resolution_notes,
+    resolution_summary: c.resolution_notes,
+    resolutionSummary: c.resolution_notes,
+    resolved_at: c.resolved_at,
+    resolvedAt: c.resolved_at,
+    created_at: c.created_at,
+    createdAt: c.created_at,
+    updated_at: c.updated_at,
+    updatedAt: c.updated_at,
+    item: c.item,
+    itemName: c.item?.name ?? null,
+    itemSerial: c.item?.serial_number ?? null,
+  };
+}
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -37,22 +86,25 @@ export async function GET(
         id,
         ticket_number,
         user_id,
-        user_name,
-        user_email,
-        user_department,
         item_id,
+        device_summary,
         title,
         description,
         issue_type,
-        priority,
+        severity,
         status,
         attachment_urls,
         assigned_tech_id,
-        tech_notes,
-        resolution_summary,
+        resolution_notes,
         resolved_at,
         created_at,
         updated_at,
+        submitter:department_users!user_id (
+          id,
+          name,
+          email,
+          department
+        ),
         item:items (
           id,
           name,
@@ -78,7 +130,7 @@ export async function GET(
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ complaint });
+    return NextResponse.json({ complaint: mapComplaintResponse(complaint) });
   } catch (error) {
     console.error("Tech complaint GET error:", error);
     return NextResponse.json(
@@ -124,16 +176,22 @@ export async function PATCH(
       status,
       techNotes,
       resolutionSummary,
+      resolutionNotes,
       priority,
+      severity,
       assignedTechId,
     } = body;
 
     const validStatuses = [
+      "submitted",
+      "under-review",
+      "in-repair",
+      "resolved",
+      "cancelled",
       "pending",
       "assigned",
       "in-progress",
       "waiting-parts",
-      "resolved",
       "closed",
     ];
 
@@ -145,7 +203,8 @@ export async function PATCH(
     }
 
     const validPriorities = ["low", "medium", "high", "critical"];
-    if (priority !== undefined && !validPriorities.includes(priority)) {
+    const targetPriority = priority || severity;
+    if (targetPriority !== undefined && !validPriorities.includes(targetPriority)) {
       return NextResponse.json(
         { error: `Invalid priority. Must be one of: ${validPriorities.join(", ")}` },
         { status: 400 }
@@ -166,7 +225,9 @@ export async function PATCH(
     }
 
     // 2. Prepare update payload
-    const updateData: Record<string, unknown> = {};
+    const updateData: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
+    };
 
     if (status !== undefined) {
       updateData.status = status;
@@ -177,23 +238,20 @@ export async function PATCH(
       }
     }
 
-    if (techNotes !== undefined) {
-      updateData.tech_notes = typeof techNotes === "string" ? techNotes.trim() : null;
+    const notesContent = resolutionNotes ?? resolutionSummary ?? techNotes;
+    if (notesContent !== undefined) {
+      updateData.resolution_notes =
+        typeof notesContent === "string" ? notesContent.trim() : null;
     }
 
-    if (resolutionSummary !== undefined) {
-      updateData.resolution_summary =
-        typeof resolutionSummary === "string" ? resolutionSummary.trim() : null;
-    }
-
-    if (priority !== undefined) {
-      updateData.priority = priority;
+    if (targetPriority !== undefined) {
+      updateData.severity = targetPriority;
     }
 
     if (assignedTechId !== undefined) {
       updateData.assigned_tech_id = assignedTechId || null;
-      if (assignedTechId && currentComplaint.status === "pending") {
-        updateData.status = "assigned";
+      if (assignedTechId && (currentComplaint.status === "submitted" || currentComplaint.status === "pending")) {
+        updateData.status = "under-review";
       }
     }
 
@@ -206,22 +264,25 @@ export async function PATCH(
         id,
         ticket_number,
         user_id,
-        user_name,
-        user_email,
-        user_department,
         item_id,
+        device_summary,
         title,
         description,
         issue_type,
-        priority,
+        severity,
         status,
         attachment_urls,
         assigned_tech_id,
-        tech_notes,
-        resolution_summary,
+        resolution_notes,
         resolved_at,
         created_at,
         updated_at,
+        submitter:department_users!user_id (
+          id,
+          name,
+          email,
+          department
+        ),
         item:items (
           id,
           name,
@@ -237,10 +298,15 @@ export async function PATCH(
       `)
       .single();
 
-    if (updateError) {
+    if (updateError || !updatedComplaint) {
       console.error("Error updating complaint ticket:", updateError);
-      return NextResponse.json({ error: updateError.message }, { status: 500 });
+      return NextResponse.json(
+        { error: updateError?.message || "Failed to update complaint" },
+        { status: 500 }
+      );
     }
+
+    const mapped = mapComplaintResponse(updatedComplaint);
 
     // 4. Audit logging
     try {
@@ -253,7 +319,7 @@ export async function PATCH(
         details: {
           ticketNumber: currentComplaint.ticket_number,
           oldStatus: currentComplaint.status,
-          newStatus: updatedComplaint.status,
+          newStatus: mapped.status,
           updatedFields: Object.keys(updateData),
         },
       });
@@ -264,18 +330,28 @@ export async function PATCH(
     // 5. Trigger notification back to reporting staff member on status change
     if (status !== undefined && status !== currentComplaint.status) {
       try {
-        const statusLabel = status.replace("-", " ").toUpperCase();
+        const stageNames: Record<string, string> = {
+          "submitted": "Submitted",
+          "pending": "Submitted",
+          "under-review": "Triage & Review",
+          "assigned": "Triage & Review",
+          "in-repair": "In Diagnostic / Repair",
+          "in-progress": "In Diagnostic / Repair",
+          "waiting-parts": "In Diagnostic / Repair",
+          "resolved": "Resolved",
+          "closed": "Resolved",
+        };
+        const statusLabel = stageNames[status] || status.replace("-", " ").toUpperCase();
         const notificationMsg =
-          resolutionSummary ||
-          techNotes ||
-          `Your hardware complaint status has been updated to "${statusLabel}".`;
+          updateData.resolution_notes ||
+          `Your hardware complaint has moved to "${statusLabel}".`;
 
         await supabase.from("notifications").insert({
           recipient_id: currentComplaint.user_id,
-          title: `Ticket ${currentComplaint.ticket_number} Updated (${statusLabel})`,
-          message: notificationMsg,
+          title: `Ticket ${currentComplaint.ticket_number} — ${statusLabel}`,
+          message: notificationMsg as string,
           notification_type: "complaint_status_changed",
-          link_url: `/staff`,
+          link_url: `/staff/tickets`,
           is_read: false,
           email_sent: status === "resolved" || status === "closed",
         });
@@ -288,18 +364,18 @@ export async function PATCH(
 
           dispatchAsyncEmail(
             sendTicketResolvedEmail({
-              ticketNumber: updatedComplaint.ticket_number,
-              staffName: updatedComplaint.user_name || "Staff Member",
-              staffEmail: updatedComplaint.user_email || "",
-              title: updatedComplaint.title,
-              issueType: updatedComplaint.issue_type,
-              resolutionSummary,
-              techNotes,
-              resolvedAt: updatedComplaint.resolved_at || new Date().toISOString(),
+              ticketNumber: mapped.ticketNumber,
+              staffName: mapped.userName,
+              staffEmail: mapped.userEmail,
+              title: mapped.title,
+              issueType: mapped.issueType,
+              resolutionSummary: mapped.resolutionSummary || "Completed by IT specialist.",
+              techNotes: mapped.techNotes || "",
+              resolvedAt: mapped.resolvedAt || new Date().toISOString(),
               resolverName: user.name,
               deviceName: resolvedItem?.name,
             }),
-            `Ticket resolution email [${updatedComplaint.ticket_number}]`
+            `Ticket resolution email [${mapped.ticketNumber}]`
           );
         }
       } catch (notifErr) {
@@ -309,8 +385,8 @@ export async function PATCH(
 
     return NextResponse.json({
       success: true,
-      message: `Ticket ${currentComplaint.ticket_number} updated successfully.`,
-      complaint: updatedComplaint,
+      message: `Ticket ${currentComplaint.ticket_number} updated to ${mapped.status}.`,
+      complaint: mapped,
     });
   } catch (error) {
     console.error("Tech complaint PATCH error:", error);

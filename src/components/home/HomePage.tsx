@@ -29,10 +29,10 @@ export function HomePage({ admin }: { admin: Admin }) {
   }, []);
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 sm:px-6 py-12">
+    <div className="min-h-[calc(100dvh-5rem)] md:min-h-[calc(100dvh-4rem)] flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12">
       <div className="text-center w-full max-w-4xl flex flex-col items-center">
         <h1
-          className={`text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-tight text-foreground transition-transform duration-700 ease-out ${
+          className={`text-4xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-tight text-foreground leading-[1.08] break-words transition-transform duration-700 ease-out ${
             revealed ? "-translate-y-2.5 sm:-translate-y-4" : "translate-y-0"
           }`}
         >
@@ -40,7 +40,7 @@ export function HomePage({ admin }: { admin: Admin }) {
         </h1>
 
         <div
-          className={`mt-7 sm:mt-9 flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+          className={`mt-6 sm:mt-9 flex flex-wrap items-center justify-center gap-2 sm:gap-3 transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
             revealed ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-6 scale-95"
           }`}
           aria-hidden={!revealed}

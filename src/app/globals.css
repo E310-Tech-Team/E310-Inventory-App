@@ -20,6 +20,7 @@ html.dark .e310-logo-light,
 }
 
 :root {
+  color-scheme: light;
 
   /* E310 Light Mode — matching ethree10hr.com (Pic 2) */
   --background: #f8fafc;
@@ -57,6 +58,8 @@ html.dark .e310-logo-light,
 }
 
 .dark {
+  color-scheme: dark;
+
   /* E310 Dark Mode — matching ethree10hr.com (Pic 2) */
   --background: #080f1a;
   --surface: #0d1929;
@@ -123,6 +126,12 @@ html.dark .e310-logo-light,
   --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
 }
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -133,9 +142,18 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 ::selection {
-  background: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
+  background: var(--accent-soft);
+  color: var(--foreground);
 }
 
 button,
@@ -199,10 +217,31 @@ textarea {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
+  background: rgba(100, 116, 139, 0.28);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+  background: rgba(100, 116, 139, 0.45);
+}
+
+/* ─── Browser Native Calendar Indicators ─── */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  border-radius: 6px;
+  padding: 2px;
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  transform: scale(1.08);
+}
+
+.dark input[type="date"]::-webkit-calendar-picker-indicator,
+.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.9);
 }

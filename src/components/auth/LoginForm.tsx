@@ -41,16 +41,16 @@ export function LoginForm({ setupError }: { setupError?: string | null }) {
   }
 
   return (
-    <div className="flex-1 flex items-center justify-center px-4">
-      <div className="w-full max-w-sm animate-enter">
-        <div className="flex flex-col items-center mb-8">
-          <E310Logo size="lg" className="mb-3" priority />
-          <span className="text-[11px] font-semibold tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-brand-yellow/25 text-brand-navy dark:text-brand-yellow border border-brand-yellow/40">
-            Inventory & Asset Operations
-          </span>
+    <div className="flex-1 flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-sm animate-enter rounded-2xl border border-border/70 bg-surface p-7 shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
+        <div className="flex flex-col items-center mb-6">
+          <E310Logo size="lg" className="mb-2.5" priority />
+          <p className="text-xs font-medium text-muted">
+            Inventory &amp; Asset Operations
+          </p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-3">
+        <form onSubmit={handleLogin} className="space-y-3.5">
           <div>
             <label className="block text-sm font-medium mb-1.5" htmlFor="email">
               Email
@@ -87,7 +87,7 @@ export function LoginForm({ setupError }: { setupError?: string | null }) {
           <button
             type="submit"
             disabled={loading}
-            className="pressable w-full py-2.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium transition-colors disabled:opacity-50"
+            className="pressable w-full py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-sm font-semibold transition-colors disabled:opacity-50 shadow-2xs"
           >
             {loading ? "Signing in..." : "Sign in"}
           </button>

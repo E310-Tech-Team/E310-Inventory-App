@@ -53,16 +53,22 @@ export async function GET(request: NextRequest) {
       console.warn("Error calculating unread count:", countError);
     }
 
-    const notifications: InAppNotification[] = (rows ?? []).map((row) => ({
+    const notifications = (rows ?? []).map((row) => ({
       id: row.id,
       recipientId: row.recipient_id,
+      recipient_id: row.recipient_id,
       title: row.title,
       message: row.message,
       notificationType: row.notification_type,
+      notification_type: row.notification_type,
       linkUrl: row.link_url,
-      isRead: row.is_read,
-      emailSent: row.email_sent,
+      link_url: row.link_url,
+      isRead: row.is_read ?? false,
+      is_read: row.is_read ?? false,
+      emailSent: row.email_sent ?? false,
+      email_sent: row.email_sent ?? false,
       createdAt: row.created_at,
+      created_at: row.created_at,
     }));
 
     return NextResponse.json({

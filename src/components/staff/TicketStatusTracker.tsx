@@ -1,32 +1,39 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { DeviceComplaint, StaffDevice } from "@/types";
-import { Card } from "@/components/common/Card";
+import React, { useState, useMemo, useEffect } from "react";
+import { ComplaintStatus, DeviceComplaint, StaffDevice } from "@/types";
+import { subscribeToTicketUpdates } from "@/lib/sync/ticket-broadcast";
 import { Badge } from "@/components/common/Badge";
 import { Button } from "@/components/common/Button";
 import { Modal } from "@/components/common/Modal";
 import { ReportIssueModal } from "@/components/staff/ReportIssueModal";
+import { ShowMoreBar } from "@/components/ui/ShowMoreBar";
+import {
+  PriorityCriticalIcon,
+  PriorityHighIcon,
+  PriorityMediumIcon,
+  PriorityLowIcon,
+} from "@/components/common/Icons";
 import {
   LifeBuoy,
   Search,
   Clock,
   CheckCircle2,
-  AlertTriangle,
   Copy,
   Check,
   Laptop,
-  Calendar,
-  UserCheck,
   Plus,
   RefreshCw,
-  Flame,
-  Zap,
   ArrowRight,
-  ImageIcon,
   ShieldCheck,
   ExternalLink,
+  AppWindow,
 } from "lucide-react";
+
+type LegacyDeviceComplaint = DeviceComplaint & {
+  ticket_number?: string;
+  created_at?: string;
+};
 
 interface TicketStatusTrackerProps {
   initialComplaints: DeviceComplaint[];
@@ -38,15 +45,68 @@ type TabFilter = "all" | "active" | "resolved";
 interface StageConfig {
   step: number;
   label: string;
+  compactLabel: string;
   sublabel: string;
 }
 
 const STAGES: StageConfig[] = [
-  { step: 1, label: "Submitted", sublabel: "Logged in queue" },
-  { step: 2, label: "Triage & Review", sublabel: "Assigned to tech" },
-  { step: 3, label: "In Diagnostic / Repair", sublabel: "Bench work active" },
-  { step: 4, label: "Resolved", sublabel: "Ready & returned" },
+  { step: 1, label: "Submitted", compactLabel: "Submitted", sublabel: "Logged in queue" },
+  { step: 2, label: "Triage & Review", compactLabel: "Triage", sublabel: "Assigned to tech" },
+  { step: 3, label: "In Diagnostic / Repair", compactLabel: "In Repair", sublabel: "Bench work active" },
+  { step: 4, label: "Resolved", compactLabel: "Resolved", sublabel: "Ready & returned" },
 ];
+
+interface ParsedTicketDetails {
+  cleanDescription: string;
+  affectedApp: string | null;
+  osVersion: string | null;
+  location: string | null;
+}
+
+function parseTicketDescription(raw: string = ""): ParsedTicketDetails {
+  let cleanDescription = raw || "";
+  let affectedApp: string | null = null;
+  let osVersion: string | null = null;
+  let location: string | null = null;
+
+  const appMatch = cleanDescription.match(/\[Affected Application\]:\s*([^\n]+)/i);
+  if (appMatch) {
+    affectedApp = appMatch[1].trim();
+    cleanDescription = cleanDescription.replace(appMatch[0], "");
+  }
+
+  const osMatch = cleanDescription.match(/\[Environment \/ OS Version\]:\s*([^\n]+)/i);
+  if (osMatch) {
+    osVersion = osMatch[1].trim();
+    cleanDescription = cleanDescription.replace(osMatch[0], "");
+  }
+
+  const locMatch = cleanDescription.match(/\[Physical Location \/ Desk\]:\s*([^\n]+)/i);
+  if (locMatch) {
+    location = locMatch[1].trim();
+    cleanDescription = cleanDescription.replace(locMatch[0], "");
+  }
+
+  return {
+    cleanDescription: cleanDescription.trim(),
+    affectedApp,
+    osVersion,
+    location,
+  };
+}
+
+function parseIssueType(rawType: string = "") {
+  let domain = "Hardware";
+  let cleanType = rawType || "Service Request";
+  if (rawType.startsWith("[Software]")) {
+    domain = "Software";
+    cleanType = rawType.replace("[Software]", "").trim();
+  } else if (rawType.startsWith("[Hardware]")) {
+    domain = "Hardware";
+    cleanType = rawType.replace("[Hardware]", "").trim();
+  }
+  return { domain, cleanType };
+}
 
 function getStageIndex(status: string): number {
   switch (status.toLowerCase()) {
@@ -73,33 +133,51 @@ function getPriorityConfig(priority: string) {
     case "critical":
       return {
         label: "Critical",
-        icon: Flame,
-        badgeClass: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+        icon: PriorityCriticalIcon,
+        badgeClass: "bg-rose-500/10 text-rose-500 dark:text-rose-400 border-rose-500/30",
         indicatorDot: "bg-rose-500",
       };
     case "high":
       return {
         label: "High",
-        icon: AlertTriangle,
-        badgeClass: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+        icon: PriorityHighIcon,
+        badgeClass: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/30",
         indicatorDot: "bg-orange-500",
       };
     case "medium":
       return {
         label: "Medium",
-        icon: Zap,
-        badgeClass: "bg-amber-500/10 text-amber-300 border-amber-500/20",
-        indicatorDot: "bg-amber-400",
+        icon: PriorityMediumIcon,
+        badgeClass: "bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/30",
+        indicatorDot: "bg-amber-500",
       };
     case "low":
     default:
       return {
         label: "Low",
-        icon: Clock,
-        badgeClass: "bg-sky-500/10 text-sky-300 border-sky-500/20",
-        indicatorDot: "bg-sky-400",
+        icon: PriorityLowIcon,
+        badgeClass: "bg-sky-500/10 text-sky-600 dark:text-sky-300 border-sky-500/30",
+        indicatorDot: "bg-sky-500",
       };
   }
+}
+
+function formatTicketDate(dateValue?: string | null): string {
+  if (!dateValue) return "Recently";
+  const d = new Date(dateValue);
+  return isNaN(d.getTime())
+    ? "Recently"
+    : d.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+}
+
+function formatTicketDateTime(dateValue?: string | null): string {
+  if (!dateValue) return "Recently";
+  const d = new Date(dateValue);
+  return isNaN(d.getTime()) ? "Recently" : d.toLocaleString();
 }
 
 export function TicketStatusTracker({
@@ -113,6 +191,7 @@ export function TicketStatusTracker({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [copiedTicketId, setCopiedTicketId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [mobileLimit, setMobileLimit] = useState(5);
 
   const refreshTickets = async () => {
     try {
@@ -129,6 +208,30 @@ export function TicketStatusTracker({
     }
   };
 
+  // Real-time synchronization: updates instantly when tech progresses ticket
+  useEffect(() => {
+    const unsubscribe = subscribeToTicketUpdates((payload) => {
+      if (payload?.ticketId && payload?.status) {
+        const nextStatus = payload.status as ComplaintStatus;
+        setComplaints((prev) =>
+          prev.map((t) =>
+            t.id === payload.ticketId
+              ? { ...t, status: nextStatus }
+              : t
+          )
+        );
+        setSelectedTicket((prev) =>
+          prev && prev.id === payload.ticketId
+            ? { ...prev, status: nextStatus }
+            : prev
+        );
+      }
+      refreshTickets();
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   const handleCopy = (ticketNumber: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
     navigator.clipboard.writeText(ticketNumber);
@@ -144,6 +247,16 @@ export function TicketStatusTracker({
           c.status !== "resolved" &&
           c.status !== "closed" &&
           c.status !== "cancelled"
+      ),
+    [complaints]
+  );
+
+  const inProgressTickets = useMemo(
+    () =>
+      complaints.filter((c) =>
+        ["under-review", "assigned", "in-repair", "in-progress", "waiting-parts"].includes(
+          c.status.toLowerCase()
+        )
       ),
     [complaints]
   );
@@ -177,7 +290,9 @@ export function TicketStatusTracker({
       // Query filter
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
-        const matchesNumber = ticket.ticketNumber.toLowerCase().includes(query);
+        const legacy = ticket as LegacyDeviceComplaint;
+        const ticketNum = (ticket.ticketNumber || legacy.ticket_number || "").toLowerCase();
+        const matchesNumber = ticketNum.includes(query);
         const matchesTitle = ticket.title.toLowerCase().includes(query);
         const matchesCategory = ticket.issueType.toLowerCase().includes(query);
         const matchesDevice =
@@ -192,27 +307,28 @@ export function TicketStatusTracker({
   }, [complaints, activeTab, searchQuery]);
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 sm:space-y-6 animate-fade-in">
       {/* ─── Top Control Bar & Stats ─── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-border">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4 pb-4 sm:pb-5 border-b border-border/60">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-              Support Tickets & Status Tracker
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+              Support Tickets
             </h1>
-            <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-surface-elevated text-foreground/90 border border-border">
+            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-surface-elevated text-muted border border-border/70 tabular-nums">
               {complaints.length} Total
             </span>
           </div>
-          <p className="text-sm text-muted mt-1">
+          <p className="text-xs sm:text-sm text-muted mt-0.5 sm:mt-1">
             Real-time diagnostic progress, technician notes, and repair updates for your assigned equipment.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="grid grid-cols-2 sm:flex items-center gap-2">
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
+            className="justify-center"
             onClick={refreshTickets}
             disabled={isRefreshing}
             leftIcon={
@@ -227,107 +343,138 @@ export function TicketStatusTracker({
           <Button
             variant="primary"
             size="sm"
+            className="justify-center"
             onClick={() => setIsReportModalOpen(true)}
             leftIcon={<Plus className="w-3.5 h-3.5" />}
           >
-            File New Request
+            File Request
           </Button>
         </div>
       </div>
 
       {/* ─── Summary Counter Cards ─── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted">Active Requests</span>
-            <span className="flex h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <div className="rounded-2xl border border-border/70 bg-surface p-3 sm:p-5 shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-[11px] sm:text-xs font-medium text-muted truncate">
+              <span className="sm:hidden">Active</span>
+              <span className="hidden sm:inline">Active Requests</span>
+            </span>
+            <span className="flex h-2 w-2 rounded-full bg-amber-500 shrink-0" />
           </div>
-          <p className="text-2xl font-bold text-foreground mt-2">
+          <p className="text-lg sm:text-2xl font-bold tracking-tight text-foreground tabular-nums mt-1 sm:mt-2">
             {activeTickets.length}
           </p>
-          <p className="text-[11px] text-muted mt-1">Under inspection or repair</p>
-        </Card>
+          <p className="hidden sm:block text-[11px] text-muted mt-1">Awaiting or undergoing service</p>
+        </div>
 
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted">Resolved & Returned</span>
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+        <div className="rounded-2xl border border-border/70 bg-surface p-3 sm:p-5 shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-[11px] sm:text-xs font-medium text-muted truncate">
+              <span className="sm:hidden">Bench</span>
+              <span className="hidden sm:inline">In Bench / Triage</span>
+            </span>
+            <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-sky-500 shrink-0" />
           </div>
-          <p className="text-2xl font-bold text-foreground mt-2">
+          <p className="text-lg sm:text-2xl font-bold tracking-tight text-foreground tabular-nums mt-1 sm:mt-2">
+            {inProgressTickets.length}
+          </p>
+          <p className="hidden sm:block text-[11px] text-muted mt-1">Assigned to IT specialist</p>
+        </div>
+
+        <div className="rounded-2xl border border-border/70 bg-surface p-3 sm:p-5 shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-[11px] sm:text-xs font-medium text-muted truncate">
+              <span className="sm:hidden">Resolved</span>
+              <span className="hidden sm:inline">Resolved &amp; Returned</span>
+            </span>
+            <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-500 shrink-0" />
+          </div>
+          <p className="text-lg sm:text-2xl font-bold tracking-tight text-foreground tabular-nums mt-1 sm:mt-2">
             {resolvedTickets.length}
           </p>
-          <p className="text-[11px] text-muted mt-1">Completed successfully</p>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted">Average Turnaround</span>
-            <Clock className="w-3.5 h-3.5 text-sky-400" />
-          </div>
-          <p className="text-2xl font-bold text-foreground mt-2">
-            &lt; 24h
-          </p>
-          <p className="text-[11px] text-muted mt-1">E310 IT triage standard</p>
-        </Card>
+          <p className="hidden sm:block text-[11px] text-muted mt-1">Completed successfully</p>
+        </div>
       </div>
 
       {/* ─── Search & Tab Filters ─── */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 pt-0.5 sm:pt-1">
         {/* Tabs */}
-        <div className="inline-flex rounded-lg bg-surface border border-border p-1">
+        <div className="w-full sm:w-auto grid grid-cols-3 sm:inline-flex rounded-xl bg-surface-elevated/70 p-0.5 border border-border/70">
           <button
             type="button"
-            onClick={() => setActiveTab("all")}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+            onClick={() => {
+              setActiveTab("all");
+              setMobileLimit(5);
+            }}
+            className={`justify-center px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
               activeTab === "all"
-                ? "bg-surface-elevated text-white shadow-sm"
-                : "text-muted hover:text-foreground"
+                ? "bg-surface text-foreground border border-border/60 shadow-2xs"
+                : "text-muted hover:text-foreground border border-transparent"
             }`}
           >
-            All Tickets ({complaints.length})
+            <span>All</span>
+            <span className="text-[11px] text-muted tabular-nums">
+              {complaints.length}
+            </span>
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab("active")}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+            onClick={() => {
+              setActiveTab("active");
+              setMobileLimit(5);
+            }}
+            className={`justify-center px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
               activeTab === "active"
-                ? "bg-surface-elevated text-white shadow-sm"
-                : "text-muted hover:text-foreground"
+                ? "bg-surface text-foreground border border-border/60 shadow-2xs"
+                : "text-muted hover:text-foreground border border-transparent"
             }`}
           >
-            Active ({activeTickets.length})
+            <span>Active</span>
+            <span className="text-[11px] text-muted tabular-nums">
+              {activeTickets.length}
+            </span>
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab("resolved")}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+            onClick={() => {
+              setActiveTab("resolved");
+              setMobileLimit(5);
+            }}
+            className={`justify-center px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
               activeTab === "resolved"
-                ? "bg-surface-elevated text-white shadow-sm"
-                : "text-muted hover:text-foreground"
+                ? "bg-surface text-foreground border border-border/60 shadow-2xs"
+                : "text-muted hover:text-foreground border border-transparent"
             }`}
           >
-            Resolved ({resolvedTickets.length})
+            <span>Resolved</span>
+            <span className="text-[11px] text-muted tabular-nums">
+              {resolvedTickets.length}
+            </span>
           </button>
         </div>
 
         {/* Search */}
         <div className="relative flex-1 sm:max-w-xs">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
           <input
             type="text"
             placeholder="Search tickets by #, title, device..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-1.5 text-xs rounded-lg border border-border bg-surface text-foreground placeholder:text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/40 transition-colors"
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setMobileLimit(5);
+            }}
+            className="w-full h-9 pl-8.5 pr-3 text-xs rounded-xl border border-border/70 bg-surface text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
           />
         </div>
       </div>
 
       {/* ─── Ticket List / Cards with Progress Pipeline ─── */}
       {filteredTickets.length === 0 ? (
-        <Card className="py-12 px-6 text-center border-dashed border-border">
-          <div className="mx-auto w-12 h-12 rounded-full bg-surface-elevated border border-border flex items-center justify-center text-muted mb-3">
-            <LifeBuoy className="w-6 h-6" />
+        <div className="rounded-2xl py-12 px-6 text-center border border-dashed border-border/80 bg-surface/60">
+          <div className="mx-auto w-11 h-11 rounded-full bg-surface-elevated border border-border/70 flex items-center justify-center text-muted mb-3">
+            <LifeBuoy className="w-5 h-5" />
           </div>
           <h3 className="text-sm font-semibold text-foreground">
             {searchQuery ? "No matching tickets found" : "No Support Requests on File"}
@@ -347,355 +494,442 @@ export function TicketStatusTracker({
               File a Service Ticket
             </Button>
           </div>
-        </Card>
+        </div>
       ) : (
-        <div className="space-y-4">
-          {filteredTickets.map((ticket) => {
-            const currentStage = getStageIndex(ticket.status);
-            const priorityCfg = getPriorityConfig(ticket.priority);
-            const PriorityIcon = priorityCfg.icon;
+        <>
+          <div className="space-y-2.5 sm:space-y-3">
+            {filteredTickets.map((ticket, idx) => {
+              const legacy = ticket as LegacyDeviceComplaint;
+              const ticketNum = ticket.ticketNumber || legacy.ticket_number || "TKT";
+              const currentStage = getStageIndex(ticket.status);
+              const { cleanDescription, affectedApp } = parseTicketDescription(ticket.description);
+              const { cleanType } = parseIssueType(ticket.issueType);
 
-            return (
-              <Card
-                key={ticket.id}
-                className="p-5 hover:border-border transition-all cursor-pointer group space-y-4"
-                onClick={() => setSelectedTicket(ticket)}
-              >
-                {/* Header Row */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-border/60">
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    {/* Ticket Number & Copy */}
-                    <div className="flex items-center gap-1.5 bg-surface border border-border px-2.5 py-1 rounded-md">
-                      <span className="font-mono text-xs font-semibold text-foreground">
-                        {ticket.ticketNumber}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={(e) => handleCopy(ticket.ticketNumber, e)}
-                        className="text-muted/80 hover:text-foreground transition-colors p-0.5 rounded"
-                        title="Copy Ticket ID"
-                      >
-                        {copiedTicketId === ticket.ticketNumber ? (
-                          <Check className="w-3 h-3 text-emerald-400" />
-                        ) : (
-                          <Copy className="w-3 h-3" />
-                        )}
-                      </button>
-                    </div>
-
-                    {/* Status Badge */}
-                    <Badge
-                      variant={
-                        ticket.status === "resolved"
-                          ? "resolved"
-                          : ticket.status === "in-repair"
-                          ? "in-repair"
-                          : ticket.status === "under-review"
-                          ? "under-review"
-                          : "submitted"
-                      }
-                      label={ticket.status.replace("-", " ")}
-                    />
-
-                    {/* Priority Badge */}
-                    <div
-                      className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-medium ${priorityCfg.badgeClass}`}
-                    >
-                      <PriorityIcon className="w-3 h-3" />
-                      <span>{priorityCfg.label}</span>
-                    </div>
-
-                    <span className="text-xs text-muted">
-                      • {ticket.issueType}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-3 text-xs text-muted">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-muted" />
-                      {new Date(ticket.createdAt).toLocaleDateString(undefined, {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </span>
-
-                    <span className="text-muted group-hover:text-foreground transition-colors flex items-center gap-1 font-medium">
-                      View details
-                      <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-0.5 transition-transform" />
-                    </span>
-                  </div>
-                </div>
-
-                {/* Content & Affected Device */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                  <div className="space-y-1 max-w-2xl">
-                    <h3 className="text-sm font-semibold text-foreground group-hover:text-foreground transition-colors">
-                      {ticket.title}
-                    </h3>
-                    <p className="text-xs text-muted line-clamp-1">
-                      {ticket.description}
-                    </p>
-                  </div>
-
-                  {/* Device Tag */}
-                  {ticket.itemName && (
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface border border-border text-xs text-foreground/90 shrink-0">
-                      <Laptop className="w-3.5 h-3.5 text-muted shrink-0" />
-                      <span className="font-medium truncate max-w-[180px]">
-                        {ticket.itemName}
-                      </span>
-                      {ticket.itemSerial && (
-                        <span className="font-mono text-[11px] text-muted">
-                          ({ticket.itemSerial})
+              return (
+                <div
+                  key={ticket.id}
+                  className={`${
+                    idx >= mobileLimit ? "hidden sm:block" : "block"
+                  } p-3.5 sm:p-5 hover:border-border bg-surface border border-border/70 rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.02)] transition-all cursor-pointer group space-y-2 sm:space-y-3`}
+                  onClick={() => setSelectedTicket(ticket)}
+                >
+                  {/* Header Row: Ticket # + Status + Title + Date & Action */}
+                  <div className="flex items-start justify-between gap-2.5 sm:gap-3">
+                    <div className="space-y-1 sm:space-y-1.5 min-w-0 flex-1">
+                      {/* Pills & Meta */}
+                      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                        <span className="font-mono text-xs font-semibold text-muted tracking-tight">
+                          {ticketNum}
                         </span>
-                      )}
+
+                        <Badge
+                          variant={
+                            ticket.status === "resolved"
+                              ? "resolved"
+                              : ticket.status === "in-repair"
+                              ? "in-repair"
+                              : ticket.status === "under-review"
+                              ? "under-review"
+                              : "submitted"
+                          }
+                          label={ticket.status.replace("-", " ")}
+                        />
+
+                        {ticket.priority && (() => {
+                          const prio = getPriorityConfig(ticket.priority);
+                          const PrioIcon = prio.icon;
+                          return (
+                            <span
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border ${prio.badgeClass}`}
+                            >
+                              <PrioIcon className="w-3 h-3" />
+                              <span>{prio.label}</span>
+                            </span>
+                          );
+                        })()}
+
+                        <span className="text-xs text-muted/70 truncate hidden sm:inline">
+                          • {cleanType}
+                        </span>
+                      </div>
+
+                      {/* Title */}
+                      <h3 className="text-sm font-semibold text-foreground group-hover:text-accent transition-colors truncate">
+                        {ticket.title}
+                      </h3>
+                    </div>
+
+                    {/* Right: Date & Action */}
+                    <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-muted shrink-0 pt-0.5 tabular-nums">
+                      <span>{formatTicketDate(ticket.createdAt || legacy.created_at)}</span>
+                      <span className="text-muted/60 group-hover:text-accent group-hover:translate-x-0.5 transition-all hidden sm:inline-flex items-center gap-1 font-medium">
+                        Details
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </span>
+                      <ArrowRight className="w-3.5 h-3.5 text-muted/60 group-hover:text-accent sm:hidden" />
+                    </div>
+                  </div>
+
+                  {/* Description summary (desktop/tablet) */}
+                  {cleanDescription && (
+                    <p className="hidden sm:block text-xs text-muted line-clamp-1">
+                      {cleanDescription}
+                    </p>
+                  )}
+
+                  {/* Context Tag: Device or Software (clean, subtle inline) */}
+                  {(ticket.itemName || affectedApp) && (
+                    <div className="flex items-center gap-2 text-[11px] text-muted">
+                      {ticket.itemName ? (
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-surface-elevated/60 border border-border/60 text-foreground/80">
+                          <Laptop className="w-3 h-3 text-muted shrink-0" />
+                          <span className="truncate max-w-[160px] sm:max-w-[220px]">{ticket.itemName}</span>
+                          {ticket.itemSerial && (
+                            <span className="font-mono text-[10px] text-muted">
+                              ({ticket.itemSerial})
+                            </span>
+                          )}
+                        </span>
+                      ) : affectedApp ? (
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-surface-elevated/60 border border-border/60 text-foreground/80">
+                          <AppWindow className="w-3 h-3 text-muted shrink-0" />
+                          <span className="truncate max-w-[160px] sm:max-w-[220px]">{affectedApp}</span>
+                        </span>
+                      ) : null}
+
+                      <span className="text-muted/70 text-[11px] sm:hidden truncate">
+                        • {cleanType}
+                      </span>
                     </div>
                   )}
-                </div>
 
-                {/* ─── 4-Step Progress Stepper ─── */}
-                <div className="pt-2">
-                  <div className="grid grid-cols-4 gap-2">
-                    {STAGES.map((stg) => {
-                      const isComplete = currentStage > stg.step;
-                      const isCurrent = currentStage === stg.step;
+                  {/* Sleek, Minimal Stepper Line */}
+                  <div className="pt-2 border-t border-border/40">
+                    <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+                      {STAGES.map((stg) => {
+                        const isComplete = currentStage > stg.step;
+                        const isCurrent = currentStage === stg.step;
 
-                      return (
-                        <div key={stg.step} className="space-y-1.5">
-                          {/* Progress Line Bar */}
-                          <div
-                            className={`h-1 rounded-full transition-colors ${
-                              isComplete
-                                ? "bg-emerald-500"
-                                : isCurrent
-                                ? "bg-amber-400 animate-pulse"
-                                : "bg-surface-elevated"
-                            }`}
-                          />
-                          <div className="flex flex-col">
-                            <span
-                              className={`text-[11px] font-medium leading-tight truncate ${
+                        return (
+                          <div key={stg.step} className="space-y-0.5 sm:space-y-1">
+                            <div
+                              className={`h-1 rounded-full transition-colors ${
                                 isComplete
-                                  ? "text-emerald-400"
+                                  ? "bg-emerald-500"
+                                  : isCurrent
+                                  ? "bg-amber-400"
+                                  : "bg-surface-elevated"
+                              }`}
+                            />
+                            <span
+                              className={`block text-[10px] sm:text-[11px] truncate leading-tight ${
+                                isComplete
+                                  ? "text-emerald-600 dark:text-emerald-400 font-medium"
                                   : isCurrent
                                   ? "text-foreground font-semibold"
-                                  : "text-muted"
+                                  : "text-muted/60"
                               }`}
                             >
-                              {stg.label}
-                            </span>
-                            <span className="text-[10px] text-muted hidden sm:block truncate">
-                              {stg.sublabel}
+                              {stg.compactLabel}
                             </span>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
-
-                {/* Technician Notes or Resolution Preview */}
-                {(ticket.assignedTechName || ticket.techNotes) && (
-                  <div className="pt-1 flex items-center justify-between text-xs text-muted bg-surface-elevated/40 border border-border rounded-lg px-3 py-2">
-                    <div className="flex items-center gap-2 truncate">
-                      <UserCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                      <span>
-                        Assigned Tech:{" "}
-                        <strong className="text-foreground/90 font-medium">
-                          {ticket.assignedTechName || "IT Specialist"}
-                        </strong>
-                      </span>
-                    </div>
-
-                    {ticket.techNotes && (
-                      <span className="text-[11px] text-muted truncate max-w-xs italic hidden md:inline">
-                        &ldquo;{ticket.techNotes}&rdquo;
-                      </span>
-                    )}
-                  </div>
-                )}
-              </Card>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+          <div className="sm:hidden">
+            <ShowMoreBar
+              visibleCount={Math.min(mobileLimit, filteredTickets.length)}
+              totalCount={filteredTickets.length}
+              initialLimit={5}
+              noun="tickets"
+              standalone
+              onShowMore={() => setMobileLimit((prev) => prev + 5)}
+              onCollapse={() => setMobileLimit(5)}
+            />
+          </div>
+        </>
       )}
 
       {/* ─── Ticket Details Modal ─── */}
-      {selectedTicket && (
-        <Modal
-          isOpen={Boolean(selectedTicket)}
-          onClose={() => setSelectedTicket(null)}
-          title={`Ticket Details — ${selectedTicket.ticketNumber}`}
-          description="Full diagnostic report and IT support resolution timeline."
-          size="lg"
-        >
-          <div className="space-y-5 animate-fade-in text-xs">
-            {/* Ticket Header & Status Pills */}
-            <div className="flex items-center justify-between p-3.5 rounded-xl bg-surface border border-border">
-              <div className="space-y-0.5">
-                <span className="text-[11px] text-muted font-mono">Status & Priority</span>
-                <div className="flex items-center gap-2 pt-0.5">
-                  <Badge
-                    variant={
-                      selectedTicket.status === "resolved"
-                        ? "resolved"
-                        : selectedTicket.status === "in-repair"
-                        ? "in-repair"
-                        : "submitted"
-                    }
-                    label={selectedTicket.status.toUpperCase()}
-                  />
-                  <span className="px-2 py-0.5 rounded-full border border-border bg-surface-elevated text-[11px] font-medium text-foreground/90 uppercase">
-                    {selectedTicket.priority} Priority
+      {selectedTicket && (() => {
+        const selectedLegacy = selectedTicket as LegacyDeviceComplaint;
+        const selectedStage = getStageIndex(selectedTicket.status);
+        const selectedParsed = parseTicketDescription(selectedTicket.description);
+        const { cleanType: modalCategory } = parseIssueType(selectedTicket.issueType);
+        const ticketNum = selectedTicket.ticketNumber || selectedLegacy.ticket_number || "TKT";
+
+        return (
+          <Modal
+            isOpen={Boolean(selectedTicket)}
+            onClose={() => setSelectedTicket(null)}
+            title={`Ticket Details — ${ticketNum}`}
+            description="Full diagnostic report and IT support resolution timeline."
+            size="lg"
+          >
+            <div className="space-y-5 animate-fade-in text-xs">
+              {/* Ticket Header & Status Pills */}
+              <div className="flex items-center justify-between p-3.5 rounded-xl bg-surface-elevated/40 border border-border/70">
+                <div className="space-y-0.5">
+                  <span className="text-[11px] text-muted">Status &amp; Priority</span>
+                  <div className="flex items-center gap-2 pt-0.5 flex-wrap">
+                    <Badge
+                      variant={
+                        selectedTicket.status === "resolved"
+                          ? "resolved"
+                          : selectedTicket.status === "in-repair"
+                          ? "in-repair"
+                          : selectedTicket.status === "under-review"
+                          ? "under-review"
+                          : "submitted"
+                      }
+                      label={selectedTicket.status.replace("-", " ")}
+                    />
+                    <span className="px-2 py-0.5 rounded-full border border-border/70 bg-surface text-[11px] font-medium text-foreground/90 capitalize">
+                      {selectedTicket.priority} priority
+                    </span>
+                    <span className="text-muted text-[11px]">
+                      • {modalCategory}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="text-right space-y-0.5 shrink-0">
+                  <span className="text-[11px] text-muted">Created On</span>
+                  <p className="font-mono text-foreground tabular-nums">
+                    {formatTicketDateTime(selectedTicket.createdAt || selectedLegacy.created_at)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Progress Pipeline inside Modal */}
+              <div className="p-3.5 rounded-xl bg-surface-elevated/40 border border-border/70 space-y-2">
+                <span className="text-[11px] text-muted font-medium block">
+                  Service Pipeline Progress
+                </span>
+                <div className="grid grid-cols-4 gap-2 pt-1">
+                  {STAGES.map((stg) => {
+                    const isComplete = selectedStage > stg.step;
+                    const isCurrent = selectedStage === stg.step;
+
+                    return (
+                      <div key={stg.step} className="space-y-1.5">
+                        <div
+                          className={`h-1.5 rounded-full transition-colors ${
+                            isComplete
+                              ? "bg-emerald-500"
+                              : isCurrent
+                              ? "bg-amber-500"
+                              : "bg-surface-elevated"
+                          }`}
+                        />
+                        <div className="flex flex-col">
+                          <span
+                            className={`text-[11px] font-medium leading-tight truncate ${
+                              isComplete
+                                ? "text-emerald-600 dark:text-emerald-400"
+                                : isCurrent
+                                ? "text-foreground font-semibold"
+                                : "text-muted"
+                            }`}
+                          >
+                            {stg.label}
+                          </span>
+                          <span className="text-[10px] text-muted hidden sm:block truncate">
+                            {stg.sublabel}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Affected Hardware Device OR Software App */}
+              {selectedTicket.itemName ? (
+                <div className="p-3.5 rounded-xl bg-surface border border-border flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-surface-elevated border border-border flex items-center justify-center text-foreground/90">
+                      <Laptop className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-foreground">
+                        {selectedTicket.itemName}
+                      </h4>
+                      <p className="text-[11px] text-muted font-mono">
+                        Serial: {selectedTicket.itemSerial || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-[11px] text-muted bg-surface-elevated px-2.5 py-1 rounded-md border border-border">
+                    Assigned Device
                   </span>
                 </div>
-              </div>
-
-              <div className="text-right space-y-0.5">
-                <span className="text-[11px] text-muted">Created On</span>
-                <p className="font-mono text-foreground">
-                  {new Date(selectedTicket.createdAt).toLocaleString()}
-                </p>
-              </div>
-            </div>
-
-            {/* Affected Device Card */}
-            {selectedTicket.itemName && (
-              <div className="p-3.5 rounded-xl bg-surface border border-border flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-surface-elevated border border-border flex items-center justify-center text-foreground/90">
-                    <Laptop className="w-5 h-5" />
+              ) : selectedParsed.affectedApp ? (
+                <div className="p-3.5 rounded-xl bg-surface border border-border flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-surface-elevated border border-border flex items-center justify-center text-foreground/90">
+                      <AppWindow className="w-5 h-5 text-accent" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-foreground">
+                        {selectedParsed.affectedApp}
+                      </h4>
+                      {selectedParsed.osVersion && (
+                        <p className="text-[11px] text-muted">
+                          OS / Environment: {selectedParsed.osVersion}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-semibold text-foreground">
-                      {selectedTicket.itemName}
-                    </h4>
-                    <p className="text-[11px] text-muted font-mono">
-                      Serial: {selectedTicket.itemSerial || "N/A"}
-                    </p>
-                  </div>
+                  <span className="text-[11px] text-muted bg-surface-elevated px-2.5 py-1 rounded-md border border-border">
+                    Software Application
+                  </span>
                 </div>
-                <span className="text-[11px] text-muted bg-surface-elevated px-2.5 py-1 rounded-md border border-border">
-                  Assigned Asset
-                </span>
-              </div>
-            )}
+              ) : null}
 
-            {/* Issue Description */}
-            <div className="space-y-2">
-              <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                Summary & Defect Description
-              </h4>
-              <div className="p-3.5 rounded-xl bg-surface border border-border space-y-2">
-                <h5 className="text-sm font-semibold text-foreground">
-                  {selectedTicket.title}
-                </h5>
-                <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap text-xs">
-                  {selectedTicket.description}
-                </p>
-              </div>
-            </div>
+              {/* Desk / Physical Location */}
+              {selectedParsed.location && (
+                <div className="px-3.5 py-2.5 rounded-xl bg-surface border border-border flex items-center gap-2">
+                  <span className="text-muted">Desk / Location:</span>
+                  <span className="font-medium text-foreground">{selectedParsed.location}</span>
+                </div>
+              )}
 
-            {/* Attachments (if any) */}
-            {selectedTicket.attachmentUrls && selectedTicket.attachmentUrls.length > 0 && (
+              {/* Issue Description */}
               <div className="space-y-2">
                 <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                  Photo / Evidence Attachments
+                  Summary & Defect Description
                 </h4>
-                <div className="flex flex-wrap gap-2">
-                  {selectedTicket.attachmentUrls.map((url, idx) => (
-                    <a
-                      key={idx}
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface border border-border hover:border-border text-foreground/90 hover:text-foreground transition-colors"
-                    >
-                      <ImageIcon className="w-3.5 h-3.5 text-muted" />
-                      <span className="truncate max-w-[200px] text-xs">{url}</span>
-                      <ExternalLink className="w-3 h-3 text-muted/80" />
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Technician Notes & Resolution */}
-            <div className="space-y-2">
-              <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                IT Diagnostics & Resolution Notes
-              </h4>
-              <div className="p-4 rounded-xl bg-surface border border-border space-y-3">
-                <div className="flex items-center gap-2.5 pb-2.5 border-b border-border">
-                  <div className="w-7 h-7 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-semibold">
-                    <ShieldCheck className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-foreground">
-                      {selectedTicket.assignedTechName || "E310 IT Support Team"}
-                    </p>
-                    <p className="text-[10px] text-muted">
-                      Primary Assigned Technician
-                    </p>
-                  </div>
-                </div>
-
-                {selectedTicket.techNotes ? (
-                  <div className="space-y-1">
-                    <span className="text-[10px] uppercase font-semibold text-muted">
-                      Bench / Triage Notes:
-                    </span>
-                    <p className="text-xs text-foreground/90 bg-surface-elevated p-2.5 rounded-lg border border-border">
-
-                      {selectedTicket.techNotes}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-xs text-muted italic">
-                    Ticket is queued for bench diagnostics. Notes will appear here as the technician conducts repairs.
+                <div className="p-3.5 rounded-xl bg-surface border border-border space-y-2">
+                  <h5 className="text-sm font-semibold text-foreground">
+                    {selectedTicket.title}
+                  </h5>
+                  <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap text-xs">
+                    {selectedParsed.cleanDescription || selectedTicket.description}
                   </p>
-                )}
+                </div>
+              </div>
 
-                {selectedTicket.resolutionSummary && (
-                  <div className="space-y-1 pt-1">
-                    <span className="text-[10px] uppercase font-semibold text-emerald-400">
-                      Final Resolution:
-                    </span>
-                    <p className="text-xs text-emerald-300 bg-emerald-500/10 p-2.5 rounded-lg border border-emerald-500/20">
-                      {selectedTicket.resolutionSummary}
-                    </p>
+              {/* Attachments */}
+              {selectedTicket.attachmentUrls && selectedTicket.attachmentUrls.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                    Photo / Evidence Attachments ({selectedTicket.attachmentUrls.length})
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {selectedTicket.attachmentUrls.map((url, idx) => (
+                      <a
+                        key={idx}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex items-center gap-3 p-2.5 rounded-xl bg-surface border border-border hover:border-accent hover:bg-surface-elevated text-foreground transition-all"
+                      >
+                        <div className="w-12 h-12 rounded-lg bg-surface-elevated border border-border overflow-hidden shrink-0 flex items-center justify-center">
+                          <img
+                            src={url}
+                            alt={`Evidence #${idx + 1}`}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).style.display = "none";
+                            }}
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-xs text-foreground truncate">
+                            Photo #{idx + 1}
+                          </p>
+                          <p className="text-[10px] text-muted truncate max-w-[150px]">
+                            {url.startsWith("data:") ? "Direct Image Upload" : url}
+                          </p>
+                        </div>
+                        <ExternalLink className="w-3.5 h-3.5 text-muted group-hover:text-foreground shrink-0" />
+                      </a>
+                    ))}
                   </div>
-                )}
+                </div>
+              )}
+
+              {/* Technician Notes & Resolution */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                  IT Diagnostics & Resolution Notes
+                </h4>
+                <div className="p-4 rounded-xl bg-surface border border-border space-y-3">
+                  <div className="flex items-center gap-2.5 pb-2.5 border-b border-border">
+                    <div className="w-7 h-7 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-semibold">
+                      <ShieldCheck className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">
+                        {selectedTicket.assignedTechName || "E310 IT Support Team"}
+                      </p>
+                      <p className="text-[10px] text-muted">
+                        Primary Assigned Technician
+                      </p>
+                    </div>
+                  </div>
+
+                  {selectedTicket.techNotes ? (
+                    <div className="space-y-1">
+                      <span className="text-[10px] uppercase font-semibold text-muted">
+                        Bench / Triage Notes:
+                      </span>
+                      <p className="text-xs text-foreground/90 bg-surface-elevated p-2.5 rounded-lg border border-border">
+                        {selectedTicket.techNotes}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted italic">
+                      Ticket is queued for bench diagnostics. Notes will appear here as the technician conducts repairs.
+                    </p>
+                  )}
+
+                  {selectedTicket.resolutionSummary && (
+                    <div className="space-y-1 pt-1">
+                      <span className="text-[10px] uppercase font-semibold text-emerald-600 dark:text-emerald-400">
+                        Final Resolution:
+                      </span>
+                      <p className="text-xs text-emerald-800 dark:text-emerald-300 bg-emerald-500/10 p-2.5 rounded-lg border border-emerald-500/20">
+                        {selectedTicket.resolutionSummary}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="pt-3 flex items-center justify-between border-t border-border/60">
+                <button
+                  type="button"
+                  onClick={() => handleCopy(ticketNum)}
+                  className="flex items-center gap-1.5 text-xs text-muted hover:text-foreground transition-colors"
+                >
+                  {copiedTicketId === ticketNum ? (
+                    <Check className="w-3.5 h-3.5 text-emerald-500" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
+                  <span>Copy Ticket ID</span>
+                </button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedTicket(null)}
+                >
+                  Close Details
+                </Button>
               </div>
             </div>
-
-            {/* Modal Actions */}
-            <div className="pt-3 flex items-center justify-between border-t border-border">
-              <button
-                type="button"
-                onClick={() => handleCopy(selectedTicket.ticketNumber)}
-                className="flex items-center gap-1.5 text-xs text-muted hover:text-foreground transition-colors"
-              >
-                {copiedTicketId === selectedTicket.ticketNumber ? (
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                ) : (
-                  <Copy className="w-3.5 h-3.5" />
-                )}
-                <span>Copy Ticket ID</span>
-              </button>
-
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => setSelectedTicket(null)}
-              >
-                Close Details
-              </Button>
-            </div>
-          </div>
-        </Modal>
-      )}
+          </Modal>
+        );
+      })()}
 
       {/* ─── File New Request Modal ─── */}
       <ReportIssueModal

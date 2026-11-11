@@ -21,25 +21,22 @@ export async function GET() {
     const supabase = getSupabaseAdminClient();
 
     // Query complaints for the requesting user only
-    const { data: complaints, error } = await supabase
+    const { data: rawComplaints, error } = await supabase
       .from("device_complaints")
       .select(`
         id,
         ticket_number,
         user_id,
-        user_name,
-        user_email,
-        user_department,
         item_id,
+        device_summary,
         title,
         description,
         issue_type,
-        priority,
+        severity,
         status,
         attachment_urls,
         assigned_tech_id,
-        tech_notes,
-        resolution_summary,
+        resolution_notes,
         resolved_at,
         created_at,
         updated_at,
@@ -49,6 +46,12 @@ export async function GET() {
           serial_number,
           identifier_type,
           identifier_value
+        ),
+        submitter:user_id (
+          id,
+          name,
+          email,
+          department
         ),
         assigned_tech:department_users!assigned_tech_id (
           id,
@@ -64,7 +67,52 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ complaints: complaints ?? [] });
+    const complaints = (rawComplaints ?? []).map((c: any) => ({
+      id: c.id,
+      ticket_number: c.ticket_number,
+      ticketNumber: c.ticket_number,
+      user_id: c.user_id,
+      userId: c.user_id,
+      user_name: c.submitter?.name ?? user.name,
+      userName: c.submitter?.name ?? user.name,
+      user_email: c.submitter?.email ?? user.email,
+      userEmail: c.submitter?.email ?? user.email,
+      user_department: c.submitter?.department ?? user.department,
+      userDepartment: c.submitter?.department ?? user.department,
+      item_id: c.item_id,
+      itemId: c.item_id,
+      device_summary: c.device_summary,
+      deviceSummary: c.device_summary,
+      title: c.title,
+      description: c.description,
+      issue_type: c.issue_type,
+      issueType: c.issue_type,
+      priority: c.severity,
+      severity: c.severity,
+      status: c.status,
+      attachment_urls: c.attachment_urls ?? [],
+      attachmentUrls: c.attachment_urls ?? [],
+      assigned_tech_id: c.assigned_tech_id,
+      assignedTechId: c.assigned_tech_id,
+      assigned_tech: c.assigned_tech,
+      assignedTech: c.assigned_tech,
+      assignedTechName: c.assigned_tech?.name ?? null,
+      tech_notes: c.resolution_notes,
+      techNotes: c.resolution_notes,
+      resolution_summary: c.resolution_notes,
+      resolutionSummary: c.resolution_notes,
+      resolved_at: c.resolved_at,
+      resolvedAt: c.resolved_at,
+      created_at: c.created_at,
+      createdAt: c.created_at,
+      updated_at: c.updated_at,
+      updatedAt: c.updated_at,
+      item: c.item,
+      itemName: c.item?.name ?? null,
+      itemSerial: c.item?.serial_number ?? null,
+    }));
+
+    return NextResponse.json({ complaints });
   } catch (error) {
     console.error("Staff complaints GET error:", error);
     return NextResponse.json(
@@ -116,6 +164,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Issue category/type is required" }, { status: 400 });
     }
 
+    const sanitizedAttachments = Array.isArray(attachmentUrls)
+      ? attachmentUrls.map((u) => String(u).trim()).filter(Boolean)
+      : [];
+
+    if (sanitizedAttachments.length === 0) {
+      return NextResponse.json(
+        { error: "At least one evidence / photo attachment is compulsory to submit an issue ticket." },
+        { status: 400 }
+      );
+    }
+
     const validPriorities = ["low", "medium", "high", "critical"];
     const sanitizedPriority = validPriorities.includes(priority) ? priority : "medium";
 
@@ -127,16 +186,14 @@ export async function POST(request: NextRequest) {
       .from("device_complaints")
       .insert({
         user_id: user.id,
-        user_name: user.name,
-        user_email: user.email.toLowerCase(),
-        user_department: user.department ?? null,
         item_id: itemId || null,
+        device_summary: `${title.trim()} (${issueType.trim()})`,
         title: title.trim(),
         description: description.trim(),
         issue_type: issueType.trim(),
-        priority: sanitizedPriority,
-        status: "pending",
-        attachment_urls: Array.isArray(attachmentUrls) ? attachmentUrls : [],
+        severity: sanitizedPriority,
+        status: "submitted",
+        attachment_urls: sanitizedAttachments,
       })
       .select()
       .single();
@@ -160,7 +217,7 @@ export async function POST(request: NextRequest) {
           ticketNumber,
           title: newComplaint.title,
           issueType: newComplaint.issue_type,
-          priority: newComplaint.priority,
+          priority: newComplaint.severity,
           itemId: newComplaint.item_id,
         },
       });
@@ -249,11 +306,25 @@ export async function POST(request: NextRequest) {
       console.warn("Failed to notify staff member of ticket confirmation:", staffNotifErr);
     }
 
+    const mappedComplaint = {
+      ...newComplaint,
+      ticketNumber: newComplaint.ticket_number,
+      createdAt: newComplaint.created_at,
+      updatedAt: newComplaint.updated_at,
+      issueType: newComplaint.issue_type,
+      priority: newComplaint.severity,
+      severity: newComplaint.severity,
+      attachmentUrls: newComplaint.attachment_urls ?? [],
+      itemId: newComplaint.item_id,
+      userId: newComplaint.user_id,
+      deviceSummary: newComplaint.device_summary,
+    };
+
     return NextResponse.json(
       {
         success: true,
         message: `Ticket ${ticketNumber} registered successfully.`,
-        complaint: newComplaint,
+        complaint: mappedComplaint,
       },
       { status: 201 }
     );

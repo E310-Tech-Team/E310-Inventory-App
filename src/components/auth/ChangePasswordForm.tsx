@@ -53,18 +53,18 @@ export function ChangePasswordForm() {
   }
 
   return (
-    <div className="flex-1 flex items-center justify-center px-4">
-      <div className="w-full max-w-sm animate-enter">
-        <div className="flex flex-col items-center mb-8">
+    <div className="flex-1 flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-sm animate-enter rounded-2xl border border-border/70 bg-surface p-7 shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
+        <div className="flex flex-col items-center mb-6">
           <E310Logo size="lg" className="mb-3" priority />
-          <h1 className="text-xl font-semibold text-foreground">Set your permanent password</h1>
-          <p className="text-sm text-muted text-center mt-2">
+          <h1 className="text-lg font-semibold text-foreground text-center">Set your permanent password</h1>
+          <p className="text-xs text-muted text-center mt-1.5 leading-relaxed">
             You&apos;re signed in with a temporary password. Please set a permanent password for your
             account.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-3.5">
           <div>
             <label className="block text-sm font-medium mb-1.5" htmlFor="currentPassword">
               Temporary password
@@ -116,7 +116,7 @@ export function ChangePasswordForm() {
           <button
             type="submit"
             disabled={loading}
-            className="pressable w-full py-2.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm font-medium transition-colors disabled:opacity-50"
+            className="pressable w-full py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-sm font-semibold transition-colors disabled:opacity-50 shadow-2xs"
           >
             {loading ? "Saving..." : "Set password"}
           </button>

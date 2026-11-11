@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
 import {
   ShieldCheck,
   Clock,
@@ -10,18 +9,13 @@ import {
   Search,
   RefreshCw,
   Tag,
-  Laptop,
-  User,
-  Calendar,
-  AlertCircle,
-  ExternalLink,
-  ChevronRight,
-  Filter,
   Check,
   X,
   FileText,
+  Laptop,
 } from "lucide-react";
 import { Select } from "@/components/common/Select";
+import { ShowMoreBar } from "@/components/ui/ShowMoreBar";
 
 interface SubmitterInfo {
   name: string;
@@ -46,6 +40,7 @@ interface ApprovalItem {
   approval_status: "pending" | "approved" | "rejected";
   created_by: string;
   created_at: string;
+  createdAt?: string;
   category: {
     id: string;
     name: string;
@@ -62,6 +57,26 @@ interface QueueCounts {
   total: number;
 }
 
+function formatSubmissionDate(item: ApprovalItem): string {
+  const dateVal = item.created_at || item.createdAt;
+  if (!dateVal) return "Recently";
+  const d = new Date(dateVal);
+  return isNaN(d.getTime())
+    ? "Recently"
+    : d.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+}
+
+const CONDITION_TONE: Record<string, string> = {
+  new: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
+  good: "bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/20",
+  fair: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
+  damaged: "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20",
+};
+
 export function DeviceApprovalQueue() {
   const [items, setItems] = useState<ApprovalItem[]>([]);
   const [counts, setCounts] = useState<QueueCounts>({
@@ -72,55 +87,65 @@ export function DeviceApprovalQueue() {
   });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<"pending" | "approved" | "rejected" | "all">("pending");
+  const [statusFilter, setStatusFilter] = useState<"pending" | "approved" | "rejected" | "all">(
+    "pending"
+  );
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [mobileLimit, setMobileLimit] = useState(6);
 
-  // Modals state
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const [approveModalItem, setApproveModalItem] = useState<ApprovalItem | null>(null);
   const [rejectModalItem, setRejectModalItem] = useState<ApprovalItem | null>(null);
   const [viewModalItem, setViewModalItem] = useState<ApprovalItem | null>(null);
 
-  // Approve form state
   const [assetTag, setAssetTag] = useState("");
   const [approveCondition, setApproveCondition] = useState("");
   const [approveNotes, setApproveNotes] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
-
-  // Reject form state
   const [rejectionReason, setRejectionReason] = useState("");
 
-  const fetchQueue = useCallback(async (isManualRefresh = false) => {
-    if (isManualRefresh) setRefreshing(true);
-    try {
-      const url = new URL("/api/tech/approvals", window.location.origin);
-      url.searchParams.set("status", statusFilter);
-      if (searchQuery.trim()) {
-        url.searchParams.set("search", searchQuery.trim());
-      }
-
-      const res = await fetch(url.toString());
-      if (!res.ok) {
-        throw new Error(`Failed to load queue: ${res.statusText}`);
-      }
-      const data = await res.json();
-      setItems(data.approvals || []);
-      setCounts(
-        data.counts || {
-          pending: 0,
-          approved: 0,
-          rejected: 0,
-          total: 0,
+  const fetchQueue = useCallback(
+    async (isManualRefresh = false) => {
+      if (isManualRefresh) setRefreshing(true);
+      try {
+        const url = new URL("/api/tech/approvals", window.location.origin);
+        url.searchParams.set("status", statusFilter);
+        if (debouncedSearch.trim()) {
+          url.searchParams.set("search", debouncedSearch.trim());
         }
-      );
-    } catch (err: unknown) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [statusFilter, searchQuery]);
+
+        const res = await fetch(url.toString());
+        if (!res.ok) {
+          throw new Error(`Failed to load queue: ${res.statusText}`);
+        }
+        const data = await res.json();
+        setItems(data.approvals || []);
+        setCounts(
+          data.counts || {
+            pending: 0,
+            approved: 0,
+            rejected: 0,
+            total: 0,
+          }
+        );
+      } catch (err: unknown) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [statusFilter, debouncedSearch]
+  );
 
   useEffect(() => {
     fetchQueue();
@@ -128,7 +153,6 @@ export function DeviceApprovalQueue() {
 
   const openApproveModal = (item: ApprovalItem) => {
     setApproveModalItem(item);
-    // Generate suggested asset tag
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
     setAssetTag(`R4C-AST-${randomSuffix}`);
     setApproveCondition(item.condition);
@@ -166,7 +190,7 @@ export function DeviceApprovalQueue() {
         throw new Error(data.error || "Failed to approve device");
       }
 
-      setActionSuccess(`Device "${approveModalItem.name}" approved successfully.`);
+      setActionSuccess(`Device "${approveModalItem.name}" approved and added to catalog.`);
       setApproveModalItem(null);
       fetchQueue();
       setTimeout(() => setActionSuccess(null), 4000);
@@ -217,369 +241,424 @@ export function DeviceApprovalQueue() {
 
   return (
     <div className="space-y-6">
-      {/* Toast notifications */}
       {actionSuccess && (
-        <div className="flex items-center gap-2 p-4 text-sm text-emerald-800 dark:text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 rounded-xl shadow-xs animate-fade-in">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+        <div className="flex items-center gap-2.5 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
           <span>{actionSuccess}</span>
         </div>
       )}
 
-      {/* KPI Stat Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         <button
-          onClick={() => setStatusFilter("pending")}
-          className={`text-left p-5 rounded-2xl border transition-all ${
+          type="button"
+          onClick={() => {
+            setStatusFilter("pending");
+            setMobileLimit(6);
+          }}
+          className={`text-left p-3.5 sm:p-5 rounded-2xl border bg-surface transition-colors shadow-[0_1px_4px_rgba(0,0,0,0.02)] ${
             statusFilter === "pending"
-              ? "bg-amber-500/15 border-amber-500/50 ring-2 ring-amber-500/20"
-              : "bg-surface border-border hover:border-amber-500/40 shadow-xs"
+              ? "border-amber-500/40 bg-amber-500/[0.03]"
+              : "border-border/70 hover:border-border"
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted">
-              Pending Verification
-            </span>
-            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400">
-              <Clock className="w-4 h-4" />
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-medium text-muted">Pending Review</span>
+            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+              <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-black text-foreground">{counts.pending}</div>
-          <p className="mt-1 text-xs text-muted">Awaiting inspection & tagging</p>
+          <div className="mt-2 sm:mt-3 text-xl sm:text-3xl font-bold tracking-tight text-foreground tabular-nums">
+            {counts.pending}
+          </div>
+          <p className="hidden sm:block mt-1 text-xs text-muted">Awaiting inspection</p>
         </button>
 
         <button
-          onClick={() => setStatusFilter("approved")}
-          className={`text-left p-5 rounded-2xl border transition-all ${
+          type="button"
+          onClick={() => {
+            setStatusFilter("approved");
+            setMobileLimit(6);
+          }}
+          className={`text-left p-3.5 sm:p-5 rounded-2xl border bg-surface transition-colors shadow-[0_1px_4px_rgba(0,0,0,0.02)] ${
             statusFilter === "approved"
-              ? "bg-emerald-500/15 border-emerald-500/50 ring-2 ring-emerald-500/20"
-              : "bg-surface border-border hover:border-emerald-500/40 shadow-xs"
+              ? "border-emerald-500/40 bg-emerald-500/[0.03]"
+              : "border-border/70 hover:border-border"
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted">
-              Verified & Active
-            </span>
-            <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
-              <CheckCircle2 className="w-4 h-4" />
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-medium text-muted">Approved</span>
+            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+              <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-black text-foreground">{counts.approved}</div>
-          <p className="mt-1 text-xs text-muted">Linked to official catalog</p>
+          <div className="mt-2 sm:mt-3 text-xl sm:text-3xl font-bold tracking-tight text-foreground tabular-nums">
+            {counts.approved}
+          </div>
+          <p className="hidden sm:block mt-1 text-xs text-muted">Verified in catalog</p>
         </button>
 
         <button
-          onClick={() => setStatusFilter("rejected")}
-          className={`text-left p-5 rounded-2xl border transition-all ${
+          type="button"
+          onClick={() => {
+            setStatusFilter("rejected");
+            setMobileLimit(6);
+          }}
+          className={`text-left p-3.5 sm:p-5 rounded-2xl border bg-surface transition-colors shadow-[0_1px_4px_rgba(0,0,0,0.02)] ${
             statusFilter === "rejected"
-              ? "bg-rose-500/15 border-rose-500/50 ring-2 ring-rose-500/20"
-              : "bg-surface border-border hover:border-rose-500/40 shadow-xs"
+              ? "border-rose-500/40 bg-rose-500/[0.03]"
+              : "border-border/70 hover:border-border"
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted">
-              Rejected
-            </span>
-            <div className="p-2 rounded-xl bg-rose-500/20 text-rose-600 dark:text-rose-400">
-              <XCircle className="w-4 h-4" />
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-medium text-muted">Rejected</span>
+            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+              <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-black text-foreground">{counts.rejected}</div>
-          <p className="mt-1 text-xs text-muted">Requires staff resubmission</p>
+          <div className="mt-2 sm:mt-3 text-xl sm:text-3xl font-bold tracking-tight text-foreground tabular-nums">
+            {counts.rejected}
+          </div>
+          <p className="hidden sm:block mt-1 text-xs text-muted">Returned to staff</p>
         </button>
 
         <button
-          onClick={() => setStatusFilter("all")}
-          className={`text-left p-5 rounded-2xl border transition-all ${
+          type="button"
+          onClick={() => {
+            setStatusFilter("all");
+            setMobileLimit(6);
+          }}
+          className={`text-left p-3.5 sm:p-5 rounded-2xl border bg-surface transition-colors shadow-[0_1px_4px_rgba(0,0,0,0.02)] ${
             statusFilter === "all"
-              ? "bg-brand-teal/15 border-brand-teal/50 ring-2 ring-brand-teal/20"
-              : "bg-surface border-border hover:border-brand-teal/40 shadow-xs"
+              ? "border-accent/40 bg-accent/[0.03]"
+              : "border-border/70 hover:border-border"
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted">
-              Total Submissions
-            </span>
-            <div className="p-2 rounded-xl bg-surface-elevated text-brand-teal border border-border">
-              <FileText className="w-4 h-4" />
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-medium text-muted">Total Submissions</span>
+            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-surface-elevated/80 text-muted flex items-center justify-center">
+              <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-black text-foreground">{counts.total}</div>
-          <p className="mt-1 text-xs text-muted">All self-registered devices</p>
+          <div className="mt-2 sm:mt-3 text-xl sm:text-3xl font-bold tracking-tight text-foreground tabular-nums">
+            {counts.total}
+          </div>
+          <p className="hidden sm:block mt-1 text-xs text-muted">All staff registrations</p>
         </button>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-surface p-4 rounded-2xl border border-border shadow-xs">
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-80">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+      {/* Queue Panel */}
+      <div className="bg-surface border border-border/70 rounded-2xl overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
+        {/* Panel Filter Header */}
+        <div className="px-3.5 sm:px-5 py-3 sm:py-4 border-b border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
+          <div className="relative flex-1 sm:max-w-xs">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
             <input
               type="text"
-              placeholder="Search by device, serial, or staff..."
+              placeholder="Search device, serial, or staff..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-sm bg-surface-elevated border border-border rounded-xl focus:outline-none focus:border-brand-teal text-foreground placeholder:text-muted transition-colors"
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setMobileLimit(6);
+              }}
+              className="w-full pl-8 pr-3 py-1.5 text-xs bg-background border border-border/80 rounded-xl focus:outline-none focus:border-accent text-foreground placeholder:text-muted transition-colors"
             />
           </div>
-        </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-          <div className="inline-flex p-1 bg-surface-elevated rounded-xl border border-border text-xs font-semibold text-muted">
-            {(["pending", "approved", "rejected", "all"] as const).map((filter) => (
-              <button
-                key={filter}
-                onClick={() => setStatusFilter(filter)}
-                className={`px-3 py-1.5 rounded-lg capitalize transition-all ${
-                  statusFilter === filter
-                    ? "bg-surface text-foreground font-bold shadow-xs border border-border"
-                    : "text-muted hover:text-foreground"
-                }`}
-              >
-                {filter}
-              </button>
-            ))}
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex-1 sm:flex-initial overflow-x-auto no-scrollbar">
+              <div className="inline-flex min-w-full sm:min-w-0 p-0.5 bg-surface-elevated/70 rounded-xl border border-border/70 text-xs font-medium whitespace-nowrap">
+                {(["pending", "approved", "rejected", "all"] as const).map((filter) => (
+                  <button
+                    key={filter}
+                    type="button"
+                    onClick={() => {
+                      setStatusFilter(filter);
+                      setMobileLimit(6);
+                    }}
+                    className={`flex-1 sm:flex-initial px-3 py-1 rounded-lg capitalize transition-colors ${
+                      statusFilter === filter
+                        ? "bg-surface text-foreground shadow-2xs"
+                        : "text-muted hover:text-foreground"
+                    }`}
+                  >
+                    {filter}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => fetchQueue(true)}
+              disabled={refreshing}
+              className="p-2 text-muted hover:text-foreground bg-surface border border-border/80 rounded-xl hover:bg-surface-elevated transition-colors shrink-0"
+              title="Refresh Queue"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
+            </button>
           </div>
-
-          <button
-            onClick={() => fetchQueue(true)}
-            disabled={refreshing}
-            className="p-2 text-muted hover:text-foreground bg-surface border border-border rounded-xl hover:bg-surface-elevated transition-colors"
-            title="Refresh Queue"
-          >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
-          </button>
         </div>
-      </div>
 
-      {/* Queue Table */}
-      <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-xs">
         {loading ? (
-          <div className="p-12 text-center">
-            <RefreshCw className="w-8 h-8 animate-spin text-brand-teal mx-auto" />
-            <p className="mt-3 text-sm text-muted font-medium">Loading approval queue...</p>
+          <div className="p-14 text-center">
+            <RefreshCw className="w-6 h-6 animate-spin text-accent mx-auto" />
+            <p className="mt-3 text-xs text-muted font-medium">Loading approval queue...</p>
           </div>
         ) : items.length === 0 ? (
-          <div className="p-12 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-surface-elevated border border-border flex items-center justify-center mx-auto text-muted">
-              <ShieldCheck className="w-6 h-6" />
+          <div className="p-14 text-center">
+            <div className="w-11 h-11 rounded-full bg-surface-elevated border border-border/60 flex items-center justify-center mx-auto text-muted">
+              <ShieldCheck className="w-5 h-5" />
             </div>
-            <h3 className="mt-4 text-base font-bold text-foreground">
-              No devices found in this view
-            </h3>
-            <p className="mt-1 text-sm text-muted max-w-sm mx-auto">
+            <h3 className="mt-3 text-sm font-semibold text-foreground">No registrations found</h3>
+            <p className="mt-1 text-xs text-muted max-w-sm mx-auto">
               {statusFilter === "pending"
-                ? "All staff-registered hardware has been verified. No pending approvals!"
-                : "No device records matching your current filter criteria."}
+                ? "All staff-registered devices have been reviewed."
+                : "No records matched your current filter."}
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-surface-elevated border-b border-border text-xs font-bold text-muted uppercase tracking-wider">
-                  <th className="py-3.5 px-4">Equipment & Details</th>
-                  <th className="py-3.5 px-4">Identifier / Serial</th>
-                  <th className="py-3.5 px-4">Submitted By</th>
-                  <th className="py-3.5 px-4">Condition</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border text-sm">
-                {items.map((item) => (
-                  <tr key={item.id} className="hover:bg-surface-elevated/60 transition-colors">
-                    {/* Equipment */}
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-brand-teal/15 border border-brand-teal/25 flex items-center justify-center text-brand-teal flex-shrink-0">
-                          <Laptop className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <div className="font-semibold text-foreground">{item.name}</div>
-                          <div className="text-xs text-muted mt-0.5">
-                            {item.category?.name || "Uncategorized"}
-                          </div>
-                        </div>
+          <>
+            {/* Mobile Clean List */}
+            <div className="md:hidden">
+              <div className="divide-y divide-border/50">
+                {items.slice(0, mobileLimit).map((item) => (
+                  <div key={item.id} className="px-3.5 py-2.5 space-y-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-semibold text-sm text-foreground truncate min-w-0">
+                        {item.name}
+                      </p>
+                      <div className="shrink-0">
+                        <ApprovalStatusPill status={item.approval_status} />
                       </div>
-                    </td>
+                    </div>
 
-                    {/* Identifiers */}
-                    <td className="py-4 px-4">
-                      <div className="font-mono text-xs font-semibold text-foreground bg-surface-elevated border border-border px-2 py-0.5 rounded-md inline-block">
-                        {item.serial_number || "No SN"}
-                      </div>
-                      {item.identifier_value && (
-                        <div className="text-xs text-brand-teal flex items-center gap-1 mt-1 font-mono font-semibold">
-                          <Tag className="w-3 h-3" />
-                          <span>{item.identifier_value}</span>
-                        </div>
-                      )}
-                    </td>
-
-                    {/* Submitter */}
-                    <td className="py-4 px-4">
-                      <div className="font-semibold text-foreground">
-                        {item.submitter?.name || item.created_by}
-                      </div>
-                      {item.submitter?.email && (
-                        <div className="text-xs text-muted mt-0.5">
-                          {item.submitter.email}
-                        </div>
-                      )}
-                      <div className="text-[11px] text-muted mt-0.5 flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        <span>
-                          {new Date(item.created_at).toLocaleDateString(undefined, {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs text-muted truncate min-w-0">
+                        <span className="font-medium text-foreground">
+                          {item.submitter?.name || item.created_by}
                         </span>
-                      </div>
-                    </td>
+                        {" · "}
+                        <span className="font-mono">{item.serial_number || "No SN"}</span>
+                        {" · "}
+                        <span className="tabular-nums">{formatSubmissionDate(item)}</span>
+                      </p>
 
-                    {/* Condition */}
-                    <td className="py-4 px-4">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold capitalize border ${
-                          item.condition === "new"
-                            ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
-                            : item.condition === "good"
-                            ? "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30"
-                            : item.condition === "fair"
-                            ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30"
-                            : "bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30"
-                        }`}
-                      >
-                        {item.condition}
-                      </span>
-                    </td>
-
-                    {/* Status */}
-                    <td className="py-4 px-4">
-                      {item.approval_status === "pending" ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30">
-                          <Clock className="w-3 h-3" />
-                          Pending Review
-                        </span>
-                      ) : item.approval_status === "approved" ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30">
-                          <CheckCircle2 className="w-3 h-3" />
-                          Approved
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30">
-                          <XCircle className="w-3 h-3" />
-                          Rejected
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Actions */}
-                    <td className="py-4 px-4 text-right">
-                      {item.approval_status === "pending" ? (
-                        <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {item.approval_status === "pending" ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => openRejectModal(item)}
+                              className="px-2 py-1 bg-surface border border-border/80 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 rounded-lg text-[11px] font-medium transition-colors"
+                            >
+                              Reject
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => openApproveModal(item)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-accent hover:bg-accent-hover text-white rounded-lg text-[11px] font-semibold transition-colors"
+                            >
+                              <Check className="w-3 h-3" />
+                              <span>Approve</span>
+                            </button>
+                          </>
+                        ) : (
                           <button
-                            onClick={() => openApproveModal(item)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-brand-yellow hover:bg-brand-yellow/90 text-brand-navy rounded-xl text-xs font-bold transition-all shadow-xs"
+                            type="button"
+                            onClick={() => setViewModalItem(item)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-surface border border-border/80 hover:bg-surface-elevated text-foreground rounded-lg text-[11px] font-medium transition-colors"
                           >
-                            <Check className="w-3.5 h-3.5" />
-                            <span>Approve & Tag</span>
+                            <FileText className="w-3 h-3 text-muted" />
+                            <span>Inspect</span>
                           </button>
-                          <button
-                            onClick={() => openRejectModal(item)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-surface border border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 rounded-xl text-xs font-semibold transition-colors shadow-xs"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                            <span>Reject</span>
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setViewModalItem(item)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-surface-elevated hover:bg-surface border border-border text-foreground rounded-xl text-xs font-semibold transition-colors"
-                        >
-                          <FileText className="w-3.5 h-3.5 text-muted" />
-                          <span>Inspect</span>
-                        </button>
-                      )}
-                    </td>
-                  </tr>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </div>
+              <ShowMoreBar
+                visibleCount={Math.min(mobileLimit, items.length)}
+                totalCount={items.length}
+                initialLimit={6}
+                noun="submissions"
+                onShowMore={() => setMobileLimit((prev) => prev + 6)}
+                onCollapse={() => setMobileLimit(6)}
+              />
+            </div>
+
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-surface-elevated/40 border-b border-border/60 text-xs font-medium text-muted">
+                    <th className="py-3 px-5 font-medium">Equipment</th>
+                    <th className="py-3 px-4 font-medium">Serial / Tag</th>
+                    <th className="py-3 px-4 font-medium">Submitted By</th>
+                    <th className="py-3 px-4 font-medium">Condition</th>
+                    <th className="py-3 px-4 font-medium">Status</th>
+                    <th className="py-3 px-5 font-medium text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/50 text-sm">
+                  {items.map((item) => (
+                    <tr
+                      key={item.id}
+                      className="hover:bg-surface-elevated/40 transition-colors"
+                    >
+                      <td className="py-3.5 px-5">
+                        <div className="font-medium text-foreground">{item.name}</div>
+                        <div className="text-xs text-muted mt-0.5">
+                          {item.category?.name || "Uncategorized"}
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <div className="font-mono text-xs text-foreground">
+                          {item.serial_number || "No SN"}
+                        </div>
+                        {item.identifier_value && (
+                          <div className="text-[11px] text-accent flex items-center gap-1 mt-0.5 font-mono">
+                            <Tag className="w-3 h-3" />
+                            <span>{item.identifier_value}</span>
+                          </div>
+                        )}
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <div className="font-medium text-foreground">
+                          {item.submitter?.name || item.created_by}
+                        </div>
+                        <div className="text-xs text-muted mt-0.5 tabular-nums">
+                          {item.submitter?.email ? `${item.submitter.email} · ` : ""}
+                          {formatSubmissionDate(item)}
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize border ${
+                            CONDITION_TONE[item.condition] ??
+                            "bg-surface-elevated text-muted border-border/60"
+                          }`}
+                        >
+                          {item.condition}
+                        </span>
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <ApprovalStatusPill status={item.approval_status} />
+                      </td>
+
+                      <td className="py-3.5 px-5 text-right">
+                        {item.approval_status === "pending" ? (
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => openApproveModal(item)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-accent hover:bg-accent-hover text-white rounded-xl text-xs font-semibold transition-colors shadow-2xs"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              <span>Approve & Tag</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => openRejectModal(item)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-surface border border-border/80 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 rounded-xl text-xs font-medium transition-colors"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                              <span>Reject</span>
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setViewModalItem(item)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface hover:bg-surface-elevated border border-border/80 text-foreground rounded-xl text-xs font-medium transition-colors"
+                          >
+                            <FileText className="w-3.5 h-3.5 text-muted" />
+                            <span>Inspect</span>
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
       {/* APPROVE MODAL */}
       {approveModalItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs animate-fade-in">
-          <div className="bg-surface rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-border animate-scale-up text-foreground">
-            <div className="flex items-center justify-between pb-4 border-b border-border">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fade-in">
+          <div className="bg-surface rounded-2xl max-w-lg w-full p-6 shadow-xl border border-border/70 animate-scale-up text-foreground">
+            <div className="flex items-center justify-between pb-4 border-b border-border/60">
               <div className="flex items-center gap-2.5">
-                <div className="p-2.5 rounded-xl bg-brand-teal/15 text-brand-teal">
-                  <ShieldCheck className="w-5 h-5" />
+                <div className="p-2 rounded-xl bg-accent-soft text-accent">
+                  <ShieldCheck className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-foreground">Approve & Tag Equipment</h3>
-                  <p className="text-xs text-muted">Official catalog enrollment</p>
+                  <h3 className="text-base font-semibold text-foreground">
+                    Approve & Tag Equipment
+                  </h3>
+                  <p className="text-xs text-muted">Enroll device into official catalog</p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setApproveModalItem(null)}
                 className="text-muted hover:text-foreground p-1.5 rounded-xl hover:bg-surface-elevated transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleApproveSubmit} className="mt-4 space-y-4">
               {actionError && (
-                <div className="p-3 text-xs text-rose-700 dark:text-rose-400 bg-rose-500/15 border border-rose-500/30 rounded-xl">
+                <div className="p-3 text-xs text-rose-700 dark:text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-xl">
                   {actionError}
                 </div>
               )}
 
-              {/* Summary box */}
-              <div className="p-3 bg-surface-elevated rounded-xl border border-border text-xs space-y-1.5">
-                <div className="flex justify-between">
-                  <span className="text-muted">Device Name:</span>
-                  <span className="font-semibold text-foreground">{approveModalItem.name}</span>
+              <div className="p-3.5 bg-surface-elevated/50 rounded-xl border border-border/60 text-xs space-y-1.5">
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted">Device</span>
+                  <span className="font-medium text-foreground">{approveModalItem.name}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted">Serial Number:</span>
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted">Serial Number</span>
                   <span className="font-mono text-foreground">{approveModalItem.serial_number}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted">Submitted By:</span>
-                  <span className="text-foreground">
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted">Submitted By</span>
+                  <span className="text-foreground text-right">
                     {approveModalItem.submitter?.name} ({approveModalItem.submitter?.email})
                   </span>
                 </div>
               </div>
 
-              {/* Asset Tag Input */}
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">
+                <label className="block text-xs font-medium text-foreground mb-1">
                   Assign Official Asset Tag
                 </label>
                 <div className="relative">
-                  <Tag className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+                  <Tag className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
                   <input
                     type="text"
                     value={assetTag}
                     onChange={(e) => setAssetTag(e.target.value)}
                     placeholder="e.g. R4C-AST-1042"
-                    className="w-full pl-9 pr-4 py-2 text-sm bg-surface border border-border rounded-xl focus:outline-none focus:border-brand-teal font-mono text-foreground placeholder:text-muted"
+                    className="w-full pl-9 pr-4 py-2 text-sm bg-background border border-border/80 rounded-xl focus:outline-none focus:border-accent font-mono text-foreground placeholder:text-muted"
                   />
                 </div>
                 <p className="text-[11px] text-muted mt-1">
-                  Unique inventory tag physically affixed or cataloged for this asset.
+                  Unique inventory identifier assigned to this asset.
                 </p>
               </div>
 
-              {/* Condition */}
               <div>
                 <Select
                   label="Verified Condition"
@@ -594,32 +673,31 @@ export function DeviceApprovalQueue() {
                 />
               </div>
 
-              {/* Internal Notes */}
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">
+                <label className="block text-xs font-medium text-foreground mb-1">
                   IT Verification Notes (Optional)
                 </label>
                 <textarea
                   rows={2}
                   value={approveNotes}
                   onChange={(e) => setApproveNotes(e.target.value)}
-                  placeholder="e.g. Verified hardware specs; barcode label applied on base."
-                  className="w-full px-3 py-2 text-sm bg-surface border border-border rounded-xl focus:outline-none focus:border-brand-teal text-foreground placeholder:text-muted"
+                  placeholder="e.g. Verified hardware specs; asset label affixed."
+                  className="w-full px-3 py-2 text-sm bg-background border border-border/80 rounded-xl focus:outline-none focus:border-accent text-foreground placeholder:text-muted"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border/60">
                 <button
                   type="button"
                   onClick={() => setApproveModalItem(null)}
-                  className="px-4 py-2 text-xs font-semibold text-muted hover:text-foreground bg-surface border border-border rounded-xl hover:bg-surface-elevated transition-colors"
+                  className="px-4 py-2 text-xs font-medium text-foreground bg-surface border border-border/80 rounded-xl hover:bg-surface-elevated transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-yellow hover:bg-brand-yellow/90 text-brand-navy rounded-xl text-xs font-bold transition-all shadow-xs disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-accent hover:bg-accent-hover text-white rounded-xl text-xs font-semibold transition-colors shadow-2xs disabled:opacity-50"
                 >
                   {actionLoading ? (
                     <RefreshCw className="w-3.5 h-3.5 animate-spin" />
@@ -636,46 +714,50 @@ export function DeviceApprovalQueue() {
 
       {/* REJECT MODAL */}
       {rejectModalItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs animate-fade-in">
-          <div className="bg-surface rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-border animate-scale-up text-foreground">
-            <div className="flex items-center justify-between pb-4 border-b border-border">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fade-in">
+          <div className="bg-surface rounded-2xl max-w-lg w-full p-6 shadow-xl border border-border/70 animate-scale-up text-foreground">
+            <div className="flex items-center justify-between pb-4 border-b border-border/60">
               <div className="flex items-center gap-2.5">
-                <div className="p-2.5 rounded-xl bg-rose-500/15 text-rose-600 dark:text-rose-400">
-                  <XCircle className="w-5 h-5" />
+                <div className="p-2 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                  <XCircle className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-foreground">Reject Registration</h3>
+                  <h3 className="text-base font-semibold text-foreground">Reject Registration</h3>
                   <p className="text-xs text-muted">
-                    Notify staff member of reason for non-approval
+                    Provide feedback explaining why the registration was declined
                   </p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setRejectModalItem(null)}
                 className="text-muted hover:text-foreground p-1.5 rounded-xl hover:bg-surface-elevated transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleRejectSubmit} className="mt-4 space-y-4">
               {actionError && (
-                <div className="p-3 text-xs text-rose-700 dark:text-rose-400 bg-rose-500/15 border border-rose-500/30 rounded-xl">
+                <div className="p-3 text-xs text-rose-700 dark:text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-xl">
                   {actionError}
                 </div>
               )}
 
-              <div className="p-3 bg-surface-elevated rounded-xl border border-border text-xs space-y-1">
-                <span className="text-muted">Device: </span>
-                <span className="font-semibold text-foreground">{rejectModalItem.name}</span>
-                <span className="text-muted font-mono"> ({rejectModalItem.serial_number})</span>
-                <div className="text-muted mt-1">
-                  Staff Submitter: {rejectModalItem.submitter?.name} ({rejectModalItem.submitter?.email})
+              <div className="p-3.5 bg-surface-elevated/50 rounded-xl border border-border/60 text-xs space-y-1">
+                <div>
+                  <span className="text-muted">Device: </span>
+                  <span className="font-medium text-foreground">{rejectModalItem.name}</span>
+                  <span className="text-muted font-mono"> ({rejectModalItem.serial_number})</span>
+                </div>
+                <div className="text-muted">
+                  Submitted by: {rejectModalItem.submitter?.name} (
+                  {rejectModalItem.submitter?.email})
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">
+                <label className="block text-xs font-medium text-foreground mb-1">
                   Reason for Rejection *
                 </label>
                 <textarea
@@ -683,15 +765,14 @@ export function DeviceApprovalQueue() {
                   required
                   value={rejectionReason}
                   onChange={(e) => setRejectionReason(e.target.value)}
-                  placeholder="Explain why this equipment cannot be registered into inventory..."
-                  className="w-full px-3 py-2 text-sm bg-surface border border-border rounded-xl focus:outline-none focus:border-rose-500 text-foreground placeholder:text-muted"
+                  placeholder="Explain why this equipment cannot be registered..."
+                  className="w-full px-3 py-2 text-sm bg-background border border-border/80 rounded-xl focus:outline-none focus:border-rose-500 text-foreground placeholder:text-muted"
                 />
               </div>
 
-              {/* Quick suggestions */}
               <div>
-                <span className="text-[11px] font-semibold text-muted">Quick suggestions:</span>
-                <div className="flex flex-wrap gap-1.5 mt-1">
+                <span className="text-[11px] font-medium text-muted">Quick suggestions:</span>
+                <div className="flex flex-wrap gap-1.5 mt-1.5">
                   {[
                     "Serial number does not match physical unit",
                     "Personal device not authorized for company registry",
@@ -702,7 +783,7 @@ export function DeviceApprovalQueue() {
                       key={sug}
                       type="button"
                       onClick={() => setRejectionReason(sug)}
-                      className="text-[11px] px-2 py-1 rounded-lg bg-surface-elevated hover:bg-surface border border-border text-foreground transition-colors text-left"
+                      className="text-[11px] px-2.5 py-1 rounded-lg bg-surface-elevated/70 hover:bg-surface-elevated border border-border/60 text-foreground transition-colors text-left"
                     >
                       {sug}
                     </button>
@@ -710,18 +791,18 @@ export function DeviceApprovalQueue() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border/60">
                 <button
                   type="button"
                   onClick={() => setRejectModalItem(null)}
-                  className="px-4 py-2 text-xs font-semibold text-muted hover:text-foreground bg-surface border border-border rounded-xl hover:bg-surface-elevated transition-colors"
+                  className="px-4 py-2 text-xs font-medium text-foreground bg-surface border border-border/80 rounded-xl hover:bg-surface-elevated transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold transition-colors shadow-2xs disabled:opacity-50"
                 >
                   {actionLoading ? (
                     <RefreshCw className="w-3.5 h-3.5 animate-spin" />
@@ -738,90 +819,91 @@ export function DeviceApprovalQueue() {
 
       {/* INSPECT MODAL */}
       {viewModalItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs animate-fade-in">
-          <div className="bg-surface rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-border animate-scale-up text-foreground">
-            <div className="flex items-center justify-between pb-4 border-b border-border">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fade-in">
+          <div className="bg-surface rounded-2xl max-w-lg w-full p-6 shadow-xl border border-border/70 animate-scale-up text-foreground">
+            <div className="flex items-center justify-between pb-4 border-b border-border/60">
               <div className="flex items-center gap-2.5">
-                <div className="p-2.5 rounded-xl bg-brand-teal/15 text-brand-teal">
-                  <Laptop className="w-5 h-5" />
+                <div className="p-2 rounded-xl bg-accent-soft text-accent">
+                  <Laptop className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-foreground">Equipment Record</h3>
-                  <p className="text-xs text-muted">Archived verification details</p>
+                  <h3 className="text-base font-semibold text-foreground">Equipment Record</h3>
+                  <p className="text-xs text-muted">Verification details</p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setViewModalItem(null)}
                 className="text-muted hover:text-foreground p-1.5 rounded-xl hover:bg-surface-elevated transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="mt-4 space-y-3 text-xs">
-              <div className="grid grid-cols-2 gap-3 p-3 bg-surface-elevated rounded-xl border border-border">
+              <div className="grid grid-cols-2 gap-3 p-3.5 bg-surface-elevated/50 rounded-xl border border-border/60">
                 <div>
-                  <span className="text-muted">Device Name:</span>
-                  <div className="font-semibold text-foreground mt-0.5">{viewModalItem.name}</div>
+                  <span className="text-muted">Device Name</span>
+                  <div className="font-medium text-foreground mt-0.5">{viewModalItem.name}</div>
                 </div>
                 <div>
-                  <span className="text-muted">Category:</span>
-                  <div className="font-semibold text-foreground mt-0.5">
+                  <span className="text-muted">Category</span>
+                  <div className="font-medium text-foreground mt-0.5">
                     {viewModalItem.category?.name || "Uncategorized"}
                   </div>
                 </div>
                 <div>
-                  <span className="text-muted">Serial Number:</span>
+                  <span className="text-muted">Serial Number</span>
                   <div className="font-mono text-foreground mt-0.5">
                     {viewModalItem.serial_number || "None"}
                   </div>
                 </div>
                 <div>
-                  <span className="text-muted">Asset Tag:</span>
-                  <div className="font-mono text-brand-teal font-bold mt-0.5">
+                  <span className="text-muted">Asset Tag</span>
+                  <div className="font-mono text-accent font-medium mt-0.5">
                     {viewModalItem.identifier_value || "None"}
                   </div>
                 </div>
                 <div>
-                  <span className="text-muted">Condition:</span>
-                  <div className="font-semibold capitalize text-foreground mt-0.5">
+                  <span className="text-muted">Condition</span>
+                  <div className="font-medium capitalize text-foreground mt-0.5">
                     {viewModalItem.condition}
                   </div>
                 </div>
                 <div>
-                  <span className="text-muted">Approval Status:</span>
-                  <div className="font-bold capitalize text-foreground mt-0.5">
+                  <span className="text-muted">Approval Status</span>
+                  <div className="font-medium capitalize text-foreground mt-0.5">
                     {viewModalItem.approval_status}
                   </div>
                 </div>
               </div>
 
-              <div className="p-3 bg-surface-elevated rounded-xl border border-border">
-                <span className="text-muted">Custody / Submitting Staff:</span>
-                <div className="font-semibold text-foreground mt-0.5">
+              <div className="p-3.5 bg-surface-elevated/50 rounded-xl border border-border/60 space-y-0.5">
+                <span className="text-muted">Submitted By</span>
+                <div className="font-medium text-foreground">
                   {viewModalItem.submitter?.name}
                 </div>
                 <div className="text-muted">{viewModalItem.submitter?.email}</div>
                 {viewModalItem.submitter?.phone && (
-                  <div className="text-muted">{viewModalItem.submitter?.phone}</div>
+                  <div className="text-muted">{viewModalItem.submitter.phone}</div>
                 )}
               </div>
 
               {viewModalItem.notes && (
-                <div className="p-3 bg-surface-elevated rounded-xl border border-border">
-                  <span className="text-muted">Notes & Logs:</span>
-                  <div className="text-foreground whitespace-pre-wrap mt-0.5">
+                <div className="p-3.5 bg-surface-elevated/50 rounded-xl border border-border/60">
+                  <span className="text-muted">Notes</span>
+                  <div className="text-foreground whitespace-pre-wrap mt-1">
                     {viewModalItem.notes}
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="flex justify-end pt-4 mt-2 border-t border-border">
+            <div className="flex justify-end pt-4 mt-3 border-t border-border/60">
               <button
                 type="button"
                 onClick={() => setViewModalItem(null)}
-                className="px-4 py-2 text-xs font-semibold text-muted hover:text-foreground bg-surface border border-border rounded-xl hover:bg-surface-elevated transition-colors"
+                className="px-4 py-2 text-xs font-medium text-foreground bg-surface border border-border/80 rounded-xl hover:bg-surface-elevated transition-colors"
               >
                 Close
               </button>
@@ -830,5 +912,33 @@ export function DeviceApprovalQueue() {
         </div>
       )}
     </div>
+  );
+}
+
+function ApprovalStatusPill({ status }: { status: "pending" | "approved" | "rejected" }) {
+  const styles =
+    status === "pending"
+      ? "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20"
+      : status === "approved"
+      ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20"
+      : "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20";
+
+  const dot =
+    status === "pending"
+      ? "bg-amber-500"
+      : status === "approved"
+      ? "bg-emerald-500"
+      : "bg-rose-500";
+
+  const label =
+    status === "pending" ? "Pending" : status === "approved" ? "Approved" : "Rejected";
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${styles}`}
+    >
+      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
+      <span>{label}</span>
+    </span>
   );
 }

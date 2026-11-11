@@ -239,9 +239,9 @@ export function OptionsManager() {
   const currentGroupConfig = GROUPS.find((g) => g.key === activeTab)!;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Category Group Tabs */}
-      <div className="flex border-b border-border overflow-x-auto scrollbar-none">
+      <div className="flex border-b border-border/70 overflow-x-auto no-scrollbar">
         {GROUPS.map((grp) => {
           const Icon = grp.icon;
           const isActive = activeTab === grp.key;
@@ -250,24 +250,25 @@ export function OptionsManager() {
           return (
             <button
               key={grp.key}
+              type="button"
               onClick={() => {
                 setActiveTab(grp.key);
                 setEditingId(null);
                 setFeedback(null);
               }}
-              className={`flex items-center gap-2.5 px-5 py-3.5 border-b-2 text-sm font-bold whitespace-nowrap transition-colors ${
+              className={`flex items-center gap-2 px-3.5 sm:px-4 py-2.5 sm:py-3 border-b-2 text-xs sm:text-sm font-medium whitespace-nowrap transition-colors -mb-px ${
                 isActive
-                  ? "border-brand-teal text-foreground"
-                  : "border-transparent text-muted hover:text-foreground hover:border-border"
+                  ? "border-accent text-accent font-semibold"
+                  : "border-transparent text-muted hover:text-foreground"
               }`}
             >
-              <Icon className="w-4 h-4 text-brand-teal" />
+              <Icon className="w-4 h-4" />
               <span>{grp.label}</span>
               <span
-                className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+                className={`text-[11px] px-2 py-0.5 rounded-full font-medium tabular-nums ${
                   isActive
-                    ? "bg-brand-teal/20 text-brand-teal border border-brand-teal/30"
-                    : "bg-surface-elevated text-muted border border-border"
+                    ? "bg-accent-soft text-accent"
+                    : "bg-surface-elevated text-muted"
                 }`}
               >
                 {count}
@@ -277,15 +278,16 @@ export function OptionsManager() {
         })}
       </div>
 
-      {/* Description & Feedback Banner */}
+      {/* Description & Refresh */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <p className="text-xs sm:text-sm text-muted">{currentGroupConfig.description}</p>
         <button
+          type="button"
           onClick={() => {
             setLoading(true);
             fetchOptions();
           }}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted hover:text-foreground self-start transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-muted hover:text-foreground self-start transition-colors"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
           Refresh
@@ -294,14 +296,14 @@ export function OptionsManager() {
 
       {feedback && (
         <div
-          className={`p-3 rounded-xl text-xs font-semibold border flex items-center justify-between ${
+          className={`px-4 py-3 rounded-xl text-xs font-medium border flex items-center justify-between ${
             feedback.type === "success"
-              ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30"
-              : "bg-rose-500/15 text-rose-800 dark:text-rose-300 border-rose-500/30"
+              ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
+              : "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20"
           }`}
         >
           <span>{feedback.message}</span>
-          <button onClick={() => setFeedback(null)} className="p-1 hover:opacity-75">
+          <button type="button" onClick={() => setFeedback(null)} className="p-1 hover:opacity-75">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -310,13 +312,13 @@ export function OptionsManager() {
       {/* Add New Option Form */}
       <form
         onSubmit={handleAddOption}
-        className="rounded-2xl border border-border bg-surface p-4 sm:p-5 space-y-3 shadow-xs"
+        className="rounded-2xl border border-border/70 bg-surface p-3.5 sm:p-5 space-y-2.5 sm:space-y-3 shadow-[0_1px_4px_rgba(0,0,0,0.02)]"
       >
-        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
-          Add New {currentGroupConfig.label.slice(0, -1)}
+        <h3 className="text-xs font-medium text-muted">
+          Add {currentGroupConfig.label.slice(0, -1)}
         </h3>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
           <div className="sm:col-span-2">
             <input
               type="text"
@@ -333,23 +335,23 @@ export function OptionsManager() {
                 }
               }}
               placeholder={currentGroupConfig.placeholder}
-              className="w-full px-3.5 py-2 rounded-xl border border-border bg-surface-elevated text-foreground text-sm outline-none transition-colors focus:border-brand-teal placeholder:text-muted"
+              className="w-full px-3.5 py-2 rounded-xl border border-border/80 bg-background text-foreground text-sm outline-none transition-colors focus:border-accent placeholder:text-muted"
               required
             />
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 min-w-0">
             <input
               type="text"
               value={newValue}
               onChange={(e) => setNewValue(e.target.value)}
-              placeholder="Slug / ID (auto)"
-              className="flex-1 px-3 py-2 rounded-xl border border-border bg-surface-elevated font-mono text-xs outline-none transition-colors focus:border-brand-teal text-muted placeholder:text-muted"
+              placeholder="Slug (auto)"
+              className="flex-1 min-w-0 px-3 py-2 rounded-xl border border-border/80 bg-background font-mono text-xs outline-none transition-colors focus:border-accent text-foreground placeholder:text-muted"
             />
             <button
               type="submit"
               disabled={submitting || !newLabel.trim()}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-yellow hover:bg-brand-yellow/90 text-brand-navy text-xs sm:text-sm font-bold transition-all disabled:opacity-50 shrink-0 shadow-xs"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs sm:text-sm font-semibold transition-colors disabled:opacity-50 shrink-0 shadow-2xs"
             >
               <Plus className="w-4 h-4" />
               Add
@@ -359,18 +361,18 @@ export function OptionsManager() {
       </form>
 
       {/* Options List */}
-      <div className="rounded-2xl border border-border bg-surface shadow-xs overflow-hidden">
-        <div className="px-5 py-3 border-b border-border bg-surface-elevated text-xs font-bold text-muted uppercase tracking-wider grid grid-cols-12 gap-2 items-center">
-          <span className="col-span-6 sm:col-span-5">Label</span>
-          <span className="hidden sm:block col-span-3">System Identifier</span>
-          <span className="col-span-3 sm:col-span-2 text-center">Status</span>
-          <span className="col-span-3 sm:col-span-2 text-right">Actions</span>
+      <div className="rounded-2xl border border-border/70 bg-surface shadow-[0_1px_4px_rgba(0,0,0,0.02)] overflow-hidden">
+        <div className="hidden sm:grid px-5 py-3 border-b border-border/60 bg-surface-elevated/40 text-xs font-medium text-muted grid-cols-12 gap-2 items-center">
+          <span className="col-span-5">Label</span>
+          <span className="col-span-3">System Identifier</span>
+          <span className="col-span-2 text-center">Status</span>
+          <span className="col-span-2 text-right">Actions</span>
         </div>
 
         {loading ? (
-          <div className="p-6 space-y-3">
+          <div className="p-4 sm:p-6 space-y-2.5 sm:space-y-3">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-10 bg-surface-elevated animate-pulse rounded-xl" />
+              <div key={i} className="h-10 bg-surface-elevated/60 rounded-xl" />
             ))}
           </div>
         ) : currentOptions.length === 0 ? (
@@ -378,63 +380,64 @@ export function OptionsManager() {
             No options registered for this group yet.
           </div>
         ) : (
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-border/50">
             {currentOptions.map((opt, idx) => {
               const isEditing = editingId === opt.id;
 
               return (
                 <div
                   key={opt.id}
-                  className={`px-5 py-3.5 grid grid-cols-12 gap-2 items-center transition-colors ${
-                    !opt.isActive ? "bg-surface-elevated/40 opacity-60" : "hover:bg-surface-elevated/50"
+                  className={`px-3.5 sm:px-5 py-2.5 sm:py-3.5 flex flex-wrap sm:grid sm:grid-cols-12 gap-2 items-center justify-between transition-colors ${
+                    !opt.isActive ? "bg-surface-elevated/30 opacity-60" : "hover:bg-surface-elevated/40"
                   }`}
                 >
                   {/* Label / Inline Edit */}
-                  <div className="col-span-6 sm:col-span-5 flex items-center gap-2">
+                  <div className="flex-1 min-w-0 sm:col-span-5 flex items-center gap-2">
                     {isEditing ? (
                       <div className="flex items-center gap-1.5 w-full">
                         <input
                           type="text"
                           value={editLabel}
                           onChange={(e) => setEditLabel(e.target.value)}
-                          className="flex-1 px-2.5 py-1 text-sm rounded-lg border border-border bg-surface text-foreground focus:outline-none focus:border-brand-teal"
+                          className="flex-1 min-w-0 px-2.5 py-1 text-sm rounded-lg border border-border/80 bg-background text-foreground focus:outline-none focus:border-accent"
                           autoFocus
                         />
                         <button
+                          type="button"
                           onClick={() => handleSaveEdit(opt.id)}
-                          className="p-1 rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/25"
+                          className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20"
                           title="Save"
                         >
                           <Check className="w-3.5 h-3.5" />
                         </button>
                         <button
+                          type="button"
                           onClick={() => setEditingId(null)}
-                          className="p-1 rounded-lg bg-surface-elevated text-muted hover:text-foreground"
+                          className="p-1.5 rounded-lg bg-surface-elevated text-muted hover:text-foreground"
                           title="Cancel"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     ) : (
-                      <span className="text-sm font-semibold text-foreground">{opt.label}</span>
+                      <span className="text-sm font-medium text-foreground truncate">{opt.label}</span>
                     )}
                   </div>
 
                   {/* Slug / Value */}
-                  <div className="hidden sm:block col-span-3">
-                    <span className="font-mono text-xs text-muted bg-surface-elevated border border-border px-2 py-0.5 rounded-md">
-                      {opt.value}
-                    </span>
+                  <div className="hidden sm:block sm:col-span-3">
+                    <span className="font-mono text-xs text-muted">{opt.value}</span>
                   </div>
 
                   {/* Status Toggle */}
-                  <div className="col-span-3 sm:col-span-2 flex justify-center">
+                  <div className="sm:col-span-2 flex justify-end sm:justify-center shrink-0">
                     <button
+                      type="button"
                       onClick={() => handleToggleActive(opt)}
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border transition-colors ${
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] sm:text-xs font-medium border transition-colors ${
                         opt.isActive
-                          ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25"
-                          : "bg-surface-elevated text-muted border-border hover:bg-surface"
+                          ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/15"
+                          : "bg-surface-elevated text-muted border-border/70 hover:bg-surface"
                       }`}
                       title={opt.isActive ? "Active (Click to disable)" : "Disabled (Click to enable)"}
                     >
@@ -444,8 +447,9 @@ export function OptionsManager() {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="col-span-3 sm:col-span-2 flex items-center justify-end gap-1">
+                  <div className="w-full sm:w-auto sm:col-span-2 flex items-center justify-end gap-1 shrink-0">
                     <button
+                      type="button"
                       onClick={() => handleReorder(opt, "up")}
                       disabled={idx === 0}
                       className="p-1 text-muted hover:text-foreground disabled:opacity-20 transition-colors"
@@ -454,6 +458,7 @@ export function OptionsManager() {
                       <ArrowUp className="w-3.5 h-3.5" />
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleReorder(opt, "down")}
                       disabled={idx === currentOptions.length - 1}
                       className="p-1 text-muted hover:text-foreground disabled:opacity-20 transition-colors"
@@ -462,6 +467,7 @@ export function OptionsManager() {
                       <ArrowDown className="w-3.5 h-3.5" />
                     </button>
                     <button
+                      type="button"
                       onClick={() => {
                         setEditingId(opt.id);
                         setEditLabel(opt.label);
@@ -473,8 +479,9 @@ export function OptionsManager() {
                     </button>
                     {opt.isActive && (
                       <button
+                        type="button"
                         onClick={() => handleDelete(opt)}
-                        className="p-1 text-muted hover:text-rose-500 transition-colors"
+                        className="p-1 text-muted hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
                         title="Deactivate"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
