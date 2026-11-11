@@ -12,7 +12,7 @@ export function Card({
 }: CardProps) {
   return (
     <div
-      className={`rounded-2xl border border-border bg-surface text-foreground p-5 shadow-xs transition-colors ${className}`}
+      className={`rounded-2xl border border-border/70 bg-surface text-foreground p-5 shadow-[0_1px_4px_rgba(0,0,0,0.02)] transition-colors ${className}`}
       {...props}
     >
       {children}

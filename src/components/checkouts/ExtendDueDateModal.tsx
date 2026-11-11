@@ -117,18 +117,18 @@ export function ExtendDueDateModal({
           />
         </FormField>
 
-        <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
+        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border/60">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-medium text-muted hover:text-foreground bg-surface border border-border rounded-lg hover:bg-surface-elevated transition-colors"
+            className="px-4 py-2 text-xs font-medium text-muted hover:text-foreground bg-surface border border-border/80 rounded-xl hover:bg-surface-elevated transition-colors"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={saving}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-yellow hover:brightness-105 text-brand-navy rounded-lg text-xs font-bold transition-all shadow-xs disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-accent hover:bg-accent-hover text-white rounded-xl text-xs font-semibold transition-all shadow-2xs disabled:opacity-50"
           >
             {saving ? (
               <RefreshCw className="w-3.5 h-3.5 animate-spin" />

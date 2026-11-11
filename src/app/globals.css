@@ -126,6 +126,12 @@ html.dark .e310-logo-light,
   --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
 }
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -136,9 +142,18 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 ::selection {
-  background: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
+  background: var(--accent-soft);
+  color: var(--foreground);
 }
 
 button,
@@ -202,12 +217,12 @@ textarea {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
+  background: rgba(100, 116, 139, 0.28);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+  background: rgba(100, 116, 139, 0.45);
 }
 
 /* ─── Browser Native Calendar Indicators ─── */

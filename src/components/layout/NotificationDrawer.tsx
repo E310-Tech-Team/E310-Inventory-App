@@ -153,10 +153,10 @@ export function NotificationDrawer({
         aria-hidden="true"
       />
 
-      <div className="fixed inset-y-0 right-0 z-50 flex max-w-full pl-6 sm:pl-10 h-screen h-[100dvh] pointer-events-none">
-        <div className="pointer-events-auto relative w-screen max-w-md h-screen h-[100dvh] bg-surface shadow-2xl flex flex-col border-l border-border text-foreground">
+      <div className="fixed inset-y-0 right-0 z-50 flex max-w-full pl-0 sm:pl-10 h-screen h-[100dvh] pointer-events-none">
+        <div className="pointer-events-auto relative w-screen max-w-full sm:max-w-md h-screen h-[100dvh] bg-surface shadow-2xl flex flex-col sm:border-l border-border text-foreground">
           {/* Header */}
-          <div className="shrink-0 px-6 py-4 border-b border-border bg-surface flex items-center justify-between">
+          <div className="shrink-0 px-4 sm:px-6 py-3 sm:py-4 border-b border-border bg-surface flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-teal/10 border border-brand-teal/20 text-brand-teal shadow-xs">
                 <Bell className="h-4 w-4" />
@@ -184,7 +184,7 @@ export function NotificationDrawer({
           </div>
 
           {/* Subheader Controls: Segmented Tabs & Actions */}
-          <div className="shrink-0 px-6 py-2.5 border-b border-border bg-surface-elevated/40 flex items-center justify-between text-xs">
+          <div className="shrink-0 px-4 sm:px-6 py-2 sm:py-2.5 border-b border-border bg-surface-elevated/40 flex items-center justify-between text-xs">
             <div className="flex items-center gap-1 p-0.5 rounded-xl bg-surface-elevated border border-border/80">
               <button
                 onClick={() => setFilter("all")}
@@ -297,14 +297,14 @@ export function NotificationDrawer({
                       </div>
                     </div>
 
-                    {/* Quick Single Mark Read Action on Hover */}
+                    {/* Quick Single Mark Read Action on Hover / Touch */}
                     {!isItemRead && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onMarkAsRead(item.id);
                         }}
-                        className="opacity-0 group-hover:opacity-100 absolute top-4 right-4 p-1 rounded-md text-muted hover:text-foreground hover:bg-surface-elevated transition-all shadow-xs border border-border"
+                        className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 absolute top-3.5 right-3.5 sm:top-4 sm:right-4 p-1 rounded-md text-muted hover:text-foreground hover:bg-surface-elevated transition-all shadow-xs border border-border"
                         title="Mark as read"
                       >
                         <CheckCheck className="w-3.5 h-3.5" />
@@ -318,7 +318,7 @@ export function NotificationDrawer({
 
           {/* Footer Actions */}
           {notifications.length > 0 && (
-            <div className="shrink-0 p-4 border-t border-border bg-surface-elevated flex items-center justify-between text-xs mt-auto">
+            <div className="shrink-0 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4 border-t border-border bg-surface-elevated flex items-center justify-between text-xs mt-auto">
               <button
                 onClick={handleClearAll}
                 disabled={clearing}

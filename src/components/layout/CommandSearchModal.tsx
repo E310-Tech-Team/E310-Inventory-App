@@ -231,12 +231,12 @@ export function CommandSearchModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="command-search-title"
-      className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4 bg-black/50 backdrop-blur-xs transition-opacity animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-[6vh] sm:pt-24 px-3 sm:px-4 bg-black/50 backdrop-blur-xs transition-opacity animate-in fade-in duration-150"
       onClick={(e) => {
         if (e.target === e.currentTarget) handleClose();
       }}
     >
-      <div className="w-full max-w-2xl bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh] transition-all scale-100 animate-in zoom-in-95 duration-150">
+      <div className="w-full max-w-2xl bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85dvh] sm:max-h-[80vh] transition-all scale-100 animate-in zoom-in-95 duration-150">
         {/* Header / Input Field */}
         <div className="relative flex items-center px-4 py-3.5 border-b border-border bg-surface">
           <Search className="w-5 h-5 text-muted shrink-0 mr-3" />
@@ -272,7 +272,7 @@ export function CommandSearchModal({
         {/* Results Container */}
         <div
           ref={resultsRef}
-          className="flex-1 overflow-y-auto p-3 space-y-4 max-h-[500px]"
+          className="flex-1 overflow-y-auto overscroll-contain p-2.5 sm:p-3 space-y-3 sm:space-y-4 max-h-[65dvh] sm:max-h-[500px]"
         >
           {query.trim().length === 0 ? (
             /* Empty Query: Quick Actions */

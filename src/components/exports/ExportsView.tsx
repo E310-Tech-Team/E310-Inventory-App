@@ -1,11 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CalendarClock, Download, FileSpreadsheet } from "lucide-react";
+import { Download, FileSpreadsheet } from "lucide-react";
 import { Category } from "@/types";
-import { inputClass } from "@/components/ui/FormField";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Select } from "@/components/common/Select";
+import { DatePicker } from "@/components/common/DatePicker";
 
 type ReportType = "assignments" | "inventory";
 type ExportFormat = "csv" | "excel";
@@ -108,19 +108,20 @@ export function ExportsView({ categories }: { categories: Category[] }) {
   return (
     <div>
       <PageHeader
-        title="Exports"
+        title="Data Exports"
         description="Download filtered inventory and assignment records"
       />
 
-      <div className="px-4 md:px-8 pb-8 animate-enter">
+      <div className="px-4 md:px-8 pb-6 sm:pb-12 animate-enter">
         <form
           onSubmit={handleDownload}
-          className="interactive-card border border-border rounded-xl bg-surface p-4 md:p-5"
+          className="border border-border/70 rounded-2xl bg-surface p-4 sm:p-5 md:p-6 shadow-[0_1px_4px_rgba(0,0,0,0.02)]"
         >
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 items-end">
+          <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 xl:grid-cols-3 items-end">
             <div>
               <Select
                 label="Report"
+                triggerClassName="min-h-[38px]"
                 value={report}
                 onChange={(event) => {
                   setReport(event.target.value as ReportType);
@@ -136,6 +137,7 @@ export function ExportsView({ categories }: { categories: Category[] }) {
             <div>
               <Select
                 label="Category"
+                triggerClassName="min-h-[38px]"
                 value={categoryId}
                 onChange={(event) => setCategoryId(event.target.value)}
                 options={[
@@ -151,6 +153,7 @@ export function ExportsView({ categories }: { categories: Category[] }) {
             <div>
               <Select
                 label="Status"
+                triggerClassName="min-h-[38px]"
                 value={status}
                 onChange={(event) => setStatus(event.target.value)}
                 options={statusOptions.map((opt) => ({
@@ -160,35 +163,34 @@ export function ExportsView({ categories }: { categories: Category[] }) {
               />
             </div>
 
-            <label className="block">
-              <span className="block text-xs font-semibold text-foreground mb-1.5">From</span>
-              <div className="relative">
-                <CalendarClock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-                <input
-                  className={`${inputClass} pl-9`}
-                  type="datetime-local"
-                  value={from}
-                  onChange={(event) => setFrom(event.target.value)}
-                />
-              </div>
-            </label>
+            <div>
+              <DatePicker
+                label="From"
+                includeTime
+                defaultTime="00:00"
+                value={from}
+                onChange={setFrom}
+                maxDate={to || undefined}
+                placeholder="Start date & time"
+              />
+            </div>
 
-            <label className="block">
-              <span className="block text-xs font-semibold text-foreground mb-1.5">To</span>
-              <div className="relative">
-                <CalendarClock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-                <input
-                  className={`${inputClass} pl-9`}
-                  type="datetime-local"
-                  value={to}
-                  onChange={(event) => setTo(event.target.value)}
-                />
-              </div>
-            </label>
+            <div>
+              <DatePicker
+                label="To"
+                includeTime
+                defaultTime="23:59"
+                value={to}
+                onChange={setTo}
+                minDate={from || undefined}
+                placeholder="End date & time"
+              />
+            </div>
 
             <div>
               <Select
                 label="File Format"
+                triggerClassName="min-h-[38px]"
                 value={format}
                 onChange={(event) => setFormat(event.target.value as ExportFormat)}
                 options={[
@@ -201,17 +203,17 @@ export function ExportsView({ categories }: { categories: Category[] }) {
 
           {error && <p className="mt-4 text-sm text-status-overdue">{error}</p>}
 
-          <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-6 pt-4 border-t border-border/60 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2 text-xs text-muted">
               <FileSpreadsheet className="h-4 w-4" />
-              <span>{report === "assignments" ? "Assignment date" : "Item creation date"}</span>
+              <span>{report === "assignments" ? "Filtered by assignment date" : "Filtered by item creation date"}</span>
             </div>
             <button
               type="submit"
               disabled={downloading}
-              className="pressable inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-brand-yellow px-4 py-2.5 text-sm font-bold text-brand-navy shadow-xs transition-all hover:brightness-105 disabled:opacity-50 sm:w-auto"
+              className="pressable inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-accent hover:bg-accent-hover px-4 py-2 text-xs font-semibold text-white shadow-2xs transition-colors disabled:opacity-50 sm:w-auto"
             >
-              <Download className="h-4 w-4" />
+              <Download className="h-3.5 w-3.5" />
               {downloading ? "Generating..." : "Download"}
             </button>
           </div>

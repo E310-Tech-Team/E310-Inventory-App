@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
-import { DeviceComplaint, StaffDevice } from "@/types";
+import { ComplaintStatus, DeviceComplaint, StaffDevice } from "@/types";
 import { subscribeToTicketUpdates } from "@/lib/sync/ticket-broadcast";
-import { Card } from "@/components/common/Card";
 import { Badge } from "@/components/common/Badge";
 import { Button } from "@/components/common/Button";
 import { Modal } from "@/components/common/Modal";
 import { ReportIssueModal } from "@/components/staff/ReportIssueModal";
+import { ShowMoreBar } from "@/components/ui/ShowMoreBar";
 import {
   PriorityCriticalIcon,
   PriorityHighIcon,
@@ -19,20 +19,21 @@ import {
   Search,
   Clock,
   CheckCircle2,
-  AlertTriangle,
   Copy,
   Check,
   Laptop,
-  Calendar,
-  UserCheck,
   Plus,
   RefreshCw,
   ArrowRight,
-  ImageIcon,
   ShieldCheck,
   ExternalLink,
   AppWindow,
 } from "lucide-react";
+
+type LegacyDeviceComplaint = DeviceComplaint & {
+  ticket_number?: string;
+  created_at?: string;
+};
 
 interface TicketStatusTrackerProps {
   initialComplaints: DeviceComplaint[];
@@ -190,6 +191,7 @@ export function TicketStatusTracker({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [copiedTicketId, setCopiedTicketId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [mobileLimit, setMobileLimit] = useState(5);
 
   const refreshTickets = async () => {
     try {
@@ -210,16 +212,17 @@ export function TicketStatusTracker({
   useEffect(() => {
     const unsubscribe = subscribeToTicketUpdates((payload) => {
       if (payload?.ticketId && payload?.status) {
+        const nextStatus = payload.status as ComplaintStatus;
         setComplaints((prev) =>
           prev.map((t) =>
             t.id === payload.ticketId
-              ? { ...t, status: payload.status as any }
+              ? { ...t, status: nextStatus }
               : t
           )
         );
         setSelectedTicket((prev) =>
           prev && prev.id === payload.ticketId
-            ? { ...prev, status: payload.status as any }
+            ? { ...prev, status: nextStatus }
             : prev
         );
       }
@@ -244,6 +247,16 @@ export function TicketStatusTracker({
           c.status !== "resolved" &&
           c.status !== "closed" &&
           c.status !== "cancelled"
+      ),
+    [complaints]
+  );
+
+  const inProgressTickets = useMemo(
+    () =>
+      complaints.filter((c) =>
+        ["under-review", "assigned", "in-repair", "in-progress", "waiting-parts"].includes(
+          c.status.toLowerCase()
+        )
       ),
     [complaints]
   );
@@ -277,7 +290,8 @@ export function TicketStatusTracker({
       // Query filter
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
-        const ticketNum = (ticket.ticketNumber || (ticket as any).ticket_number || "").toLowerCase();
+        const legacy = ticket as LegacyDeviceComplaint;
+        const ticketNum = (ticket.ticketNumber || legacy.ticket_number || "").toLowerCase();
         const matchesNumber = ticketNum.includes(query);
         const matchesTitle = ticket.title.toLowerCase().includes(query);
         const matchesCategory = ticket.issueType.toLowerCase().includes(query);
@@ -293,27 +307,28 @@ export function TicketStatusTracker({
   }, [complaints, activeTab, searchQuery]);
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 sm:space-y-6 animate-fade-in">
       {/* ─── Top Control Bar & Stats ─── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-border">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4 pb-4 sm:pb-5 border-b border-border/60">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-              Support Tickets & Status Tracker
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+              Support Tickets
             </h1>
-            <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-surface-elevated text-foreground/90 border border-border">
+            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-surface-elevated text-muted border border-border/70 tabular-nums">
               {complaints.length} Total
             </span>
           </div>
-          <p className="text-sm text-muted mt-1">
+          <p className="text-xs sm:text-sm text-muted mt-0.5 sm:mt-1">
             Real-time diagnostic progress, technician notes, and repair updates for your assigned equipment.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="grid grid-cols-2 sm:flex items-center gap-2">
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
+            className="justify-center"
             onClick={refreshTickets}
             disabled={isRefreshing}
             leftIcon={
@@ -328,111 +343,112 @@ export function TicketStatusTracker({
           <Button
             variant="primary"
             size="sm"
+            className="justify-center"
             onClick={() => setIsReportModalOpen(true)}
             leftIcon={<Plus className="w-3.5 h-3.5" />}
           >
-            File New Request
+            File Request
           </Button>
         </div>
       </div>
 
       {/* ─── Summary Counter Cards ─── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted">Active Requests</span>
-            <span className="flex h-2 w-2 rounded-full bg-amber-500" />
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <div className="rounded-2xl border border-border/70 bg-surface p-3 sm:p-5 shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-[11px] sm:text-xs font-medium text-muted truncate">
+              <span className="sm:hidden">Active</span>
+              <span className="hidden sm:inline">Active Requests</span>
+            </span>
+            <span className="flex h-2 w-2 rounded-full bg-amber-500 shrink-0" />
           </div>
-          <p className="text-2xl font-bold text-foreground mt-2">
+          <p className="text-lg sm:text-2xl font-bold tracking-tight text-foreground tabular-nums mt-1 sm:mt-2">
             {activeTickets.length}
           </p>
-          <p className="text-[11px] text-muted mt-1">Under inspection or repair</p>
-        </Card>
+          <p className="hidden sm:block text-[11px] text-muted mt-1">Awaiting or undergoing service</p>
+        </div>
 
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted">Resolved & Returned</span>
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+        <div className="rounded-2xl border border-border/70 bg-surface p-3 sm:p-5 shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-[11px] sm:text-xs font-medium text-muted truncate">
+              <span className="sm:hidden">Bench</span>
+              <span className="hidden sm:inline">In Bench / Triage</span>
+            </span>
+            <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-sky-500 shrink-0" />
           </div>
-          <p className="text-2xl font-bold text-foreground mt-2">
+          <p className="text-lg sm:text-2xl font-bold tracking-tight text-foreground tabular-nums mt-1 sm:mt-2">
+            {inProgressTickets.length}
+          </p>
+          <p className="hidden sm:block text-[11px] text-muted mt-1">Assigned to IT specialist</p>
+        </div>
+
+        <div className="rounded-2xl border border-border/70 bg-surface p-3 sm:p-5 shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-[11px] sm:text-xs font-medium text-muted truncate">
+              <span className="sm:hidden">Resolved</span>
+              <span className="hidden sm:inline">Resolved &amp; Returned</span>
+            </span>
+            <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-500 shrink-0" />
+          </div>
+          <p className="text-lg sm:text-2xl font-bold tracking-tight text-foreground tabular-nums mt-1 sm:mt-2">
             {resolvedTickets.length}
           </p>
-          <p className="text-[11px] text-muted mt-1">Completed successfully</p>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted">Average Turnaround</span>
-            <Clock className="w-3.5 h-3.5 text-sky-400" />
-          </div>
-          <p className="text-2xl font-bold text-foreground mt-2">
-            &lt; 24h
-          </p>
-          <p className="text-[11px] text-muted mt-1">E310 IT triage standard</p>
-        </Card>
+          <p className="hidden sm:block text-[11px] text-muted mt-1">Completed successfully</p>
+        </div>
       </div>
 
       {/* ─── Search & Tab Filters ─── */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 pt-0.5 sm:pt-1">
         {/* Tabs */}
-        <div className="inline-flex rounded-xl bg-surface-elevated p-1 border border-border">
+        <div className="w-full sm:w-auto grid grid-cols-3 sm:inline-flex rounded-xl bg-surface-elevated/70 p-0.5 border border-border/70">
           <button
             type="button"
-            onClick={() => setActiveTab("all")}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+            onClick={() => {
+              setActiveTab("all");
+              setMobileLimit(5);
+            }}
+            className={`justify-center px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
               activeTab === "all"
-                ? "bg-brand-teal text-white shadow-xs"
-                : "text-muted hover:text-foreground hover:bg-surface/60"
+                ? "bg-surface text-foreground border border-border/60 shadow-2xs"
+                : "text-muted hover:text-foreground border border-transparent"
             }`}
           >
-            <span>All Tickets</span>
-            <span
-              className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                activeTab === "all"
-                  ? "bg-white/20 text-white"
-                  : "bg-surface text-muted border border-border/60"
-              }`}
-            >
+            <span>All</span>
+            <span className="text-[11px] text-muted tabular-nums">
               {complaints.length}
             </span>
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab("active")}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+            onClick={() => {
+              setActiveTab("active");
+              setMobileLimit(5);
+            }}
+            className={`justify-center px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
               activeTab === "active"
-                ? "bg-brand-teal text-white shadow-xs"
-                : "text-muted hover:text-foreground hover:bg-surface/60"
+                ? "bg-surface text-foreground border border-border/60 shadow-2xs"
+                : "text-muted hover:text-foreground border border-transparent"
             }`}
           >
             <span>Active</span>
-            <span
-              className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                activeTab === "active"
-                  ? "bg-white/20 text-white"
-                  : "bg-surface text-muted border border-border/60"
-              }`}
-            >
+            <span className="text-[11px] text-muted tabular-nums">
               {activeTickets.length}
             </span>
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab("resolved")}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+            onClick={() => {
+              setActiveTab("resolved");
+              setMobileLimit(5);
+            }}
+            className={`justify-center px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
               activeTab === "resolved"
-                ? "bg-brand-teal text-white shadow-xs"
-                : "text-muted hover:text-foreground hover:bg-surface/60"
+                ? "bg-surface text-foreground border border-border/60 shadow-2xs"
+                : "text-muted hover:text-foreground border border-transparent"
             }`}
           >
             <span>Resolved</span>
-            <span
-              className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                activeTab === "resolved"
-                  ? "bg-white/20 text-white"
-                  : "bg-surface text-muted border border-border/60"
-              }`}
-            >
+            <span className="text-[11px] text-muted tabular-nums">
               {resolvedTickets.length}
             </span>
           </button>
@@ -440,22 +456,25 @@ export function TicketStatusTracker({
 
         {/* Search */}
         <div className="relative flex-1 sm:max-w-xs">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
           <input
             type="text"
             placeholder="Search tickets by #, title, device..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-1.5 text-xs rounded-lg border border-border bg-surface text-foreground placeholder:text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/40 transition-colors"
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setMobileLimit(5);
+            }}
+            className="w-full h-9 pl-8.5 pr-3 text-xs rounded-xl border border-border/70 bg-surface text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
           />
         </div>
       </div>
 
       {/* ─── Ticket List / Cards with Progress Pipeline ─── */}
       {filteredTickets.length === 0 ? (
-        <Card className="py-12 px-6 text-center border-dashed border-border">
-          <div className="mx-auto w-12 h-12 rounded-full bg-surface-elevated border border-border flex items-center justify-center text-muted mb-3">
-            <LifeBuoy className="w-6 h-6" />
+        <div className="rounded-2xl py-12 px-6 text-center border border-dashed border-border/80 bg-surface/60">
+          <div className="mx-auto w-11 h-11 rounded-full bg-surface-elevated border border-border/70 flex items-center justify-center text-muted mb-3">
+            <LifeBuoy className="w-5 h-5" />
           </div>
           <h3 className="text-sm font-semibold text-foreground">
             {searchQuery ? "No matching tickets found" : "No Support Requests on File"}
@@ -475,157 +494,174 @@ export function TicketStatusTracker({
               File a Service Ticket
             </Button>
           </div>
-        </Card>
+        </div>
       ) : (
-        <div className="space-y-3">
-          {filteredTickets.map((ticket) => {
-            const ticketNum = ticket.ticketNumber || (ticket as any).ticket_number || "TKT";
-            const currentStage = getStageIndex(ticket.status);
-            const { cleanDescription, affectedApp } = parseTicketDescription(ticket.description);
-            const { cleanType } = parseIssueType(ticket.issueType);
+        <>
+          <div className="space-y-2.5 sm:space-y-3">
+            {filteredTickets.map((ticket, idx) => {
+              const legacy = ticket as LegacyDeviceComplaint;
+              const ticketNum = ticket.ticketNumber || legacy.ticket_number || "TKT";
+              const currentStage = getStageIndex(ticket.status);
+              const { cleanDescription, affectedApp } = parseTicketDescription(ticket.description);
+              const { cleanType } = parseIssueType(ticket.issueType);
 
-            return (
-              <Card
-                key={ticket.id}
-                className="p-4 sm:p-5 hover:border-accent/40 bg-surface border border-border/80 rounded-xl transition-all cursor-pointer group space-y-3"
-                onClick={() => setSelectedTicket(ticket)}
-              >
-                {/* Header Row: Ticket # + Status + Title + Date & Action */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1.5 min-w-0 flex-1">
-                    {/* Pills & Meta */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono text-xs font-semibold text-muted tracking-tight">
-                        {ticketNum}
+              return (
+                <div
+                  key={ticket.id}
+                  className={`${
+                    idx >= mobileLimit ? "hidden sm:block" : "block"
+                  } p-3.5 sm:p-5 hover:border-border bg-surface border border-border/70 rounded-2xl shadow-[0_1px_4px_rgba(0,0,0,0.02)] transition-all cursor-pointer group space-y-2 sm:space-y-3`}
+                  onClick={() => setSelectedTicket(ticket)}
+                >
+                  {/* Header Row: Ticket # + Status + Title + Date & Action */}
+                  <div className="flex items-start justify-between gap-2.5 sm:gap-3">
+                    <div className="space-y-1 sm:space-y-1.5 min-w-0 flex-1">
+                      {/* Pills & Meta */}
+                      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                        <span className="font-mono text-xs font-semibold text-muted tracking-tight">
+                          {ticketNum}
+                        </span>
+
+                        <Badge
+                          variant={
+                            ticket.status === "resolved"
+                              ? "resolved"
+                              : ticket.status === "in-repair"
+                              ? "in-repair"
+                              : ticket.status === "under-review"
+                              ? "under-review"
+                              : "submitted"
+                          }
+                          label={ticket.status.replace("-", " ")}
+                        />
+
+                        {ticket.priority && (() => {
+                          const prio = getPriorityConfig(ticket.priority);
+                          const PrioIcon = prio.icon;
+                          return (
+                            <span
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border ${prio.badgeClass}`}
+                            >
+                              <PrioIcon className="w-3 h-3" />
+                              <span>{prio.label}</span>
+                            </span>
+                          );
+                        })()}
+
+                        <span className="text-xs text-muted/70 truncate hidden sm:inline">
+                          • {cleanType}
+                        </span>
+                      </div>
+
+                      {/* Title */}
+                      <h3 className="text-sm font-semibold text-foreground group-hover:text-accent transition-colors truncate">
+                        {ticket.title}
+                      </h3>
+                    </div>
+
+                    {/* Right: Date & Action */}
+                    <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-muted shrink-0 pt-0.5 tabular-nums">
+                      <span>{formatTicketDate(ticket.createdAt || legacy.created_at)}</span>
+                      <span className="text-muted/60 group-hover:text-accent group-hover:translate-x-0.5 transition-all hidden sm:inline-flex items-center gap-1 font-medium">
+                        Details
+                        <ArrowRight className="w-3.5 h-3.5" />
                       </span>
+                      <ArrowRight className="w-3.5 h-3.5 text-muted/60 group-hover:text-accent sm:hidden" />
+                    </div>
+                  </div>
 
-                      <Badge
-                        variant={
-                          ticket.status === "resolved"
-                            ? "resolved"
-                            : ticket.status === "in-repair"
-                            ? "in-repair"
-                            : ticket.status === "under-review"
-                            ? "under-review"
-                            : "submitted"
-                        }
-                        label={ticket.status.replace("-", " ")}
-                      />
+                  {/* Description summary (desktop/tablet) */}
+                  {cleanDescription && (
+                    <p className="hidden sm:block text-xs text-muted line-clamp-1">
+                      {cleanDescription}
+                    </p>
+                  )}
 
-                      {ticket.priority && (() => {
-                        const prio = getPriorityConfig(ticket.priority);
-                        const PrioIcon = prio.icon;
-                        return (
-                          <span
-                            className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold border ${prio.badgeClass}`}
-                          >
-                            <PrioIcon className="w-3 h-3" />
-                            <span>{prio.label}</span>
-                          </span>
-                        );
-                      })()}
+                  {/* Context Tag: Device or Software (clean, subtle inline) */}
+                  {(ticket.itemName || affectedApp) && (
+                    <div className="flex items-center gap-2 text-[11px] text-muted">
+                      {ticket.itemName ? (
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-surface-elevated/60 border border-border/60 text-foreground/80">
+                          <Laptop className="w-3 h-3 text-muted shrink-0" />
+                          <span className="truncate max-w-[160px] sm:max-w-[220px]">{ticket.itemName}</span>
+                          {ticket.itemSerial && (
+                            <span className="font-mono text-[10px] text-muted">
+                              ({ticket.itemSerial})
+                            </span>
+                          )}
+                        </span>
+                      ) : affectedApp ? (
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-surface-elevated/60 border border-border/60 text-foreground/80">
+                          <AppWindow className="w-3 h-3 text-muted shrink-0" />
+                          <span className="truncate max-w-[160px] sm:max-w-[220px]">{affectedApp}</span>
+                        </span>
+                      ) : null}
 
-                      <span className="text-xs text-muted/70 truncate hidden sm:inline">
+                      <span className="text-muted/70 text-[11px] sm:hidden truncate">
                         • {cleanType}
                       </span>
                     </div>
+                  )}
 
-                    {/* Title */}
-                    <h3 className="text-sm font-semibold text-foreground group-hover:text-accent transition-colors truncate">
-                      {ticket.title}
-                    </h3>
-                  </div>
+                  {/* Sleek, Minimal Stepper Line */}
+                  <div className="pt-2 border-t border-border/40">
+                    <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+                      {STAGES.map((stg) => {
+                        const isComplete = currentStage > stg.step;
+                        const isCurrent = currentStage === stg.step;
 
-                  {/* Right: Date & Action */}
-                  <div className="flex items-center gap-2 text-xs text-muted shrink-0 pt-0.5">
-                    <span>{formatTicketDate(ticket.createdAt || (ticket as any).created_at)}</span>
-                    <span className="text-muted/60 group-hover:text-accent group-hover:translate-x-0.5 transition-all hidden sm:inline-flex items-center gap-1 font-medium">
-                      Details
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </span>
-                    <ArrowRight className="w-3.5 h-3.5 text-muted/60 group-hover:text-accent sm:hidden" />
-                  </div>
-                </div>
-
-                {/* Description summary (1 clean line, clean text only) */}
-                {cleanDescription && (
-                  <p className="text-xs text-muted line-clamp-1">
-                    {cleanDescription}
-                  </p>
-                )}
-
-                {/* Context Tag: Device or Software (clean, subtle inline) */}
-                {(ticket.itemName || affectedApp) && (
-                  <div className="flex items-center gap-2 text-[11px] text-muted">
-                    {ticket.itemName ? (
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-surface-elevated/70 border border-border/60 text-foreground/80">
-                        <Laptop className="w-3 h-3 text-muted" />
-                        <span className="truncate max-w-[220px]">{ticket.itemName}</span>
-                        {ticket.itemSerial && (
-                          <span className="font-mono text-[10px] text-muted">
-                            ({ticket.itemSerial})
-                          </span>
-                        )}
-                      </span>
-                    ) : affectedApp ? (
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-surface-elevated/70 border border-border/60 text-foreground/80">
-                        <AppWindow className="w-3 h-3 text-muted" />
-                        <span className="truncate max-w-[220px]">{affectedApp}</span>
-                      </span>
-                    ) : null}
-
-                    <span className="text-muted/70 text-[11px] sm:hidden truncate">
-                      • {cleanType}
-                    </span>
-                  </div>
-                )}
-
-                {/* Sleek, Minimal Stepper Line */}
-                <div className="pt-2 border-t border-border/40">
-                  <div className="grid grid-cols-4 gap-2">
-                    {STAGES.map((stg) => {
-                      const isComplete = currentStage > stg.step;
-                      const isCurrent = currentStage === stg.step;
-
-                      return (
-                        <div key={stg.step} className="space-y-1">
-                          <div
-                            className={`h-1 rounded-full transition-colors ${
-                              isComplete
-                                ? "bg-emerald-500"
-                                : isCurrent
-                                ? "bg-amber-400"
-                                : "bg-surface-elevated"
-                            }`}
-                          />
-                          <span
-                            className={`block text-[11px] truncate leading-tight ${
-                              isComplete
-                                ? "text-emerald-400 font-medium"
-                                : isCurrent
-                                ? "text-foreground font-semibold"
-                                : "text-muted/60"
-                            }`}
-                          >
-                            {stg.compactLabel}
-                          </span>
-                        </div>
-                      );
-                    })}
+                        return (
+                          <div key={stg.step} className="space-y-0.5 sm:space-y-1">
+                            <div
+                              className={`h-1 rounded-full transition-colors ${
+                                isComplete
+                                  ? "bg-emerald-500"
+                                  : isCurrent
+                                  ? "bg-amber-400"
+                                  : "bg-surface-elevated"
+                              }`}
+                            />
+                            <span
+                              className={`block text-[10px] sm:text-[11px] truncate leading-tight ${
+                                isComplete
+                                  ? "text-emerald-600 dark:text-emerald-400 font-medium"
+                                  : isCurrent
+                                  ? "text-foreground font-semibold"
+                                  : "text-muted/60"
+                              }`}
+                            >
+                              {stg.compactLabel}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
-              </Card>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+          <div className="sm:hidden">
+            <ShowMoreBar
+              visibleCount={Math.min(mobileLimit, filteredTickets.length)}
+              totalCount={filteredTickets.length}
+              initialLimit={5}
+              noun="tickets"
+              standalone
+              onShowMore={() => setMobileLimit((prev) => prev + 5)}
+              onCollapse={() => setMobileLimit(5)}
+            />
+          </div>
+        </>
       )}
 
       {/* ─── Ticket Details Modal ─── */}
       {selectedTicket && (() => {
+        const selectedLegacy = selectedTicket as LegacyDeviceComplaint;
         const selectedStage = getStageIndex(selectedTicket.status);
         const selectedParsed = parseTicketDescription(selectedTicket.description);
         const { cleanType: modalCategory } = parseIssueType(selectedTicket.issueType);
-        const ticketNum = selectedTicket.ticketNumber || (selectedTicket as any).ticket_number || "TKT";
+        const ticketNum = selectedTicket.ticketNumber || selectedLegacy.ticket_number || "TKT";
 
         return (
           <Modal
@@ -637,9 +673,9 @@ export function TicketStatusTracker({
           >
             <div className="space-y-5 animate-fade-in text-xs">
               {/* Ticket Header & Status Pills */}
-              <div className="flex items-center justify-between p-3.5 rounded-xl bg-surface border border-border">
+              <div className="flex items-center justify-between p-3.5 rounded-xl bg-surface-elevated/40 border border-border/70">
                 <div className="space-y-0.5">
-                  <span className="text-[11px] text-muted font-mono">Status & Priority</span>
+                  <span className="text-[11px] text-muted">Status &amp; Priority</span>
                   <div className="flex items-center gap-2 pt-0.5 flex-wrap">
                     <Badge
                       variant={
@@ -651,10 +687,10 @@ export function TicketStatusTracker({
                           ? "under-review"
                           : "submitted"
                       }
-                      label={selectedTicket.status.toUpperCase()}
+                      label={selectedTicket.status.replace("-", " ")}
                     />
-                    <span className="px-2 py-0.5 rounded-full border border-border bg-surface-elevated text-[11px] font-medium text-foreground/90 uppercase">
-                      {selectedTicket.priority} Priority
+                    <span className="px-2 py-0.5 rounded-full border border-border/70 bg-surface text-[11px] font-medium text-foreground/90 capitalize">
+                      {selectedTicket.priority} priority
                     </span>
                     <span className="text-muted text-[11px]">
                       • {modalCategory}
@@ -664,15 +700,15 @@ export function TicketStatusTracker({
 
                 <div className="text-right space-y-0.5 shrink-0">
                   <span className="text-[11px] text-muted">Created On</span>
-                  <p className="font-mono text-foreground">
-                    {formatTicketDateTime(selectedTicket.createdAt || (selectedTicket as any).created_at)}
+                  <p className="font-mono text-foreground tabular-nums">
+                    {formatTicketDateTime(selectedTicket.createdAt || selectedLegacy.created_at)}
                   </p>
                 </div>
               </div>
 
               {/* Progress Pipeline inside Modal */}
-              <div className="p-3.5 rounded-xl bg-surface border border-border space-y-2">
-                <span className="text-[11px] text-muted font-mono uppercase tracking-wider block">
+              <div className="p-3.5 rounded-xl bg-surface-elevated/40 border border-border/70 space-y-2">
+                <span className="text-[11px] text-muted font-medium block">
                   Service Pipeline Progress
                 </span>
                 <div className="grid grid-cols-4 gap-2 pt-1">
@@ -695,7 +731,7 @@ export function TicketStatusTracker({
                           <span
                             className={`text-[11px] font-medium leading-tight truncate ${
                               isComplete
-                                ? "text-emerald-400"
+                                ? "text-emerald-600 dark:text-emerald-400"
                                 : isCurrent
                                 ? "text-foreground font-semibold"
                                 : "text-muted"
@@ -856,10 +892,10 @@ export function TicketStatusTracker({
 
                   {selectedTicket.resolutionSummary && (
                     <div className="space-y-1 pt-1">
-                      <span className="text-[10px] uppercase font-semibold text-emerald-400">
+                      <span className="text-[10px] uppercase font-semibold text-emerald-600 dark:text-emerald-400">
                         Final Resolution:
                       </span>
-                      <p className="text-xs text-emerald-300 bg-emerald-500/10 p-2.5 rounded-lg border border-emerald-500/20">
+                      <p className="text-xs text-emerald-800 dark:text-emerald-300 bg-emerald-500/10 p-2.5 rounded-lg border border-emerald-500/20">
                         {selectedTicket.resolutionSummary}
                       </p>
                     </div>
@@ -868,14 +904,14 @@ export function TicketStatusTracker({
               </div>
 
               {/* Modal Actions */}
-              <div className="pt-3 flex items-center justify-between border-t border-border">
+              <div className="pt-3 flex items-center justify-between border-t border-border/60">
                 <button
                   type="button"
                   onClick={() => handleCopy(ticketNum)}
                   className="flex items-center gap-1.5 text-xs text-muted hover:text-foreground transition-colors"
                 >
                   {copiedTicketId === ticketNum ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <Check className="w-3.5 h-3.5 text-emerald-500" />
                   ) : (
                     <Copy className="w-3.5 h-3.5" />
                   )}
@@ -883,7 +919,7 @@ export function TicketStatusTracker({
                 </button>
 
                 <Button
-                  variant="primary"
+                  variant="outline"
                   size="sm"
                   onClick={() => setSelectedTicket(null)}
                 >

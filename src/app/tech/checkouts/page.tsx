@@ -3,11 +3,9 @@ import { getSession, isTechUser } from "@/lib/auth/session";
 import { dataStore } from "@/lib/data";
 import { AppShell } from "@/components/layout/AppShell";
 import { CheckoutsList } from "@/components/checkouts/CheckoutsList";
-import Link from "next/link";
-import { ArrowLeft, ArrowLeftRight } from "lucide-react";
 
 export const metadata = {
-  title: "Custody & Returns Management | E310 Tech Command Center",
+  title: "Checkouts & Loans | E310 Tech Ops",
   description: "Track equipment checkouts, return deadlines, overdue items, and extensions.",
 };
 
@@ -34,37 +32,11 @@ export default async function TechCheckoutsPage() {
 
   return (
     <AppShell admin={user}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* Breadcrumb & Header */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-xs text-muted">
-            <Link
-              href="/dashboard"
-              className="hover:text-foreground transition-colors flex items-center gap-1"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Tech Dashboard</span>
-            </Link>
-            <span>/</span>
-            <span className="font-semibold text-foreground">Checkouts & Returns</span>
-          </div>
-
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
-                <ArrowLeftRight className="w-7 h-7 text-brand-teal" />
-                <span>Custody & Returns Management</span>
-              </h1>
-              <p className="mt-1 text-sm text-muted">
-                Track staff hardware assignments, overdue items, due-date extensions, and return condition inspections.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Modernized Checkouts List */}
-        <CheckoutsList checkouts={checkouts} items={items} categories={categories} />
-      </div>
+      <CheckoutsList
+        checkouts={checkouts}
+        items={items}
+        categories={categories}
+      />
     </AppShell>
   );
 }

@@ -2,39 +2,72 @@ import { ItemStatus, CheckoutStatus, UserStatus } from "@/types";
 
 type Status = ItemStatus | CheckoutStatus | UserStatus;
 
-const LABELS: Record<Status, string> = {
-  available: "AVAILABLE",
-  "checked-out": "ASSIGNED",
-  "low-stock": "LOW STOCK",
-  active: "ACTIVE",
-  inactive: "INACTIVE",
-  pending: "PENDING",
-  returned: "RETURNED",
-  overdue: "OVERDUE",
-};
-
-const STYLES: Record<Status, string> = {
-  available: "text-status-available bg-status-available-bg",
-  "checked-out": "text-status-checked-out bg-status-checked-out-bg",
-  "low-stock": "text-status-low-stock bg-status-low-stock-bg",
-  active: "text-status-checked-out bg-status-checked-out-bg",
-  inactive: "text-muted bg-background",
-  pending: "text-accent bg-accent-soft",
-  returned: "text-status-available bg-status-available-bg",
-  overdue: "text-status-overdue bg-status-overdue-bg",
+const STATUS_META: Record<
+  Status,
+  { label: string; badgeClass: string; dotClass: string }
+> = {
+  available: {
+    label: "Available",
+    badgeClass:
+      "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20",
+    dotClass: "bg-emerald-500",
+  },
+  "checked-out": {
+    label: "Assigned",
+    badgeClass:
+      "bg-brand-teal/10 text-brand-teal border-brand-teal/20",
+    dotClass: "bg-brand-teal",
+  },
+  "low-stock": {
+    label: "Low Stock",
+    badgeClass:
+      "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20",
+    dotClass: "bg-amber-500",
+  },
+  active: {
+    label: "Active",
+    badgeClass:
+      "bg-brand-teal/10 text-brand-teal border-brand-teal/20",
+    dotClass: "bg-brand-teal",
+  },
+  inactive: {
+    label: "Inactive",
+    badgeClass: "bg-surface-elevated text-muted border-border/70",
+    dotClass: "bg-slate-400",
+  },
+  pending: {
+    label: "Pending",
+    badgeClass:
+      "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20",
+    dotClass: "bg-amber-500",
+  },
+  returned: {
+    label: "Returned",
+    badgeClass:
+      "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20",
+    dotClass: "bg-emerald-500",
+  },
+  overdue: {
+    label: "Overdue",
+    badgeClass:
+      "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20",
+    dotClass: "bg-rose-500",
+  },
 };
 
 export function StatusPill({ status }: { status: Status }) {
-  const liveClass =
-    status === "active" || status === "overdue" || status === "low-stock"
-      ? "status-live"
-      : "";
+  const meta = STATUS_META[status] ?? {
+    label: String(status),
+    badgeClass: "bg-surface-elevated text-muted border-border/70",
+    dotClass: "bg-slate-400",
+  };
 
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded font-mono text-[11px] font-medium tracking-wide ${STYLES[status]} ${liveClass}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[11px] font-medium whitespace-nowrap ${meta.badgeClass}`}
     >
-      {LABELS[status]}
+      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${meta.dotClass}`} />
+      <span>{meta.label}</span>
     </span>
   );
 }

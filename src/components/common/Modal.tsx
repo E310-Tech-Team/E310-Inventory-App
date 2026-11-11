@@ -58,7 +58,7 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
@@ -73,19 +73,19 @@ export function Modal({
       {/* Modal Dialog Panel */}
       <div
         ref={modalRef}
-        className={`relative w-full ${sizeClasses[size]} rounded-2xl border border-border bg-surface shadow-2xl overflow-hidden modal-panel z-10 flex flex-col max-h-[90vh]`}
+        className={`relative w-full ${sizeClasses[size]} rounded-t-2xl sm:rounded-2xl border border-border bg-surface shadow-2xl overflow-hidden modal-panel z-10 flex flex-col max-h-[92dvh]`}
       >
         {/* Header */}
-        <div className="flex items-start justify-between p-5 border-b border-border bg-surface-elevated/40">
-          <div>
+        <div className="flex items-start justify-between px-4 py-3.5 sm:p-5 border-b border-border bg-surface-elevated/40 shrink-0">
+          <div className="min-w-0 pr-3">
             <h2
               id="modal-title"
-              className="text-base font-bold text-foreground"
+              className="text-base font-bold text-foreground truncate"
             >
               {title}
             </h2>
             {description && (
-              <p className="mt-0.5 text-xs text-muted">
+              <p className="mt-0.5 text-xs text-muted line-clamp-2">
                 {description}
               </p>
             )}
@@ -94,7 +94,7 @@ export function Modal({
           {showCloseButton && (
             <button
               onClick={onClose}
-              className="rounded-lg p-1.5 text-muted hover:text-foreground hover:bg-surface-elevated transition-colors"
+              className="rounded-lg p-1.5 text-muted hover:text-foreground hover:bg-surface-elevated transition-colors shrink-0"
               aria-label="Close dialog"
             >
               <X className="w-4 h-4" />
@@ -103,9 +103,10 @@ export function Modal({
         </div>
 
         {/* Content Body */}
-        <div className="p-5 overflow-y-auto flex-1 text-foreground">{children}</div>
+        <div className="p-4 sm:p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pb-5 overflow-y-auto overscroll-contain flex-1 text-foreground">
+          {children}
+        </div>
       </div>
     </div>
-
   );
 }

@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { DepartmentUser, StaffDevice, DeviceComplaint } from "@/types";
 import { subscribeToTicketUpdates } from "@/lib/sync/ticket-broadcast";
-import { Card } from "@/components/common/Card";
 import { Badge } from "@/components/common/Badge";
 import { Button } from "@/components/common/Button";
 import { Modal } from "@/components/common/Modal";
@@ -82,37 +81,37 @@ export function StaffDashboard({
   const firstName = user.name?.split(" ")[0] || "there";
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-4 sm:space-y-6 animate-fade-in">
       {/* ─── Clean Header & Greeting ─── */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-border">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4 pb-4 sm:pb-6 border-b border-border/60">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-foreground">
             Welcome, {firstName}
           </h1>
-          <p className="text-sm text-muted mt-1">
+          <p className="text-xs sm:text-sm text-muted mt-0.5 sm:mt-1">
             Overview of your assigned equipment and active IT support requests.
           </p>
         </div>
 
-        <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2.5">
           <Button
             variant="outline"
-            size="lg"
-            className="h-11 sm:h-12 px-5 py-2.5 sm:px-6 sm:py-3 text-sm sm:text-base font-bold rounded-2xl border-border bg-surface hover:bg-surface-elevated hover:border-brand-teal/40 transition-all duration-200 active:scale-[0.98] shadow-xs"
+            size="md"
+            className="justify-center"
             onClick={() => {
               setSelectedDeviceForIssue(null);
               setIsReportOpen(true);
             }}
-            leftIcon={<AlertTriangle className="w-4.5 h-4.5 text-amber-500 shrink-0" />}
+            leftIcon={<AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />}
           >
-            Report an Issue
+            Report Issue
           </Button>
           <Button
             variant="primary"
-            size="lg"
-            className="h-11 sm:h-12 px-6 py-2.5 sm:px-7 sm:py-3 text-sm sm:text-base font-extrabold rounded-2xl bg-brand-yellow text-brand-navy shadow-md hover:shadow-lg hover:brightness-105 transition-all duration-200 active:scale-[0.98]"
+            size="md"
+            className="justify-center"
             onClick={() => setIsRegisterOpen(true)}
-            leftIcon={<Plus className="w-5 h-5 stroke-[2.5] text-brand-navy shrink-0" />}
+            leftIcon={<Plus className="w-4 h-4 shrink-0" />}
           >
             Register Device
           </Button>
@@ -120,37 +119,43 @@ export function StaffDashboard({
       </div>
 
       {/* ─── Quick Stats Overview ─── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="p-5 border border-border bg-surface">
-          <p className="text-xs font-semibold text-muted uppercase tracking-wider">Assigned Equipment</p>
-          <p className="text-3xl font-black text-foreground mt-2">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <div className="rounded-2xl border border-border/70 bg-surface p-3 sm:p-5 shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
+          <p className="text-[11px] sm:text-xs font-medium text-muted truncate">
+            <span className="sm:hidden">Devices</span>
+            <span className="hidden sm:inline">Assigned Equipment</span>
+          </p>
+          <p className="text-xl sm:text-3xl font-bold tracking-tight text-foreground tabular-nums mt-1 sm:mt-2">
             {devices.length}
           </p>
-        </Card>
+        </div>
 
-        <Card className="p-5 border border-border bg-surface">
-          <p className="text-xs font-semibold text-muted uppercase tracking-wider">Active IT Tickets</p>
-          <p className="text-3xl font-black text-foreground mt-2">
+        <div className="rounded-2xl border border-border/70 bg-surface p-3 sm:p-5 shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
+          <p className="text-[11px] sm:text-xs font-medium text-muted truncate">
+            <span className="sm:hidden">Active Tickets</span>
+            <span className="hidden sm:inline">Active IT Tickets</span>
+          </p>
+          <p className="text-xl sm:text-3xl font-bold tracking-tight text-foreground tabular-nums mt-1 sm:mt-2">
             {activeTickets.length}
           </p>
-        </Card>
+        </div>
 
-        <Card className="p-5 border border-border bg-surface">
-          <p className="text-xs font-semibold text-muted uppercase tracking-wider">Department</p>
-          <p className="text-base font-bold text-foreground mt-2 truncate">
+        <div className="rounded-2xl border border-border/70 bg-surface p-3 sm:p-5 shadow-[0_1px_4px_rgba(0,0,0,0.02)] min-w-0">
+          <p className="text-[11px] sm:text-xs font-medium text-muted truncate">Department</p>
+          <p className="text-xs sm:text-base font-semibold text-foreground mt-1.5 sm:mt-2.5 truncate">
             {user.department || "R4C Operations"}
           </p>
-        </Card>
+        </div>
       </div>
 
       {/* ─── Main Two-Column Layout ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start">
         {/* Left Column (8 cols): Devices & Active Tickets */}
-        <div className="lg:col-span-8 space-y-8">
+        <div className="lg:col-span-8 space-y-4 sm:space-y-6">
           {/* Assigned Devices Section */}
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-base font-bold text-foreground">
+          <section className="rounded-2xl border border-border/70 bg-surface shadow-[0_1px_4px_rgba(0,0,0,0.02)] overflow-hidden">
+            <div className="flex items-center justify-between px-3.5 sm:px-5 py-3 sm:py-4 border-b border-border/60">
+              <h2 className="text-sm font-semibold text-foreground">
                 Assigned Devices
               </h2>
               {devices.length > 0 && (
@@ -165,9 +170,9 @@ export function StaffDashboard({
             </div>
 
             {devices.length === 0 ? (
-              <Card className="py-10 px-6 text-center border-dashed border-border bg-surface space-y-3">
-                <div className="mx-auto w-12 h-12 rounded-xl bg-accent-soft flex items-center justify-center text-accent">
-                  <Laptop className="w-6 h-6" />
+              <div className="py-8 sm:py-10 px-4 sm:px-6 text-center space-y-3">
+                <div className="mx-auto w-11 h-11 rounded-xl bg-accent-soft flex items-center justify-center text-accent">
+                  <Laptop className="w-5 h-5" />
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-foreground">
@@ -185,26 +190,28 @@ export function StaffDashboard({
                 >
                   Register Device
                 </Button>
-              </Card>
+              </div>
             ) : (
-              <div className="space-y-3">
-                {devices.slice(0, 3).map((device) => (
-                  <Card
+              <div className="divide-y divide-border/50">
+                {devices.slice(0, 3).map((device, idx) => (
+                  <div
                     key={device.checkoutId || device.itemId}
-                    className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-border bg-surface hover:border-accent/40 transition-colors"
+                    className={`${
+                      idx >= 2 ? "hidden sm:flex" : "flex"
+                    } px-3.5 sm:px-5 py-3 sm:py-4 flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 hover:bg-surface-elevated/40 transition-colors`}
                   >
-                    <div className="flex items-center gap-3.5">
-                      <div className="w-10 h-10 rounded-xl bg-accent-soft flex items-center justify-center text-accent shrink-0">
-                        <Laptop className="w-5 h-5" />
+                    <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
+                      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-accent-soft flex items-center justify-center text-accent shrink-0">
+                        <Laptop className="w-4 h-4" />
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-bold text-foreground">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-sm font-semibold text-foreground truncate">
                             {device.name}
                           </h3>
                           <Badge variant="active" label="In Custody" />
                         </div>
-                        <div className="flex items-center gap-2 mt-1 text-xs text-muted">
+                        <div className="flex items-center gap-1.5 mt-0.5 sm:mt-1 text-xs text-muted">
                           <span>Serial:</span>
                           <button
                             onClick={() => copyToClipboard(device.serialNumber || "N/A")}
@@ -229,20 +236,20 @@ export function StaffDashboard({
                         setSelectedDeviceForIssue(device);
                         setIsReportOpen(true);
                       }}
-                      className="text-xs text-muted hover:text-foreground"
+                      className="text-xs text-muted hover:text-foreground shrink-0 self-end sm:self-auto"
                     >
                       Report issue
                     </Button>
-                  </Card>
+                  </div>
                 ))}
               </div>
             )}
           </section>
 
           {/* Active Support Tickets Section */}
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-base font-bold text-foreground">
+          <section className="rounded-2xl border border-border/70 bg-surface shadow-[0_1px_4px_rgba(0,0,0,0.02)] overflow-hidden">
+            <div className="flex items-center justify-between px-3.5 sm:px-5 py-3 sm:py-4 border-b border-border/60">
+              <h2 className="text-sm font-semibold text-foreground">
                 Recent Support Requests
               </h2>
               <Link
@@ -255,14 +262,18 @@ export function StaffDashboard({
             </div>
 
             {complaints.length === 0 ? (
-              <Card className="py-8 px-4 text-center border-dashed border-border bg-surface">
+              <div className="py-8 sm:py-10 px-4 sm:px-6 text-center">
                 <p className="text-xs text-muted">
                   No support tickets on file. Everything is running smoothly.
                 </p>
-              </Card>
+              </div>
             ) : (
-              <div className="space-y-2.5">
-                {complaints.slice(0, 4).map((ticket: any) => {
+              <div className="divide-y divide-border/50">
+                {complaints.slice(0, 4).map((rawTicket, idx) => {
+                  const ticket = rawTicket as DeviceComplaint & {
+                    ticket_number?: string;
+                    created_at?: string;
+                  };
                   const dateVal = ticket.createdAt || ticket.created_at;
                   let formattedDate = "Recently";
                   if (dateVal) {
@@ -278,34 +289,38 @@ export function StaffDashboard({
                   const ticketNum = ticket.ticketNumber || ticket.ticket_number || "TKT";
 
                   return (
-                    <Link key={ticket.id} href="/staff/tickets" className="block">
-                      <Card className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border border-border bg-surface hover:border-accent/40 transition-colors">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs font-semibold text-foreground">
-                              {ticketNum}
-                            </span>
-                            <Badge
-                              variant={
-                                ticket.status === "resolved"
-                                  ? "resolved"
-                                  : ticket.status === "in-repair"
-                                  ? "in-repair"
-                                  : "submitted"
-                              }
-                              label={ticket.status}
-                            />
-                          </div>
-                          <p className="text-sm font-semibold text-foreground">
-                            {ticket.title}
-                          </p>
+                    <Link
+                      key={ticket.id}
+                      href="/staff/tickets"
+                      className={`${
+                        idx >= 3 ? "hidden sm:flex" : "flex"
+                      } px-3.5 sm:px-5 py-3 sm:py-4 flex-row items-center justify-between gap-3 hover:bg-surface-elevated/40 transition-colors`}
+                    >
+                      <div className="space-y-0.5 sm:space-y-1 min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-mono text-xs font-semibold text-muted tabular-nums">
+                            {ticketNum}
+                          </span>
+                          <Badge
+                            variant={
+                              ticket.status === "resolved"
+                                ? "resolved"
+                                : ticket.status === "in-repair"
+                                ? "in-repair"
+                                : "submitted"
+                            }
+                            label={ticket.status}
+                          />
                         </div>
+                        <p className="text-sm font-medium text-foreground truncate">
+                          {ticket.title}
+                        </p>
+                      </div>
 
-                        <div className="text-right shrink-0 text-xs text-muted flex items-center gap-2">
-                          <span>{formattedDate}</span>
-                          <ChevronRight className="w-3.5 h-3.5 text-muted" />
-                        </div>
-                      </Card>
+                      <div className="text-right shrink-0 text-xs text-muted flex items-center gap-1.5 sm:gap-2 tabular-nums">
+                        <span>{formattedDate}</span>
+                        <ChevronRight className="w-3.5 h-3.5 text-muted" />
+                      </div>
                     </Link>
                   );
                 })}
@@ -315,32 +330,32 @@ export function StaffDashboard({
         </div>
 
         {/* Right Column (4 cols): Information & Actions */}
-        <div className="lg:col-span-4 space-y-6">
+        <div className="lg:col-span-4 space-y-4 sm:space-y-5">
           {/* Support & Actions Card */}
-          <Card className="space-y-4 p-5 border border-border bg-surface">
-            <h3 className="text-sm font-bold text-foreground">
-              IT Support & Helpdesk
+          <div className="rounded-2xl border border-border/70 bg-surface p-4 sm:p-5 space-y-3 sm:space-y-4 shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
+            <h3 className="text-sm font-semibold text-foreground">
+              IT Support &amp; Helpdesk
             </h3>
 
-            <div className="space-y-2 text-xs text-muted">
-              <div className="flex items-start gap-2">
+            <div className="space-y-2.5 sm:space-y-3 text-xs text-muted">
+              <div className="flex items-start gap-2.5">
                 <Clock className="w-4 h-4 text-muted shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-bold text-foreground">Room 310 Helpdesk</p>
-                  <p>Monday – Friday, 08:00 – 18:00</p>
+                  <p className="font-semibold text-foreground">Room 310 Helpdesk</p>
+                  <p className="mt-0.5">Monday – Friday, 08:00 – 18:00</p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-2 pt-2 border-t border-border">
-                <ShieldCheck className="w-4 h-4 text-brand-teal shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2.5 pt-2.5 sm:pt-3 border-t border-border/50">
+                <ShieldCheck className="w-4 h-4 text-accent shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-bold text-foreground">Hardware Stewardship</p>
-                  <p>Devices remain property of R4C Global. Report issues promptly.</p>
+                  <p className="font-semibold text-foreground">Hardware Stewardship</p>
+                  <p className="mt-0.5">Devices remain property of R4C Global. Report issues promptly.</p>
                 </div>
               </div>
             </div>
 
-            <div className="pt-2 flex flex-col gap-2">
+            <div className="pt-1">
               <Button
                 variant="outline"
                 size="sm"
@@ -351,11 +366,11 @@ export function StaffDashboard({
                 View Equipment Guidelines
               </Button>
             </div>
-          </Card>
+          </div>
 
           {/* IT Notices */}
-          <Card className="space-y-3 p-5 border border-border bg-surface">
-            <h3 className="text-sm font-bold text-foreground">
+          <div className="rounded-2xl border border-border/70 bg-surface p-4 sm:p-5 space-y-2 sm:space-y-2.5 shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
+            <h3 className="text-sm font-semibold text-foreground">
               Notice
             </h3>
             <p className="text-xs text-muted leading-relaxed">
@@ -364,13 +379,13 @@ export function StaffDashboard({
             <div className="pt-1">
               <a
                 href="mailto:ezekielgoodness@r4cglobal.org"
-                className="text-xs text-muted hover:text-foreground inline-flex items-center gap-1 transition-colors font-medium"
+                className="text-xs text-accent hover:text-accent-hover inline-flex items-center gap-1 transition-colors font-medium"
               >
                 <span>Contact IT Administration</span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
             </div>
-          </Card>
+          </div>
         </div>
       </div>
 
@@ -399,30 +414,30 @@ export function StaffDashboard({
         description="Standard operating guidelines for company hardware custody."
         size="md"
       >
-        <div className="space-y-4 text-xs text-foreground/80 leading-relaxed">
-          <div className="p-3.5 rounded-xl bg-surface-elevated border border-border space-y-1">
-            <h4 className="font-bold text-foreground">1. Custody and Care</h4>
+        <div className="space-y-3.5 text-xs text-foreground/80 leading-relaxed">
+          <div className="p-3.5 rounded-xl bg-surface-elevated/45 border border-border/60 space-y-1">
+            <h4 className="font-semibold text-foreground">1. Custody and Care</h4>
             <p className="text-muted">
               Assigned equipment remains the property of R4C Global and should be handled with reasonable care against loss and liquid damage.
             </p>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-surface-elevated border border-border space-y-1">
-            <h4 className="font-bold text-foreground">2. Issue Reporting</h4>
+          <div className="p-3.5 rounded-xl bg-surface-elevated/45 border border-border/60 space-y-1">
+            <h4 className="font-semibold text-foreground">2. Issue Reporting</h4>
             <p className="text-muted">
               If an assigned device experiences a hardware malfunction or physical damage, file a ticket through this portal so a replacement or repair can be coordinated.
             </p>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-surface-elevated border border-border space-y-1">
-            <h4 className="font-bold text-foreground">3. Return Timeline</h4>
+          <div className="p-3.5 rounded-xl bg-surface-elevated/45 border border-border/60 space-y-1">
+            <h4 className="font-semibold text-foreground">3. Return Timeline</h4>
             <p className="text-muted">
               Fixed-date loans should be returned to Room 310 by the specified due date or extended through IT support.
             </p>
           </div>
 
           <div className="pt-2 flex justify-end">
-            <Button variant="secondary" size="sm" onClick={() => setIsPolicyOpen(false)}>
+            <Button variant="outline" size="sm" onClick={() => setIsPolicyOpen(false)}>
               Close
             </Button>
           </div>

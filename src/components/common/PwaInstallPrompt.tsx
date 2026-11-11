@@ -115,13 +115,13 @@ export function PwaInstallPrompt() {
         </div>
 
         {showIOSInstructions ? (
-          <div className="mt-3 p-3 bg-surface-elevated rounded-xl text-xs space-y-1.5 border border-border text-foreground">
+          <div className="mt-3 p-3 bg-surface-elevated/60 rounded-xl text-xs space-y-1.5 border border-border/70 text-foreground">
             <p className="font-semibold text-foreground">How to install on iOS:</p>
             <p className="text-muted">1. Tap the Share button in Safari.</p>
             <p className="text-muted">2. Tap &ldquo;Add to Home Screen&rdquo;.</p>
             <button
               onClick={() => setShowIOSInstructions(false)}
-              className="text-xs text-brand-teal hover:underline font-semibold block text-right w-full pt-1"
+              className="text-xs text-accent hover:underline font-semibold block text-right w-full pt-1"
             >
               Got it
             </button>
@@ -136,7 +136,7 @@ export function PwaInstallPrompt() {
             </button>
             <button
               onClick={handleInstallClick}
-              className="text-xs font-semibold bg-brand-teal hover:bg-brand-teal/90 text-white px-3.5 py-1.5 rounded-xl transition-all shadow-xs"
+              className="text-xs font-semibold bg-accent hover:bg-accent-hover text-white px-3.5 py-1.5 rounded-xl transition-colors shadow-2xs"
             >
               Install App
             </button>

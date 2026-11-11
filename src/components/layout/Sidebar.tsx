@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -139,7 +139,7 @@ export function Sidebar({
   const isControlled = typeof controlledCollapsed === "boolean";
   const isCollapsed = isControlled ? controlledCollapsed : internalCollapsed;
 
-  const handleToggle = () => {
+  const handleToggle = useCallback(() => {
     if (controlledOnToggle) {
       controlledOnToggle();
     } else {
@@ -153,7 +153,7 @@ export function Sidebar({
         return next;
       });
     }
-  };
+  }, [controlledOnToggle]);
 
   // Keyboard shortcut: Cmd+[ or Ctrl+[ to toggle sidebar
   useEffect(() => {
@@ -165,7 +165,7 @@ export function Sidebar({
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [controlledCollapsed, controlledOnToggle]);
+  }, [handleToggle]);
 
   const toggleGroup = (groupId: string) => {
     setCollapsedGroups((prev) => ({
@@ -221,19 +221,15 @@ export function Sidebar({
       {/* ─── Top Header: Brand Wordmark & Collapse Toggle ─── */}
       <div
         className={`border-b border-border flex items-center transition-all duration-200 ${
-          isCollapsed ? "flex-col gap-2.5 py-4 px-2" : "justify-between px-4 py-4"
+          isCollapsed ? "h-14 justify-center px-2" : "justify-between px-4 py-4"
         }`}
       >
-        <Link
-          href={isStaff ? "/staff" : "/dashboard"}
-          className="flex items-center gap-2.5 min-w-0 group"
-          title="E310 Inventory App"
-        >
-          {isCollapsed ? (
-            <div className="w-8 h-8 rounded-lg bg-surface-elevated border border-border flex items-center justify-center font-black text-xs tracking-tight text-foreground shadow-xs transition-transform group-hover:scale-105">
-              E
-            </div>
-          ) : (
+        {!isCollapsed && (
+          <Link
+            href={isStaff ? "/staff" : "/dashboard"}
+            className="flex items-center gap-2.5 min-w-0 group"
+            title="E310 Inventory App"
+          >
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <E310Logo size="sm" />
@@ -245,8 +241,8 @@ export function Sidebar({
                 {isStaff ? "Staff Self-Service" : "Tech Operations"}
               </p>
             </div>
-          )}
-        </Link>
+          </Link>
+        )}
 
         <button
           type="button"

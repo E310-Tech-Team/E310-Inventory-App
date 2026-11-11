@@ -6,19 +6,11 @@ import {
   AlertTriangle,
   PackageX,
   ClipboardList,
-  ArrowUpRight,
-  Boxes,
-  Package,
-  ShieldCheck,
   Search,
   CheckCircle2,
-  Clock,
   ArrowRight,
-  Filter,
-  Monitor,
-  Laptop,
-  LifeBuoy,
-  FileSpreadsheet,
+  Download,
+  ChevronRight,
 } from "lucide-react";
 import {
   FleetAssetsIcon,
@@ -29,11 +21,10 @@ import {
 } from "@/components/common/Icons";
 
 import { Category, Item, Checkout, DepartmentUser, Admin, DeviceComplaint } from "@/types";
-import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusPill } from "@/components/ui/StatusPill";
+import { ShowMoreBar } from "@/components/ui/ShowMoreBar";
 import { CheckoutDetailsModal } from "@/components/checkouts/CheckoutDetailsModal";
 import { CategoryDetailsModal } from "@/components/categories/CategoryDetailsModal";
-import { ItemDetailsModal } from "@/components/items/ItemDetailsModal";
 import {
   getCheckedOutView,
   getOverdueView,
@@ -41,13 +32,12 @@ import {
   getCategoryBreakdown,
   getPersonHistory,
   getItemHistory,
-  getRecentlyAddedView,
 } from "@/lib/dashboard";
 
 const TABS = ["At a glance", "By category", "History"] as const;
 type Tab = (typeof TABS)[number];
 
-type ActiveViewFilter = "all" | "overdue" | "recent";
+type ActiveViewFilter = "all" | "overdue";
 
 export function DashboardView({
   categories,
@@ -55,7 +45,6 @@ export function DashboardView({
   checkouts,
   complaints = [],
   now,
-  user,
 }: {
   categories: Category[];
   items: Item[];
@@ -70,25 +59,28 @@ export function DashboardView({
   const [historyMode, setHistoryMode] = useState<"item" | "person">("person");
   const [selectedItemId, setSelectedItemId] = useState(items[0]?.id ?? "");
   const [selectedCheckout, setSelectedCheckout] = useState<Checkout | null>(null);
-  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [custodyMobileLimit, setCustodyMobileLimit] = useState(4);
+  const [categoryMobileLimit, setCategoryMobileLimit] = useState(8);
+  const [historyMobileLimit, setHistoryMobileLimit] = useState(6);
 
   const checkedOut = useMemo(() => getCheckedOutView(checkouts, items), [checkouts, items]);
   const overdue = useMemo(() => getOverdueView(checkouts, items), [checkouts, items]);
   const lowStock = useMemo(() => getLowStockView(items, categories), [items, categories]);
-  const recentlyAdded = useMemo(() => getRecentlyAddedView(items), [items]);
   const breakdown = useMemo(() => getCategoryBreakdown(items, categories), [items, categories]);
 
   const openComplaints = useMemo(
     () => complaints.filter((c) => c.status !== "resolved" && c.status !== "closed"),
     [complaints]
   );
+
+  // Only show active/open complaints in the overview queue so resolved tickets disappear here.
   const recentComplaints = useMemo(
     () =>
-      [...complaints]
+      [...openComplaints]
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-        .slice(0, 4),
-    [complaints]
+        .slice(0, 5),
+    [openComplaints]
   );
 
   const people = useMemo(() => {
@@ -113,17 +105,12 @@ export function DashboardView({
   const itemById = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
   const categoryById = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
 
-  // Filtered list for "At a glance" active custody card
   const filteredList = useMemo(() => {
-    let list = checkedOut;
-    if (activeFilter === "overdue") {
-      list = overdue;
-    }
-
-    if (!searchQuery.trim()) return list;
+    const base = activeFilter === "overdue" ? overdue : checkedOut;
+    if (!searchQuery.trim()) return base;
 
     const query = searchQuery.toLowerCase();
-    return list.filter(({ checkout, item }) => {
+    return base.filter(({ checkout, item }) => {
       const itemName = item?.name?.toLowerCase() || "";
       const personName = (checkout.assignedToName || checkout.collectedBy || "").toLowerCase();
       const contact = (checkout.assignedToEmail || checkout.assignedToPhone || "").toLowerCase();
@@ -132,66 +119,47 @@ export function DashboardView({
   }, [checkedOut, overdue, activeFilter, searchQuery]);
 
   return (
-    <div className="space-y-6">
-      {/* ─── Top Page Header with Status & Quick Actions ─── */}
-      <div className="px-4 md:px-8 pt-6 pb-2">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-border">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
-              {user?.name || "User"}
+    <div className="space-y-4 sm:space-y-6">
+      {/* ─── Clean Executive Header ─── */}
+      <div className="px-4 md:px-8 pt-4 sm:pt-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-3.5 sm:pb-5 border-b border-border/70">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-foreground">
+              Inventory Overview
             </h1>
-            <p className="text-sm text-muted mt-1">
-              Real-time hardware inventory, active field custody, and fleet health monitoring.
+            <p className="text-xs sm:text-sm text-muted mt-0.5 sm:mt-1">
+              Hardware availability, active assignments, and operational alerts.
             </p>
           </div>
 
-          {/* Quick Action Shortcuts */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+          <div className="flex items-center gap-2 shrink-0">
             <Link
-              href="/tech"
-              className="pressable inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-brand-teal/10 hover:bg-brand-teal/15 text-brand-teal dark:text-teal-300 border border-brand-teal/25 font-semibold text-xs shadow-xs transition-colors"
+              href="/exports"
+              className="pressable inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border border-border/80 bg-surface hover:bg-surface-elevated text-foreground text-xs font-medium transition-colors"
             >
-              <LifeBuoy className="w-4 h-4 text-brand-teal dark:text-teal-400" />
-              <span>Staff Tickets</span>
-              {openComplaints.length > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-brand-teal text-white font-bold leading-none">
-                  {openComplaints.length}
-                </span>
-              )}
+              <Download className="w-3.5 h-3.5 text-muted" />
+              <span>Export data</span>
             </Link>
             <Link
               href="/checkouts"
-              className="pressable inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface-elevated hover:bg-surface border border-border text-foreground font-medium text-xs shadow-xs transition-colors"
+              className="pressable inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-2xs transition-colors"
             >
-              <ClipboardList className="w-4 h-4 text-muted" />
-              <span>Loans & Checkouts</span>
-            </Link>
-            <Link
-              href="/items"
-              className="pressable inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface hover:bg-surface-elevated border border-border text-foreground font-medium text-xs transition-colors"
-            >
-              <Package className="w-4 h-4 text-muted" />
-              <span>Inventory Catalog</span>
-            </Link>
-            <Link
-              href="/tech/approvals"
-              className="pressable inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface hover:bg-surface-elevated border border-border text-foreground font-medium text-xs transition-colors"
-            >
-              <ShieldCheck className="w-4 h-4 text-brand-teal" />
-              <span>Approvals Queue</span>
+              <span>Checkouts</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex gap-2 mt-4 border-b border-border">
+        <div className="flex gap-1 mt-2.5 sm:mt-3 border-b border-border/70 overflow-x-auto no-scrollbar">
           {TABS.map((t) => (
             <button
               key={t}
+              type="button"
               onClick={() => setTab(t)}
-              className={`pressable px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ${
+              className={`pressable px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium border-b-2 -mb-px whitespace-nowrap transition-colors ${
                 tab === t
-                  ? "border-accent text-accent"
+                  ? "border-accent text-accent font-semibold"
                   : "border-transparent text-muted hover:text-foreground"
               }`}
             >
@@ -201,570 +169,531 @@ export function DashboardView({
         </div>
       </div>
 
-      <div className="px-4 md:px-8 pb-12">
-        {/* ─── TAB 1: AT A GLANCE (EXECUTIVE DASHBOARD) ─── */}
+      <div className="px-4 md:px-8 pb-6 sm:pb-12">
+        {/* ─── TAB 1: AT A GLANCE ─── */}
         {tab === "At a glance" && (
-          <div className="space-y-6">
-            {/* Top 4 KPI Metric Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Card 1: In Active Custody */}
-              <div
+          <div className="space-y-4 sm:space-y-6">
+            {/* Top 4 KPI Metric Cards: compact 2x2 grid on mobile */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+              {/* Card 1: Active Deployments */}
+              <button
+                type="button"
                 onClick={() => setActiveFilter("all")}
-                className={`interactive-card cursor-pointer rounded-2xl border p-5 transition-all duration-200 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.06)] ${
-                  activeFilter === "all"
-                    ? "border-brand-teal/40 bg-brand-teal/[0.04] dark:bg-brand-teal/10 ring-1 ring-brand-teal/20"
-                    : "border-border/70 bg-surface/90 hover:border-brand-teal/30"
-                }`}
+                className="text-left rounded-2xl border border-border/70 bg-surface hover:border-border p-3.5 sm:p-5 transition-colors shadow-[0_1px_4px_rgba(0,0,0,0.02)]"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-teal/10 text-brand-teal dark:text-teal-400">
-                    <ClipboardList className="h-5 w-5" />
-                  </div>
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-brand-teal/10 text-brand-teal dark:text-teal-400">
-                    In Field
-                  </span>
-                </div>
-                <div className="mt-4">
-                  <p className="text-3xl font-extrabold tracking-tight text-foreground/90">
-                    {checkedOut.length}
-                  </p>
-                  <p className="text-xs font-semibold text-foreground/80 mt-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] sm:text-xs font-medium text-muted truncate">
                     Active Deployments
-                  </p>
-                  <p className="text-[11px] text-muted mt-0.5">
-                    Hardware items in staff custody
-                  </p>
+                  </span>
+                  <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-accent-soft text-accent shrink-0">
+                    <ClipboardList className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  </div>
                 </div>
-              </div>
+                <p className="mt-2 sm:mt-3 text-xl sm:text-3xl font-bold tracking-tight text-foreground tabular-nums">
+                  {checkedOut.length}
+                </p>
+                <p className="hidden sm:block text-xs text-muted mt-1">
+                  Hardware items in staff custody
+                </p>
+              </button>
 
               {/* Card 2: Overdue Returns */}
-              <div
-                onClick={() => setActiveFilter("overdue")}
-                className={`interactive-card cursor-pointer rounded-2xl border p-5 transition-all duration-200 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.06)] ${
+              <button
+                type="button"
+                onClick={() => setActiveFilter(activeFilter === "overdue" ? "all" : "overdue")}
+                className={`text-left rounded-2xl border p-3.5 sm:p-5 transition-colors shadow-[0_1px_4px_rgba(0,0,0,0.02)] ${
                   activeFilter === "overdue"
-                    ? "border-rose-500/40 bg-rose-500/[0.04] dark:bg-rose-500/10 ring-1 ring-rose-500/20"
-                    : "border-border/70 bg-surface/90 hover:border-rose-500/30"
+                    ? "border-rose-500/40 bg-rose-500/[0.03]"
+                    : "border-border/70 bg-surface hover:border-border"
                 }`}
               >
-                <div className="flex items-start justify-between">
-                  <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                      overdue.length > 0
-                        ? "bg-rose-500/10 text-rose-600 dark:text-rose-400"
-                        : "bg-surface-elevated text-muted"
-                    }`}
-                  >
-                    <AlertTriangle className="h-5 w-5" />
-                  </div>
-                  <span
-                    className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-                      overdue.length > 0
-                        ? "bg-rose-500/10 text-rose-600 dark:text-rose-400"
-                        : "bg-surface-elevated text-muted border border-border/50"
-                    }`}
-                  >
-                    {overdue.length > 0 ? "Urgent" : "Nominal"}
-                  </span>
-                </div>
-                <div className="mt-4">
-                  <p
-                    className={`text-3xl font-extrabold tracking-tight ${
-                      overdue.length > 0 ? "text-rose-600 dark:text-rose-400" : "text-foreground/90"
-                    }`}
-                  >
-                    {overdue.length}
-                  </p>
-                  <p className="text-xs font-semibold text-foreground/80 mt-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] sm:text-xs font-medium text-muted truncate">
                     Overdue Returns
-                  </p>
-                  <p className="text-[11px] text-muted mt-0.5">
-                    {overdue.length > 0 ? "Exceeded scheduled due date" : "All returns on schedule"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Card 3: Low Stock Alerts */}
-              <div
-                onClick={() => setTab("By category")}
-                className="interactive-card cursor-pointer rounded-2xl border border-border/70 bg-surface/90 p-5 hover:border-amber-500/30 transition-all duration-200 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.06)]"
-              >
-                <div className="flex items-start justify-between">
-                  <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                      lowStock.length > 0
-                        ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                        : "bg-surface-elevated text-muted"
-                    }`}
-                  >
-                    <PackageX className="h-5 w-5" />
-                  </div>
-                  <span
-                    className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-                      lowStock.length > 0
-                        ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                        : "bg-surface-elevated text-muted border border-border/50"
-                    }`}
-                  >
-                    {lowStock.length > 0 ? "Restock" : "Sufficient"}
                   </span>
-                </div>
-                <div className="mt-4">
-                  <p
-                    className={`text-3xl font-extrabold tracking-tight ${
-                      lowStock.length > 0 ? "text-amber-600 dark:text-amber-400" : "text-foreground/90"
+                  <div
+                    className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg shrink-0 ${
+                      overdue.length > 0
+                        ? "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                        : "bg-surface-elevated/80 text-muted"
                     }`}
                   >
-                    {lowStock.length}
-                  </p>
-                  <p className="text-xs font-semibold text-foreground/80 mt-1">
-                    Low Stock Supplies
-                  </p>
-                  <p className="text-[11px] text-muted mt-0.5">
-                    {lowStock.length > 0 ? "Below minimum threshold" : "All inventories well-stocked"}
-                  </p>
+                    <AlertTriangle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  </div>
                 </div>
-              </div>
+                <p
+                  className={`mt-2 sm:mt-3 text-xl sm:text-3xl font-bold tracking-tight tabular-nums ${
+                    overdue.length > 0 ? "text-rose-600 dark:text-rose-400" : "text-foreground"
+                  }`}
+                >
+                  {overdue.length}
+                </p>
+                <p className="hidden sm:block text-xs text-muted mt-1">
+                  {overdue.length > 0 ? "Past scheduled due date" : "All returns on schedule"}
+                </p>
+              </button>
 
-              {/* Card 4: Total Fleet Catalog */}
+              {/* Card 3: Low Stock Supplies */}
+              <button
+                type="button"
+                onClick={() => setTab("By category")}
+                className="text-left rounded-2xl border border-border/70 bg-surface hover:border-border p-3.5 sm:p-5 transition-colors shadow-[0_1px_4px_rgba(0,0,0,0.02)]"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] sm:text-xs font-medium text-muted truncate">
+                    Low Stock Alerts
+                  </span>
+                  <div
+                    className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg shrink-0 ${
+                      lowStock.length > 0
+                        ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                        : "bg-surface-elevated/80 text-muted"
+                    }`}
+                  >
+                    <PackageX className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  </div>
+                </div>
+                <p
+                  className={`mt-2 sm:mt-3 text-xl sm:text-3xl font-bold tracking-tight tabular-nums ${
+                    lowStock.length > 0 ? "text-amber-600 dark:text-amber-400" : "text-foreground"
+                  }`}
+                >
+                  {lowStock.length}
+                </p>
+                <p className="hidden sm:block text-xs text-muted mt-1">
+                  {lowStock.length > 0 ? "Below reorder threshold" : "All categories stocked"}
+                </p>
+              </button>
+
+              {/* Card 4: Total Hardware Assets */}
               <Link
                 href="/items"
-                className="interactive-card block rounded-2xl border border-border/70 bg-surface/90 p-5 hover:border-brand-teal/30 transition-all duration-200 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_16px_-4px_rgba(0,0,0,0.06)]"
+                className="block rounded-2xl border border-border/70 bg-surface hover:border-border p-3.5 sm:p-5 transition-colors shadow-[0_1px_4px_rgba(0,0,0,0.02)]"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-teal/10 text-brand-teal dark:text-teal-400">
-                    <FleetAssetsIcon className="h-5 w-5" />
-                  </div>
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-surface-elevated text-muted border border-border/50">
-                    Catalog
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] sm:text-xs font-medium text-muted truncate">
+                    Total Catalog
                   </span>
+                  <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-surface-elevated/80 text-muted shrink-0">
+                    <FleetAssetsIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  </div>
                 </div>
-                <div className="mt-4">
-                  <p className="text-3xl font-extrabold tracking-tight text-foreground/90">
-                    {items.length}
-                  </p>
-                  <p className="text-xs font-semibold text-foreground/80 mt-1">
-                    Total Hardware Assets
-                  </p>
-                  <p className="text-[11px] text-muted mt-0.5">
-                    Across {categories.length} equipment categories
-                  </p>
-                </div>
+                <p className="mt-2 sm:mt-3 text-xl sm:text-3xl font-bold tracking-tight text-foreground tabular-nums">
+                  {items.length}
+                </p>
+                <p className="hidden sm:block text-xs text-muted mt-1">
+                  Across {categories.length} equipment categories
+                </p>
               </Link>
             </div>
 
-            {/* ─── 2-Column Asymmetric Operations Deck ─── */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              {/* Left Column (7 cols): Active Custody Stream */}
-              <div className="lg:col-span-7 rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-xs space-y-5">
-                {/* Section Header with Controls */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border">
+            {/* ─── 2-Column Workspace Grid ─── */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start">
+              {/* Left Column (8 cols): Active Equipment Custody */}
+              <div className="lg:col-span-8 rounded-2xl border border-border/70 bg-surface overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
+                <div className="px-4 py-3.5 sm:px-5 sm:py-4 border-b border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
                   <div>
-                    <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-                      <span>Active Equipment Custody</span>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-accent-soft text-accent font-mono font-semibold">
-                        {filteredList.length}
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-sm sm:text-base font-semibold text-foreground">
+                        Active Equipment Custody
+                      </h2>
+                      <span className="text-xs text-muted tabular-nums">
+                        ({filteredList.length})
                       </span>
-                    </h2>
-                    <p className="text-xs text-muted mt-0.5">
-                      Assigned devices currently registered to employees
+                    </div>
+                    <p className="hidden sm:block text-xs text-muted mt-0.5">
+                      Devices currently issued to staff members
                     </p>
                   </div>
 
-                  {/* Filter Pills */}
-                  <div className="flex items-center gap-1.5 bg-surface-elevated p-1 rounded-xl border border-border self-start sm:self-auto">
-                    <button
-                      type="button"
-                      onClick={() => setActiveFilter("all")}
-                      className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors ${
-                        activeFilter === "all"
-                          ? "bg-accent text-accent-contrast shadow-xs"
-                          : "text-muted hover:text-foreground"
-                      }`}
-                    >
-                      All ({checkedOut.length})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveFilter("overdue")}
-                      className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors ${
-                        activeFilter === "overdue"
-                          ? "bg-rose-500 text-white shadow-xs"
-                          : "text-muted hover:text-foreground"
-                      }`}
-                    >
-                      Overdue ({overdue.length})
-                    </button>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="relative flex-1 sm:flex-initial min-w-[150px]">
+                      <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-muted" />
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => {
+                          setSearchQuery(e.target.value);
+                          setCustodyMobileLimit(4);
+                        }}
+                        placeholder="Search custody..."
+                        className="w-full sm:w-52 pl-8 pr-3 py-1.5 text-xs rounded-xl border border-border/80 bg-background text-foreground placeholder:text-muted focus:outline-hidden focus:border-accent transition-colors"
+                      />
+                    </div>
+
+                    <div className="inline-flex items-center gap-0.5 bg-surface-elevated/70 p-0.5 rounded-xl border border-border/70 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveFilter("all");
+                          setCustodyMobileLimit(4);
+                        }}
+                        className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors ${
+                          activeFilter === "all"
+                            ? "bg-surface text-foreground shadow-2xs"
+                            : "text-muted hover:text-foreground"
+                        }`}
+                      >
+                        All ({checkedOut.length})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveFilter("overdue");
+                          setCustodyMobileLimit(4);
+                        }}
+                        className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors ${
+                          activeFilter === "overdue"
+                            ? "bg-surface text-rose-600 dark:text-rose-400 shadow-2xs"
+                            : "text-muted hover:text-foreground"
+                        }`}
+                      >
+                        Overdue ({overdue.length})
+                      </button>
+                    </div>
                   </div>
                 </div>
 
-                {/* Quick Search inside list */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Filter by device, employee name, or email..."
-                    className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-border bg-background text-foreground placeholder:text-muted focus:outline-hidden focus:border-accent"
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery("")}
-                      className="absolute right-3 top-2.5 text-xs text-muted hover:text-foreground"
-                    >
-                      Clear
-                    </button>
-                  )}
-                </div>
-
-                {/* Items List */}
                 {filteredList.length === 0 ? (
-                  <div className="text-center py-12 px-4 border border-dashed border-border rounded-xl space-y-3">
-                    <div className="mx-auto w-10 h-10 rounded-xl bg-accent-soft flex items-center justify-center text-accent">
-                      <CheckCircle2 className="w-5 h-5" />
+                  <div className="text-center py-10 sm:py-14 px-4 space-y-2">
+                    <div className="mx-auto w-9 h-9 rounded-full bg-surface-elevated flex items-center justify-center text-muted">
+                      <CheckCircle2 className="w-4.5 h-4.5" />
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold text-foreground">
-                        {activeFilter === "overdue"
-                          ? "No Overdue Returns"
-                          : "No Devices Found"}
-                      </p>
-                      <p className="text-xs text-muted max-w-xs mx-auto">
-                        {activeFilter === "overdue"
-                          ? "All assigned hardware items are well within their scheduled loan periods."
-                          : searchQuery
-                          ? `No custody records matched "${searchQuery}".`
-                          : "No hardware is currently marked as checked out."}
-                      </p>
-                    </div>
+                    <p className="text-sm font-medium text-foreground">
+                      {activeFilter === "overdue" ? "No overdue returns" : "No devices found"}
+                    </p>
+                    <p className="text-xs text-muted max-w-xs mx-auto">
+                      {activeFilter === "overdue"
+                        ? "All assigned hardware is within scheduled loan dates."
+                        : searchQuery
+                        ? `No custody records match "${searchQuery}".`
+                        : "No equipment is currently checked out."}
+                    </p>
                   </div>
                 ) : (
-                  <div className="space-y-2.5">
-                    {filteredList.map(({ checkout, item }) => {
-                      const assigneeName = checkout.assignedToName || checkout.collectedBy || "Unknown Staff";
-                      const initials = assigneeName
-                        .split(" ")
-                        .filter(Boolean)
-                        .map((n) => n[0])
-                        .slice(0, 2)
-                        .join("")
-                        .toUpperCase();
+                  <>
+                    {/* Mobile Compact Hairline Rows (Capped to minimize scroll) */}
+                    <div className="sm:hidden">
+                      <div className="divide-y divide-border/50">
+                        {filteredList.slice(0, custodyMobileLimit).map(({ checkout, item }) => {
+                          const assigneeName =
+                            checkout.assignedToName || checkout.collectedBy || "Unknown Staff";
+                          const isItemOverdue =
+                            checkout.dueDate && new Date(checkout.dueDate).getTime() < now;
 
-                      const isItemOverdue =
-                        checkout.dueDate && new Date(checkout.dueDate).getTime() < now;
-
-                      const categoryName = item?.categoryId
-                        ? categoryById.get(item.categoryId)?.name
-                        : undefined;
-
-                      return (
-                        <div
-                          key={checkout.id}
-                          onClick={() => setSelectedCheckout(checkout)}
-                          className="group relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-border/70 bg-surface/80 hover:bg-surface-elevated/70 hover:border-brand-teal/30 cursor-pointer transition-all duration-150 shadow-[0_1px_3px_rgba(0,0,0,0.02)]"
-                        >
-                          {/* Left: Avatar + Details */}
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-9 h-9 rounded-xl bg-brand-teal/10 dark:bg-brand-teal/20 text-brand-teal dark:text-teal-300 font-bold text-xs flex items-center justify-center shrink-0 border border-brand-teal/20 shadow-xs">
-                              {initials}
-                            </div>
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2">
-                                <p className="text-sm font-bold text-foreground truncate">
+                          return (
+                            <button
+                              key={checkout.id}
+                              type="button"
+                              onClick={() => setSelectedCheckout(checkout)}
+                              className="w-full text-left px-4 py-2.5 hover:bg-surface-elevated/40 transition-colors flex items-center justify-between gap-2.5"
+                            >
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium text-foreground truncate">
                                   {item?.name || "Equipment Item"}
                                 </p>
-                                {categoryName && (
-                                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-surface-elevated border border-border text-muted">
-                                    {categoryName}
-                                  </span>
-                                )}
+                                <p className="text-xs text-muted truncate mt-0.5 tabular-nums">
+                                  {assigneeName} ·{" "}
+                                  {checkout.dueDate
+                                    ? `Due ${new Date(checkout.dueDate).toLocaleDateString()}`
+                                    : "Permanent"}
+                                </p>
                               </div>
-                              <p className="text-xs text-muted truncate mt-0.5">
-                                Assigned to <span className="text-foreground font-medium">{assigneeName}</span>
-                                {checkout.assignedToEmail ? ` • ${checkout.assignedToEmail}` : ""}
-                              </p>
-                            </div>
-                          </div>
+                              <StatusPill
+                                status={
+                                  checkout.status === "returned"
+                                    ? "returned"
+                                    : isItemOverdue
+                                    ? "overdue"
+                                    : "active"
+                                }
+                              />
+                            </button>
+                          );
+                        })}
+                      </div>
 
-                          {/* Right: Dates + Status Pill + Arrow */}
-                          <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/50">
-                            <div className="text-left sm:text-right text-[11px]">
-                              <p className="text-muted">
-                                Out:{" "}
-                                <span className="font-mono text-foreground font-medium">
-                                  {new Date(checkout.dateCollected).toLocaleDateString()}
-                                </span>
-                              </p>
-                              <p
-                                className={`font-mono font-medium ${
-                                  isItemOverdue ? "text-rose-600 dark:text-rose-400" : "text-muted"
-                                }`}
+                      <ShowMoreBar
+                        visibleCount={custodyMobileLimit}
+                        totalCount={filteredList.length}
+                        initialLimit={4}
+                        step={6}
+                        noun="records"
+                        onShowMore={() => setCustodyMobileLimit((c) => c + 6)}
+                        onCollapse={() => setCustodyMobileLimit(4)}
+                      />
+
+                      <div className="px-4 py-2.5 border-t border-border/50 bg-surface-elevated/20 flex items-center justify-end text-xs">
+                        <Link
+                          href="/checkouts"
+                          className="font-medium text-accent hover:underline inline-flex items-center gap-1"
+                        >
+                          <span>Manage all checkouts</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </Link>
+                      </div>
+                    </div>
+
+                    {/* Desktop Hairline Table */}
+                    <div className="hidden sm:block overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-border/60 bg-surface-elevated/40 text-left text-xs font-medium text-muted">
+                            <th className="px-5 py-3 font-medium">Equipment</th>
+                            <th className="px-4 py-3 font-medium">Assigned To</th>
+                            <th className="px-4 py-3 font-medium">Issued / Due</th>
+                            <th className="px-4 py-3 font-medium">Status</th>
+                            <th className="w-8 pr-4 py-3" />
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/50">
+                          {filteredList.map(({ checkout, item }) => {
+                            const assigneeName =
+                              checkout.assignedToName || checkout.collectedBy || "Unknown Staff";
+                            const isItemOverdue =
+                              checkout.dueDate && new Date(checkout.dueDate).getTime() < now;
+                            const categoryName = item?.categoryId
+                              ? categoryById.get(item.categoryId)?.name
+                              : undefined;
+
+                            return (
+                              <tr
+                                key={checkout.id}
+                                onClick={() => setSelectedCheckout(checkout)}
+                                className="group cursor-pointer hover:bg-surface-elevated/40 transition-colors"
                               >
-                                {checkout.dueDate
-                                  ? `Due: ${new Date(checkout.dueDate).toLocaleDateString()}`
-                                  : "Permanent Loan"}
-                              </p>
-                            </div>
+                                <td className="px-5 py-3.5">
+                                  <p className="font-medium text-foreground">
+                                    {item?.name || "Equipment Item"}
+                                  </p>
+                                  {categoryName && (
+                                    <p className="text-xs text-muted mt-0.5">{categoryName}</p>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3.5">
+                                  <p className="text-foreground font-medium">{assigneeName}</p>
+                                  {checkout.assignedToEmail && (
+                                    <p className="text-xs text-muted mt-0.5 truncate max-w-[200px]">
+                                      {checkout.assignedToEmail}
+                                    </p>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3.5 text-xs tabular-nums">
+                                  <p className="text-foreground">
+                                    {new Date(checkout.dateCollected).toLocaleDateString()}
+                                  </p>
+                                  <p
+                                    className={`mt-0.5 ${
+                                      isItemOverdue
+                                        ? "text-rose-600 dark:text-rose-400 font-medium"
+                                        : "text-muted"
+                                    }`}
+                                  >
+                                    {checkout.dueDate
+                                      ? `Due ${new Date(checkout.dueDate).toLocaleDateString()}`
+                                      : "Permanent loan"}
+                                  </p>
+                                </td>
+                                <td className="px-4 py-3.5">
+                                  <StatusPill
+                                    status={
+                                      checkout.status === "returned"
+                                        ? "returned"
+                                        : isItemOverdue
+                                        ? "overdue"
+                                        : "active"
+                                    }
+                                  />
+                                </td>
+                                <td className="pr-4 py-3.5 text-right">
+                                  <ChevronRight className="w-4 h-4 text-muted/60 group-hover:text-foreground inline transition-colors" />
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
 
-                            <StatusPill
-                              status={
-                                checkout.status === "returned"
-                                  ? "returned"
-                                  : isItemOverdue
-                                  ? "overdue"
-                                  : "active"
-                              }
-                            />
-
-                            <ArrowUpRight className="w-4 h-4 text-muted group-hover:text-accent transition-colors" />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                    <div className="hidden sm:flex px-5 py-3 border-t border-border/50 bg-surface-elevated/20 items-center justify-between text-xs">
+                      <span className="text-muted">
+                        Showing {filteredList.length} active custody record
+                        {filteredList.length === 1 ? "" : "s"}
+                      </span>
+                      <Link
+                        href="/checkouts"
+                        className="font-medium text-accent hover:underline inline-flex items-center gap-1"
+                      >
+                        <span>Manage all checkouts</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  </>
                 )}
               </div>
 
-              {/* Right Column (5 cols): Staff Tickets, Category Capacity & Operations Hub */}
-              <div className="lg:col-span-5 space-y-6">
-                {/* Card 1: Staff Support Tickets & Complaints */}
-                <div className="rounded-2xl border border-border/70 bg-surface/90 backdrop-blur-sm p-5 sm:p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.03)] space-y-4">
-                  <div className="flex items-center justify-between pb-3 border-b border-border/60">
+              {/* Right Column (4 cols): Open Tickets & Desktop Category Allocation */}
+              <div className="lg:col-span-4 space-y-4 sm:space-y-6">
+                {/* Widget 1: Open Support Queue */}
+                <div className="rounded-2xl border border-border/70 bg-surface overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
+                  <div className="px-4 py-3.5 sm:px-5 sm:py-4 border-b border-border/60 flex items-center justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-teal/10 text-brand-teal">
-                          <LifeBuoy className="w-4 h-4" />
-                        </div>
-                        <h2 className="text-base font-bold text-foreground">
-                          Staff Support Tickets
+                        <h2 className="text-sm sm:text-base font-semibold text-foreground">
+                          Open Support Queue
                         </h2>
                         {openComplaints.length > 0 && (
-                          <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/25">
-                            {openComplaints.length} Active
+                          <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 tabular-nums">
+                            {openComplaints.length}
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-muted mt-1">
-                        Complaints, repair requests & fault reports
+                      <p className="hidden sm:block text-xs text-muted mt-0.5">
+                        Unresolved staff hardware issues
                       </p>
                     </div>
                     <Link
                       href="/tech"
-                      className="text-xs font-semibold text-brand-teal hover:underline inline-flex items-center gap-1 group"
+                      className="text-xs font-medium text-accent hover:underline inline-flex items-center gap-1 shrink-0"
                     >
-                      <span>Open Queue</span>
-                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                      <span>Open desk</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
                   </div>
 
                   {recentComplaints.length === 0 ? (
-                    <div className="text-center py-6 px-3 border border-dashed border-border/70 rounded-xl space-y-2 bg-surface-elevated/20">
-                      <CheckCircle2 className="w-5 h-5 mx-auto text-brand-teal/70" />
-                      <p className="text-xs font-semibold text-foreground">No Active Tickets</p>
-                      <p className="text-[11px] text-muted">
-                        All reported staff device issues are resolved and up to date.
+                    <div className="px-4 py-7 sm:px-5 sm:py-10 text-center space-y-1.5 sm:space-y-2">
+                      <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 mx-auto text-emerald-500/80" />
+                      <p className="text-sm font-medium text-foreground">All caught up</p>
+                      <p className="text-xs text-muted">
+                        No open staff tickets require attention right now.
                       </p>
-                      <Link
-                        href="/tech"
-                        className="inline-block mt-1 text-[11px] font-semibold text-brand-teal hover:underline"
-                      >
-                        View Tech Command Center →
-                      </Link>
                     </div>
                   ) : (
-                    <div className="space-y-2.5">
-                      {recentComplaints.map((c) => {
-                        const isResolved = c.status === "resolved" || c.status === "closed";
+                    <div className="divide-y divide-border/50">
+                      {recentComplaints.map((c, idx) => {
+                        const prio = (c.severity || c.priority || "medium").toLowerCase();
+                        const PrioIcon =
+                          prio === "critical"
+                            ? PriorityCriticalIcon
+                            : prio === "high"
+                            ? PriorityHighIcon
+                            : prio === "low"
+                            ? PriorityLowIcon
+                            : PriorityMediumIcon;
+
                         const isUnderway =
                           c.status === "in-progress" ||
                           c.status === "in-repair" ||
                           c.status === "assigned" ||
                           c.status === "under-review";
+
                         return (
                           <Link
                             key={c.id}
                             href={`/tech?ticket=${c.ticketNumber}`}
-                            className="group block p-3 rounded-xl border border-border/60 bg-surface-elevated/30 hover:bg-surface-elevated/80 hover:border-brand-teal/30 transition-all text-left"
+                            className={`group block px-4 py-3 sm:px-5 sm:py-3.5 hover:bg-surface-elevated/40 transition-colors ${
+                              idx >= 3 ? "hidden lg:block" : ""
+                            }`}
                           >
-                            <div className="flex items-center justify-between gap-2 mb-1.5">
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                <span className="font-mono text-[11px] font-bold text-foreground">
+                            <div className="flex items-center justify-between gap-2 mb-0.5 sm:mb-1">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="font-mono text-[11px] font-medium text-muted">
                                   {c.ticketNumber}
                                 </span>
-                                {(() => {
-                                  const prio = (c.severity || c.priority || "medium").toLowerCase();
-                                  const PrioIcon =
-                                    prio === "critical"
-                                      ? PriorityCriticalIcon
-                                      : prio === "high"
-                                      ? PriorityHighIcon
-                                      : prio === "low"
-                                      ? PriorityLowIcon
-                                      : PriorityMediumIcon;
-                                  return (
-                                    <span
-                                      className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded font-medium border ${
-                                        prio === "critical"
-                                          ? "bg-rose-500/10 text-rose-600 border-rose-500/30"
-                                          : prio === "high"
-                                          ? "bg-orange-500/10 text-orange-600 border-orange-500/30"
-                                          : prio === "low"
-                                          ? "bg-sky-500/10 text-sky-600 border-sky-500/30"
-                                          : "bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/30"
-                                      }`}
-                                    >
-                                      <PrioIcon className="w-3 h-3" />
-                                      <span className="capitalize">{prio}</span>
-                                    </span>
-                                  );
-                                })()}
+                                <span className="inline-flex items-center gap-1 text-[11px] text-muted capitalize">
+                                  <PrioIcon className="w-3 h-3" />
+                                  <span>{prio}</span>
+                                </span>
                               </div>
                               <span
-                                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${
-                                  isResolved
-                                    ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/25"
-                                    : isUnderway
-                                    ? "bg-blue-500/10 text-blue-600 border border-blue-500/25"
-                                    : "bg-amber-500/10 text-amber-600 border border-amber-500/25"
+                                className={`inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-full capitalize border shrink-0 ${
+                                  isUnderway
+                                    ? "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20"
+                                    : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
                                 }`}
                               >
                                 {c.status.replace("-", " ")}
                               </span>
                             </div>
 
-                            <p className="text-xs font-semibold text-foreground truncate group-hover:text-brand-teal transition-colors">
+                            <p className="text-sm font-medium text-foreground truncate group-hover:text-accent transition-colors">
                               {c.title}
                             </p>
-                            <p className="text-[11px] text-muted truncate mt-0.5">
-                              {c.itemName || c.deviceSummary || "Hardware Device"} • {c.userName || "Staff"}
+                            <p className="text-xs text-muted truncate mt-0.5">
+                              {c.itemName || c.deviceSummary || "Hardware Device"} ·{" "}
+                              {c.userName || "Staff"}
                             </p>
                           </Link>
                         );
                       })}
-
-                      <Link
-                        href="/tech"
-                        className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-surface-elevated hover:bg-surface border border-border/80 text-xs font-semibold text-foreground/80 hover:text-foreground transition-colors"
-                      >
-                        <span>Go to Tech Command Center & Stepper</span>
-                        <ArrowRight className="w-3.5 h-3.5 text-brand-teal" />
-                      </Link>
                     </div>
                   )}
                 </div>
 
-                {/* Card 2: Category Capacity Breakdown */}
-                <div className="rounded-2xl border border-border/70 bg-surface/90 backdrop-blur-sm p-5 sm:p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.03)] space-y-4">
-                  <div className="flex items-center justify-between pb-3 border-b border-border/60">
+                {/* Widget 2: Category Allocation (Desktop sidebar; accessible via "By category" tab on mobile) */}
+                <div className="hidden lg:block rounded-2xl border border-border/70 bg-surface overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
+                  <div className="px-5 py-4 border-b border-border/60 flex items-center justify-between gap-3">
                     <div>
-                      <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-                        <Boxes className="w-4 h-4 text-brand-teal" />
-                        <span>Category Capacity</span>
+                      <h2 className="text-base font-semibold text-foreground">
+                        Category Allocation
                       </h2>
-                      <p className="text-xs text-muted mt-0.5">
-                        Fleet allocation and stock availability
-                      </p>
+                      <p className="text-xs text-muted mt-0.5">Fleet deployment by group</p>
                     </div>
                     <button
                       type="button"
                       onClick={() => setTab("By category")}
-                      className="text-xs font-semibold text-accent hover:underline flex items-center gap-1"
+                      className="text-xs font-medium text-accent hover:underline inline-flex items-center gap-1"
                     >
-                      <span>All</span>
+                      <span>View all</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
 
-                  <div className="space-y-3">
-                    {breakdown.slice(0, 6).map(({ category, totalItems, checkedOut, available, lowStock }) => {
+                  <div className="divide-y divide-border/40">
+                    {breakdown.slice(0, 6).map(({ category, totalItems, checkedOut: inUse, available, lowStock: catLowStock }) => {
                       const deployedPct =
-                        totalItems > 0 ? Math.round((checkedOut / totalItems) * 100) : 0;
+                        totalItems > 0 ? Math.round((inUse / totalItems) * 100) : 0;
 
                       return (
-                        <div
+                        <button
                           key={category.id}
+                          type="button"
                           onClick={() => setSelectedCategory(category)}
-                          className="group p-3 rounded-xl border border-border/60 bg-surface-elevated/30 hover:bg-surface-elevated hover:border-brand-teal/30 cursor-pointer transition-all"
+                          className="w-full text-left px-5 py-3.5 hover:bg-surface-elevated/40 transition-colors"
                         >
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="font-semibold text-foreground group-hover:text-brand-teal transition-colors">
+                          <div className="flex items-center justify-between text-xs gap-2">
+                            <span className="font-medium text-foreground truncate">
                               {category.name}
                             </span>
-                            <span className="font-mono text-muted text-[11px]">
-                              <span className="text-foreground font-semibold">{checkedOut}</span> in use / {totalItems} total
+                            <span className="text-muted tabular-nums shrink-0">
+                              <span className="text-foreground font-medium">{inUse}</span> /{" "}
+                              {totalItems}
                             </span>
                           </div>
 
-                          {/* Capacity Progress Bar */}
-                          <div className="mt-2 w-full h-1.5 rounded-full bg-muted/15 overflow-hidden flex">
+                          <div className="mt-2 w-full h-1 rounded-full bg-surface-elevated overflow-hidden flex">
                             <div
                               style={{ width: `${deployedPct}%` }}
-                              className="h-full bg-brand-teal/90 dark:bg-teal-400 transition-all duration-500 rounded-full"
-                              title={`${deployedPct}% deployed`}
+                              className="h-full bg-accent transition-all duration-300 rounded-full"
                             />
-                            {lowStock > 0 && (
+                            {catLowStock > 0 && (
                               <div
                                 style={{
-                                  width: `${Math.round((lowStock / (totalItems || 1)) * 100)}%`,
+                                  width: `${Math.round((catLowStock / (totalItems || 1)) * 100)}%`,
                                 }}
-                                className="h-full bg-amber-500 transition-all duration-500"
-                                title={`${lowStock} low stock`}
+                                className="h-full bg-amber-500 transition-all duration-300"
                               />
                             )}
                           </div>
 
-                          <div className="mt-1.5 flex items-center justify-between text-[10px] text-muted font-medium">
+                          <div className="mt-1.5 flex items-center justify-between text-[11px] text-muted tabular-nums">
                             <span>{deployedPct}% deployed</span>
                             <span>{available} available</span>
                           </div>
-                        </div>
+                        </button>
                       );
                     })}
-                  </div>
-                </div>
-
-                {/* Card 3: Operations Quick Hub */}
-                <div className="rounded-2xl border border-border/70 bg-surface/90 backdrop-blur-sm p-5 sm:p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.03)] space-y-4">
-                  <h3 className="text-sm font-bold text-foreground">
-                    Quick Operations
-                  </h3>
-
-                  <div className="grid grid-cols-2 gap-2.5">
-                    <Link
-                      href="/checkouts"
-                      className="p-3 rounded-xl border border-border/60 bg-surface-elevated/30 hover:bg-surface-elevated hover:border-brand-teal/30 transition-colors text-left"
-                    >
-                      <ClipboardList className="w-4 h-4 text-brand-teal" />
-                      <p className="text-xs font-semibold text-foreground mt-2">New Loan</p>
-                      <p className="text-[10px] text-muted mt-0.5">Issue device to staff</p>
-                    </Link>
-
-                    <Link
-                      href="/items"
-                      className="p-3 rounded-xl border border-border/60 bg-surface-elevated/30 hover:bg-surface-elevated hover:border-brand-teal/30 transition-colors text-left"
-                    >
-                      <Package className="w-4 h-4 text-brand-teal" />
-                      <p className="text-xs font-semibold text-foreground mt-2">Add Device</p>
-                      <p className="text-[10px] text-muted mt-0.5">Register to catalog</p>
-                    </Link>
-
-                    <Link
-                      href="/tech"
-                      className="p-3 rounded-xl border border-border/60 bg-surface-elevated/30 hover:bg-surface-elevated hover:border-brand-teal/30 transition-colors text-left"
-                    >
-                      <LifeBuoy className="w-4 h-4 text-brand-teal" />
-                      <p className="text-xs font-semibold text-foreground mt-2">Service Tickets</p>
-                      <p className="text-[10px] text-muted mt-0.5">Manage staff tickets</p>
-                    </Link>
-
-                    <Link
-                      href="/exports"
-                      className="p-3 rounded-xl border border-border/60 bg-surface-elevated/30 hover:bg-surface-elevated hover:border-brand-teal/30 transition-colors text-left"
-                    >
-                      <FileSpreadsheet className="w-4 h-4 text-brand-teal" />
-                      <p className="text-xs font-semibold text-foreground mt-2">Export Data</p>
-                      <p className="text-[10px] text-muted mt-0.5">CSV / Excel reports</p>
-                    </Link>
                   </div>
                 </div>
               </div>
@@ -775,64 +704,73 @@ export function DashboardView({
         {/* ─── TAB 2: BY CATEGORY ─── */}
         {tab === "By category" && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between pb-2">
+            <div className="flex items-center justify-between pb-1">
               <div>
-                <h2 className="text-lg font-bold text-foreground">Category Stock Breakdown</h2>
-                <p className="text-xs text-muted">Equipment volumes, field deployment, and reorder levels.</p>
+                <h2 className="text-base font-semibold text-foreground">
+                  Category Stock Breakdown
+                </h2>
+                <p className="text-xs text-muted mt-0.5">
+                  Equipment volumes, field deployment, and reorder levels.
+                </p>
               </div>
             </div>
 
             <Table
-              headers={["Category", "Total Items", "Assigned in Field", "Available in Store", "Low Stock Status"]}
+              headers={["Category", "Total Items", "Assigned", "Available", "Low Stock"]}
               mobileCards={
-                <ul className="space-y-3">
-                  {breakdown.map(({ category, totalItems, checkedOut, available, lowStock }) => (
-                    <li
-                      key={category.id}
-                      className="interactive-card cursor-pointer rounded-xl border border-border bg-surface p-4"
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => setSelectedCategory(category)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          setSelectedCategory(category);
-                        }
-                      }}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="font-bold text-sm text-foreground break-words">
-                            {category.name}
+                <div className="rounded-2xl border border-border/70 bg-surface overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
+                  <ul className="divide-y divide-border/50">
+                    {breakdown
+                      .slice(0, categoryMobileLimit)
+                      .map(({ category, totalItems, checkedOut: inUse, available, lowStock: catLowStock }) => (
+                        <li
+                          key={category.id}
+                          className="cursor-pointer px-3.5 py-2.5 hover:bg-surface-elevated/40 transition-colors"
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => setSelectedCategory(category)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              setSelectedCategory(category);
+                            }
+                          }}
+                        >
+                          <div className="flex items-center justify-between gap-2.5">
+                            <p className="font-semibold text-sm text-foreground truncate min-w-0">
+                              {category.name}
+                            </p>
+                            {catLowStock > 0 ? (
+                              <span className="inline-flex shrink-0 items-center rounded-full bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[11px] font-medium text-amber-600 dark:text-amber-400">
+                                {catLowStock} low
+                              </span>
+                            ) : (
+                              <span className="text-[11px] font-medium text-muted shrink-0 tabular-nums">
+                                {totalItems} {totalItems === 1 ? "item" : "items"}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted mt-0.5 tabular-nums truncate">
+                            {inUse} assigned · {available} available · {catLowStock} low stock
                           </p>
-                          <p className="text-xs text-muted mt-0.5">
-                            {totalItems} total {totalItems === 1 ? "item" : "items"}
-                          </p>
-                        </div>
-                        {lowStock > 0 && (
-                          <span className="inline-flex shrink-0 items-center rounded-full bg-status-low-stock-bg px-2.5 py-1 text-xs font-semibold text-status-low-stock">
-                            {lowStock} low
-                          </span>
-                        )}
-                      </div>
-                      <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                        <MiniStat label="Assigned" value={checkedOut} />
-                        <MiniStat label="Available" value={available} />
-                        <MiniStat
-                          label="Low stock"
-                          value={lowStock}
-                          tone={lowStock > 0 ? "text-status-low-stock" : "text-muted"}
-                        />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                        </li>
+                      ))}
+                  </ul>
+                  <ShowMoreBar
+                    visibleCount={Math.min(categoryMobileLimit, breakdown.length)}
+                    totalCount={breakdown.length}
+                    initialLimit={8}
+                    noun="categories"
+                    onShowMore={() => setCategoryMobileLimit((prev) => prev + 8)}
+                    onCollapse={() => setCategoryMobileLimit(8)}
+                  />
+                </div>
               }
             >
-              {breakdown.map(({ category, totalItems, checkedOut, available, lowStock }) => (
+              {breakdown.map(({ category, totalItems, checkedOut: inUse, available, lowStock: catLowStock }) => (
                 <tr
                   key={category.id}
-                  className="table-row border-b border-border last:border-0 cursor-pointer hover:bg-accent-soft/70 text-foreground transition-colors"
+                  className="border-b border-border/50 last:border-0 cursor-pointer hover:bg-surface-elevated/40 text-foreground transition-colors"
                   role="button"
                   tabIndex={0}
                   onClick={() => setSelectedCategory(category)}
@@ -844,14 +782,22 @@ export function DashboardView({
                   }}
                 >
                   <Td>
-                    <span className="font-semibold text-foreground">{category.name}</span>
+                    <span className="font-medium text-foreground">{category.name}</span>
                   </Td>
-                  <Td muted mono>{totalItems}</Td>
-                  <Td muted mono>{checkedOut}</Td>
-                  <Td muted mono>{available}</Td>
-                  <td className="px-4 py-3 font-mono">
-                    {lowStock > 0 ? (
-                      <span className="text-status-low-stock font-bold">{lowStock}</span>
+                  <Td muted mono>
+                    {totalItems}
+                  </Td>
+                  <Td muted mono>
+                    {inUse}
+                  </Td>
+                  <Td muted mono>
+                    {available}
+                  </Td>
+                  <td className="px-4 py-3 font-mono text-xs tabular-nums">
+                    {catLowStock > 0 ? (
+                      <span className="text-amber-600 dark:text-amber-400 font-semibold">
+                        {catLowStock}
+                      </span>
                     ) : (
                       <span className="text-muted">0</span>
                     )}
@@ -865,28 +811,40 @@ export function DashboardView({
         {/* ─── TAB 3: AUDIT HISTORY ─── */}
         {tab === "History" && (
           <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
               <div>
-                <h2 className="text-lg font-bold text-foreground">Equipment Loan Audit History</h2>
-                <p className="text-xs text-muted">Complete audit trail of all custody transfers and returns.</p>
+                <h2 className="text-base font-semibold text-foreground">
+                  Equipment Loan Audit History
+                </h2>
+                <p className="text-xs text-muted mt-0.5">
+                  Complete log of all custody transfers and returns.
+                </p>
               </div>
 
-              <div className="flex gap-1 bg-surface-elevated p-1 rounded-xl border border-border">
+              <div className="inline-flex gap-0.5 bg-surface-elevated/70 p-0.5 rounded-xl border border-border/70 self-start sm:self-auto">
                 <button
-                  onClick={() => setHistoryMode("person")}
-                  className={`pressable px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                  type="button"
+                  onClick={() => {
+                    setHistoryMode("person");
+                    setHistoryMobileLimit(6);
+                  }}
+                  className={`pressable px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                     historyMode === "person"
-                      ? "bg-accent text-accent-contrast shadow-xs"
+                      ? "bg-surface text-foreground shadow-2xs"
                       : "text-muted hover:text-foreground"
                   }`}
                 >
                   By Person
                 </button>
                 <button
-                  onClick={() => setHistoryMode("item")}
-                  className={`pressable px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                  type="button"
+                  onClick={() => {
+                    setHistoryMode("item");
+                    setHistoryMobileLimit(6);
+                  }}
+                  className={`pressable px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                     historyMode === "item"
-                      ? "bg-accent text-accent-contrast shadow-xs"
+                      ? "bg-surface text-foreground shadow-2xs"
                       : "text-muted hover:text-foreground"
                   }`}
                 >
@@ -898,12 +856,15 @@ export function DashboardView({
             {historyMode === "person" ? (
               <>
                 {people.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted font-medium">Select Staff Member:</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2">
+                    <span className="text-xs text-muted font-medium">Staff member:</span>
                     <select
-                      className="px-3 py-1.5 rounded-xl border border-border bg-surface text-foreground text-xs font-medium focus:outline-hidden focus:border-accent"
+                      className="w-full sm:w-auto max-w-full px-3 py-1.5 rounded-xl border border-border/80 bg-surface text-foreground text-xs font-medium focus:outline-hidden focus:border-accent"
                       value={activeSelectedAdmin}
-                      onChange={(e) => setSelectedAdmin(e.target.value)}
+                      onChange={(e) => {
+                        setSelectedAdmin(e.target.value);
+                        setHistoryMobileLimit(6);
+                      }}
                     >
                       {people.map((name) => (
                         <option key={name} value={name}>
@@ -917,76 +878,80 @@ export function DashboardView({
                   <EmptyRow text="No checkout history found for this person." />
                 ) : (
                   <Table
-                    headers={["Item", "Assigned Date", "Returned Date", "Processed By", "Condition", "Status"]}
+                    headers={[
+                      "Item",
+                      "Assigned Date",
+                      "Returned Date",
+                      "Processed By",
+                      "Condition",
+                      "Status",
+                    ]}
                     mobileCards={
-                      <ul className="space-y-3">
-                        {personHistory.map((c) => (
-                          <li
-                            key={c.id}
-                            className="interactive-card cursor-pointer rounded-xl border border-border bg-surface p-4"
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => setSelectedCheckout({ ...c, itemId: c.itemId } as Checkout)}
-                            onKeyDown={(event) => {
-                              if (event.key === "Enter" || event.key === " ") {
-                                event.preventDefault();
-                                setSelectedCheckout({ ...c, itemId: c.itemId } as Checkout);
-                              }
-                            }}
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0">
-                                <p className="font-semibold text-sm text-foreground break-words">
-                                  {itemById.get(c.itemId)?.name ?? "Unknown"}
-                                </p>
-                                <p className="text-xs text-muted mt-0.5 truncate">
-                                  Processed by {c.collectedBy}
-                                </p>
-                              </div>
-                              <div className="shrink-0">
-                                <StatusPill
-                                  status={
-                                    c.status === "returned"
-                                      ? "returned"
-                                      : c.dueDate && new Date(c.dueDate) < new Date()
-                                        ? "overdue"
-                                        : "active"
+                      <div className="rounded-2xl border border-border/70 bg-surface overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
+                        <ul className="divide-y divide-border/50">
+                          {personHistory.slice(0, historyMobileLimit).map((c) => {
+                            const status =
+                              c.status === "returned"
+                                ? "returned"
+                                : c.dueDate && new Date(c.dueDate).getTime() < now
+                                ? "overdue"
+                                : "active";
+                            return (
+                              <li
+                                key={c.id}
+                                className="cursor-pointer px-3.5 py-2.5 hover:bg-surface-elevated/40 transition-colors"
+                                role="button"
+                                tabIndex={0}
+                                onClick={() =>
+                                  setSelectedCheckout({ ...c, itemId: c.itemId } as Checkout)
+                                }
+                                onKeyDown={(event) => {
+                                  if (event.key === "Enter" || event.key === " ") {
+                                    event.preventDefault();
+                                    setSelectedCheckout({ ...c, itemId: c.itemId } as Checkout);
                                   }
-                                />
-                              </div>
-                            </div>
-                            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                              <div className="min-w-0">
-                                <p className="text-muted">Assigned</p>
-                                <p className="text-foreground">
+                                }}
+                              >
+                                <div className="flex items-center justify-between gap-2.5">
+                                  <p className="font-semibold text-sm text-foreground truncate min-w-0">
+                                    {itemById.get(c.itemId)?.name ?? "Unknown"}
+                                  </p>
+                                  <div className="shrink-0">
+                                    <StatusPill status={status} />
+                                  </div>
+                                </div>
+                                <p className="text-xs text-muted mt-0.5 truncate tabular-nums">
                                   {new Date(c.dateCollected).toLocaleDateString()}
+                                  {c.dateReturned
+                                    ? ` → ${new Date(c.dateReturned).toLocaleDateString()}`
+                                    : " · Open"}
+                                  {` · ${c.conditionOnReturn ?? c.conditionOnCollection}`}
+                                  {` · ${c.collectedBy}`}
                                 </p>
-                              </div>
-                              <div className="min-w-0">
-                                <p className="text-muted">Returned</p>
-                                <p className="text-foreground">
-                                  {c.dateReturned ? new Date(c.dateReturned).toLocaleDateString() : "—"}
-                                </p>
-                              </div>
-                              <div className="min-w-0">
-                                <p className="text-muted">Condition</p>
-                                <p className="text-foreground capitalize">
-                                  {c.conditionOnReturn ?? c.conditionOnCollection}
-                                </p>
-                              </div>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                        <ShowMoreBar
+                          visibleCount={Math.min(historyMobileLimit, personHistory.length)}
+                          totalCount={personHistory.length}
+                          initialLimit={6}
+                          noun="records"
+                          onShowMore={() => setHistoryMobileLimit((prev) => prev + 6)}
+                          onCollapse={() => setHistoryMobileLimit(6)}
+                        />
+                      </div>
                     }
                   >
                     {personHistory.map((c) => (
                       <tr
                         key={c.id}
-                        className="table-row border-b border-border last:border-0 cursor-pointer hover:bg-accent-soft/70 text-foreground transition-colors"
+                        className="border-b border-border/50 last:border-0 cursor-pointer hover:bg-surface-elevated/40 text-foreground transition-colors"
                         role="button"
                         tabIndex={0}
-                        onClick={() => setSelectedCheckout({ ...c, itemId: c.itemId } as Checkout)}
+                        onClick={() =>
+                          setSelectedCheckout({ ...c, itemId: c.itemId } as Checkout)
+                        }
                         onKeyDown={(event) => {
                           if (event.key === "Enter" || event.key === " ") {
                             event.preventDefault();
@@ -994,19 +959,27 @@ export function DashboardView({
                           }
                         }}
                       >
-                        <Td>{itemById.get(c.itemId)?.name ?? "Unknown"}</Td>
+                        <Td>
+                          <span className="font-medium">
+                            {itemById.get(c.itemId)?.name ?? "Unknown"}
+                          </span>
+                        </Td>
                         <Td muted>{new Date(c.dateCollected).toLocaleDateString()}</Td>
-                        <Td muted>{c.dateReturned ? new Date(c.dateReturned).toLocaleDateString() : "—"}</Td>
-                        <Td muted mono>{c.collectedBy}</Td>
-                        <Td muted capitalize>{c.conditionOnReturn ?? c.conditionOnCollection}</Td>
+                        <Td muted>
+                          {c.dateReturned ? new Date(c.dateReturned).toLocaleDateString() : "—"}
+                        </Td>
+                        <Td muted>{c.collectedBy}</Td>
+                        <Td muted capitalize>
+                          {c.conditionOnReturn ?? c.conditionOnCollection}
+                        </Td>
                         <td className="px-4 py-3">
                           <StatusPill
                             status={
                               c.status === "returned"
                                 ? "returned"
-                                : c.dueDate && new Date(c.dueDate) < new Date()
-                                  ? "overdue"
-                                  : "active"
+                                : c.dueDate && new Date(c.dueDate).getTime() < now
+                                ? "overdue"
+                                : "active"
                             }
                           />
                         </td>
@@ -1017,12 +990,15 @@ export function DashboardView({
               </>
             ) : (
               <>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted font-medium">Select Hardware Item:</span>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2">
+                  <span className="text-xs text-muted font-medium">Equipment item:</span>
                   <select
-                    className="px-3 py-1.5 rounded-xl border border-border bg-surface text-foreground text-xs font-medium focus:outline-hidden focus:border-accent"
+                    className="w-full sm:w-auto max-w-full px-3 py-1.5 rounded-xl border border-border/80 bg-surface text-foreground text-xs font-medium focus:outline-hidden focus:border-accent"
                     value={selectedItemId}
-                    onChange={(e) => setSelectedItemId(e.target.value)}
+                    onChange={(e) => {
+                      setSelectedItemId(e.target.value);
+                      setHistoryMobileLimit(6);
+                    }}
                   >
                     {items.map((item) => (
                       <option key={item.id} value={item.id}>
@@ -1035,73 +1011,73 @@ export function DashboardView({
                   <EmptyRow text="No checkout history found for this item." />
                 ) : (
                   <Table
-                    headers={["Assigned To", "Assigned Date", "Returned Date", "Processed By", "Condition", "Status"]}
+                    headers={[
+                      "Assigned To",
+                      "Assigned Date",
+                      "Returned Date",
+                      "Processed By",
+                      "Condition",
+                      "Status",
+                    ]}
                     mobileCards={
-                      <ul className="space-y-3">
-                        {itemHistory.map((c) => (
-                          <li
-                            key={c.id}
-                            className="interactive-card cursor-pointer rounded-xl border border-border bg-surface p-4"
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => setSelectedCheckout(c)}
-                            onKeyDown={(event) => {
-                              if (event.key === "Enter" || event.key === " ") {
-                                event.preventDefault();
-                                setSelectedCheckout(c);
-                              }
-                            }}
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0">
-                                <p className="font-semibold text-sm text-foreground break-words">
-                                  {c.assignedToName || c.collectedBy}
-                                </p>
-                                <p className="text-xs text-muted mt-0.5 truncate">
-                                  Processed by {c.collectedBy}
-                                </p>
-                              </div>
-                              <div className="shrink-0">
-                                <StatusPill
-                                  status={
-                                    c.status === "returned"
-                                      ? "returned"
-                                      : c.dueDate && new Date(c.dueDate) < new Date()
-                                        ? "overdue"
-                                        : "active"
+                      <div className="rounded-2xl border border-border/70 bg-surface overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
+                        <ul className="divide-y divide-border/50">
+                          {itemHistory.slice(0, historyMobileLimit).map((c) => {
+                            const status =
+                              c.status === "returned"
+                                ? "returned"
+                                : c.dueDate && new Date(c.dueDate).getTime() < now
+                                ? "overdue"
+                                : "active";
+                            return (
+                              <li
+                                key={c.id}
+                                className="cursor-pointer px-3.5 py-2.5 hover:bg-surface-elevated/40 transition-colors"
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => setSelectedCheckout(c)}
+                                onKeyDown={(event) => {
+                                  if (event.key === "Enter" || event.key === " ") {
+                                    event.preventDefault();
+                                    setSelectedCheckout(c);
                                   }
-                                />
-                              </div>
-                            </div>
-                            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                              <div className="min-w-0">
-                                <p className="text-muted">Assigned</p>
-                                <p className="text-foreground">
+                                }}
+                              >
+                                <div className="flex items-center justify-between gap-2.5">
+                                  <p className="font-semibold text-sm text-foreground truncate min-w-0">
+                                    {c.assignedToName || c.collectedBy}
+                                  </p>
+                                  <div className="shrink-0">
+                                    <StatusPill status={status} />
+                                  </div>
+                                </div>
+                                <p className="text-xs text-muted mt-0.5 truncate tabular-nums">
                                   {new Date(c.dateCollected).toLocaleDateString()}
+                                  {c.dateReturned
+                                    ? ` → ${new Date(c.dateReturned).toLocaleDateString()}`
+                                    : " · Open"}
+                                  {` · ${c.conditionOnReturn ?? c.conditionOnCollection}`}
+                                  {` · ${c.collectedBy}`}
                                 </p>
-                              </div>
-                              <div className="min-w-0">
-                                <p className="text-muted">Returned</p>
-                                <p className="text-foreground">
-                                  {c.dateReturned ? new Date(c.dateReturned).toLocaleDateString() : "—"}
-                                </p>
-                              </div>
-                              <div className="min-w-0">
-                                <p className="text-muted">Condition</p>
-                                <p className="text-foreground capitalize">
-                                  {c.conditionOnReturn ?? c.conditionOnCollection}
-                                </p>
-                              </div>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                        <ShowMoreBar
+                          visibleCount={Math.min(historyMobileLimit, itemHistory.length)}
+                          totalCount={itemHistory.length}
+                          initialLimit={6}
+                          noun="records"
+                          onShowMore={() => setHistoryMobileLimit((prev) => prev + 6)}
+                          onCollapse={() => setHistoryMobileLimit(6)}
+                        />
+                      </div>
                     }
                   >
                     {itemHistory.map((c) => (
                       <tr
                         key={c.id}
-                        className="table-row border-b border-border last:border-0 cursor-pointer hover:bg-accent-soft/70 text-foreground transition-colors"
+                        className="border-b border-border/50 last:border-0 cursor-pointer hover:bg-surface-elevated/40 text-foreground transition-colors"
                         role="button"
                         tabIndex={0}
                         onClick={() => setSelectedCheckout(c)}
@@ -1112,19 +1088,27 @@ export function DashboardView({
                           }
                         }}
                       >
-                        <Td>{c.assignedToName || c.collectedBy}</Td>
+                        <Td>
+                          <span className="font-medium">
+                            {c.assignedToName || c.collectedBy}
+                          </span>
+                        </Td>
                         <Td muted>{new Date(c.dateCollected).toLocaleDateString()}</Td>
-                        <Td muted>{c.dateReturned ? new Date(c.dateReturned).toLocaleDateString() : "—"}</Td>
-                        <Td muted mono>{c.collectedBy}</Td>
-                        <Td muted capitalize>{c.conditionOnReturn ?? c.conditionOnCollection}</Td>
+                        <Td muted>
+                          {c.dateReturned ? new Date(c.dateReturned).toLocaleDateString() : "—"}
+                        </Td>
+                        <Td muted>{c.collectedBy}</Td>
+                        <Td muted capitalize>
+                          {c.conditionOnReturn ?? c.conditionOnCollection}
+                        </Td>
                         <td className="px-4 py-3">
                           <StatusPill
                             status={
                               c.status === "returned"
                                 ? "returned"
-                                : c.dueDate && new Date(c.dueDate) < new Date()
-                                  ? "overdue"
-                                  : "active"
+                                : c.dueDate && new Date(c.dueDate).getTime() < now
+                                ? "overdue"
+                                : "active"
                             }
                           />
                         </td>
@@ -1139,29 +1123,22 @@ export function DashboardView({
       </div>
 
       {/* ─── Modals ─── */}
-      {selectedCheckout && (() => {
-        const selectedItemForCheckout = itemById.get(selectedCheckout.itemId) ?? null;
-        const selectedCategoryForCheckout = selectedItemForCheckout?.categoryId
-          ? categoryById.get(selectedItemForCheckout.categoryId) ?? null
-          : null;
+      {selectedCheckout &&
+        (() => {
+          const selectedItemForCheckout = itemById.get(selectedCheckout.itemId) ?? null;
+          const selectedCategoryForCheckout = selectedItemForCheckout?.categoryId
+            ? categoryById.get(selectedItemForCheckout.categoryId) ?? null
+            : null;
 
-        return (
-          <CheckoutDetailsModal
-            checkout={selectedCheckout}
-            item={selectedItemForCheckout}
-            category={selectedCategoryForCheckout}
-            onClose={() => setSelectedCheckout(null)}
-          />
-        );
-      })()}
-
-      {selectedItem && (
-        <ItemDetailsModal
-          item={selectedItem}
-          category={categoryById.get(selectedItem.categoryId) ?? null}
-          onClose={() => setSelectedItem(null)}
-        />
-      )}
+          return (
+            <CheckoutDetailsModal
+              checkout={selectedCheckout}
+              item={selectedItemForCheckout}
+              category={selectedCategoryForCheckout}
+              onClose={() => setSelectedCheckout(null)}
+            />
+          );
+        })()}
 
       {selectedCategory && (
         <CategoryDetailsModal
@@ -1170,15 +1147,6 @@ export function DashboardView({
           onClose={() => setSelectedCategory(null)}
         />
       )}
-    </div>
-  );
-}
-
-function MiniStat({ label, value, tone }: { label: string; value: number; tone?: string }) {
-  return (
-    <div className="rounded-lg bg-surface-elevated border border-border p-2">
-      <p className={`text-sm font-bold font-mono ${tone ?? "text-foreground"}`}>{value}</p>
-      <p className="text-[10px] text-muted uppercase tracking-wide mt-0.5">{label}</p>
     </div>
   );
 }
@@ -1195,12 +1163,12 @@ function Table({
   return (
     <div className="space-y-3 md:space-y-0">
       {mobileCards && <div className="md:hidden space-y-3">{mobileCards}</div>}
-      <div className="hidden md:block border border-border rounded-2xl overflow-hidden bg-surface shadow-xs overflow-x-auto">
+      <div className="hidden md:block border border-border/70 rounded-2xl overflow-hidden bg-surface shadow-[0_1px_4px_rgba(0,0,0,0.02)] overflow-x-auto">
         <table className="w-full min-w-[760px] text-sm">
           <thead>
-            <tr className="border-b border-border bg-surface-elevated text-left text-xs text-muted uppercase tracking-wider">
+            <tr className="border-b border-border/60 bg-surface-elevated/40 text-left text-xs font-medium text-muted">
               {headers.map((h) => (
-                <th key={h} className="px-4 py-3 font-semibold whitespace-nowrap">
+                <th key={h} className="px-4 py-3 font-medium whitespace-nowrap">
                   {h}
                 </th>
               ))}
@@ -1227,7 +1195,7 @@ function Td({
   return (
     <td
       className={`px-4 py-3.5 ${muted ? "text-muted" : "text-foreground"} ${
-        mono ? "font-mono text-xs" : ""
+        mono ? "font-mono text-xs tabular-nums" : ""
       } ${capitalize ? "capitalize" : ""}`}
     >
       {children}
@@ -1237,7 +1205,7 @@ function Td({
 
 function EmptyRow({ text }: { text: string }) {
   return (
-    <div className="border border-dashed border-border rounded-2xl py-12 text-center bg-surface">
+    <div className="border border-border/70 rounded-2xl py-12 text-center bg-surface">
       <p className="text-sm font-medium text-muted">{text}</p>
     </div>
   );
