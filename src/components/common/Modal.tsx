@@ -1,7 +1,10 @@
 "use client";
 
-import React, { useEffect, useCallback, useRef } from "react";
+import React, { useEffect, useCallback, useRef, useId, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
+
+const emptySubscribe = () => () => {};
 
 export interface ModalProps {
   isOpen?: boolean;
@@ -23,6 +26,12 @@ export function Modal({
   showCloseButton = true,
 }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -34,7 +43,7 @@ export function Modal({
   );
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !mounted) return;
 
     document.addEventListener("keydown", handleKeyDown);
     // Prevent body scrolling while modal is open
@@ -45,9 +54,9 @@ export function Modal({
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = originalOverflow;
     };
-  }, [isOpen, handleKeyDown]);
+  }, [isOpen, mounted, handleKeyDown]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const sizeClasses = {
     sm: "max-w-md",
@@ -56,16 +65,16 @@ export function Modal({
     xl: "max-w-4xl",
   };
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="modal-title"
+      aria-labelledby={titleId}
     >
       {/* Frosted Glass Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 dark:bg-black/75 backdrop-blur-sm transition-opacity duration-300 animate-fade-in"
+        className="fixed inset-0 bg-black/55 dark:bg-black/75 backdrop-blur-sm transition-opacity duration-200 animate-fade-in"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -73,19 +82,19 @@ export function Modal({
       {/* Modal Dialog Panel */}
       <div
         ref={modalRef}
-        className={`relative w-full ${sizeClasses[size]} rounded-t-2xl sm:rounded-2xl border border-border bg-surface shadow-2xl overflow-hidden modal-panel z-10 flex flex-col max-h-[92dvh]`}
+        className={`relative w-full ${sizeClasses[size]} rounded-2xl border border-border/80 bg-surface shadow-2xl overflow-hidden modal-panel z-10 flex flex-col max-h-[86dvh] sm:max-h-[88dvh]`}
       >
         {/* Header */}
-        <div className="flex items-start justify-between px-4 py-3.5 sm:p-5 border-b border-border bg-surface-elevated/40 shrink-0">
-          <div className="min-w-0 pr-3">
+        <div className="flex items-start justify-between gap-3 px-4 py-3.5 sm:px-5 sm:py-4 border-b border-border/80 bg-surface-elevated/50 shrink-0">
+          <div className="min-w-0">
             <h2
-              id="modal-title"
-              className="text-base font-bold text-foreground truncate"
+              id={titleId}
+              className="text-[15px] sm:text-base font-bold leading-snug text-foreground"
             >
               {title}
             </h2>
             {description && (
-              <p className="mt-0.5 text-xs text-muted line-clamp-2">
+              <p className="mt-1 text-xs leading-relaxed text-muted">
                 {description}
               </p>
             )}
@@ -93,8 +102,9 @@ export function Modal({
 
           {showCloseButton && (
             <button
+              type="button"
               onClick={onClose}
-              className="rounded-lg p-1.5 text-muted hover:text-foreground hover:bg-surface-elevated transition-colors shrink-0"
+              className="rounded-xl p-1.5 -mr-1 -mt-0.5 text-muted hover:text-foreground hover:bg-surface-hover border border-transparent hover:border-border/70 transition-colors shrink-0"
               aria-label="Close dialog"
             >
               <X className="w-4 h-4" />
@@ -103,10 +113,11 @@ export function Modal({
         </div>
 
         {/* Content Body */}
-        <div className="p-4 sm:p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pb-5 overflow-y-auto overscroll-contain flex-1 text-foreground">
+        <div className="p-4 sm:p-5 overflow-y-auto overscroll-contain flex-1 text-foreground">
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

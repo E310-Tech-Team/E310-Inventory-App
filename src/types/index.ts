@@ -100,6 +100,8 @@ export interface StaffDevice {
   dateCollected: string;
   dueDate: string | null;
   status: CheckoutStatus;
+  registeredByStaff?: boolean;
+  approvalStatus?: "pending" | "approved" | "rejected";
   activeComplaint?: {
     id: string;
     ticketNumber: string;

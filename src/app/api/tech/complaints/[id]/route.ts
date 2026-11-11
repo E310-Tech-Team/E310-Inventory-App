@@ -216,7 +216,7 @@ export async function PATCH(
     // 1. Fetch current complaint to detect changes
     const { data: currentComplaint, error: fetchError } = await supabase
       .from("device_complaints")
-      .select("id, ticket_number, user_id, status, assigned_tech_id, title")
+      .select("id, ticket_number, user_id, status, assigned_tech_id, title, resolved_at")
       .eq("id", id)
       .maybeSingle();
 
@@ -225,15 +225,22 @@ export async function PATCH(
     }
 
     // 2. Prepare update payload
+    const nowIso = new Date().toISOString();
     const updateData: Record<string, unknown> = {
-      updated_at: new Date().toISOString(),
+      updated_at: nowIso,
     };
 
     if (status !== undefined) {
       updateData.status = status;
-      if (status === "resolved" || status === "closed") {
-        updateData.resolved_at = new Date().toISOString();
-      } else if (currentComplaint.status === "resolved" || currentComplaint.status === "closed") {
+      const isClosingStatus = status === "resolved" || status === "closed";
+      const wasClosedStatus =
+        currentComplaint.status === "resolved" || currentComplaint.status === "closed";
+
+      if (isClosingStatus) {
+        if (!wasClosedStatus || !currentComplaint.resolved_at) {
+          updateData.resolved_at = nowIso;
+        }
+      } else if (wasClosedStatus) {
         updateData.resolved_at = null;
       }
     }

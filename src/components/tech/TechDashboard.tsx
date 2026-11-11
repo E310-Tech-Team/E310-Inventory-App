@@ -26,6 +26,7 @@ import { AssignTicketModal } from "./AssignTicketModal";
 import { TicketInspectorDrawer } from "./TicketInspectorDrawer";
 import { ShowMoreBar } from "@/components/ui/ShowMoreBar";
 import { broadcastTicketUpdate, subscribeToTicketUpdates } from "@/lib/sync/ticket-broadcast";
+import { formatDateTime, parseTimestamp } from "@/lib/format-date";
 
 type WorkspaceTab = "active" | "archive" | "audit";
 type ActiveSubFilter = "all-open" | "submitted" | "triage" | "in-progress" | "urgent";
@@ -115,9 +116,8 @@ function isTicketClosed(status?: string): boolean {
 }
 
 function formatRelativeTime(dateStr?: string | null): string {
-  if (!dateStr) return "Recently";
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return "Recently";
+  const d = parseTimestamp(dateStr);
+  if (!d) return "Recently";
   const diffMs = Date.now() - d.getTime();
   if (diffMs < 0) return "Just now";
   const diffMins = Math.floor(diffMs / 60000);
@@ -324,7 +324,7 @@ export function TechDashboard({ admin }: { admin: Admin }) {
                 techNotes: notes !== undefined ? notes : t.techNotes,
                 resolutionSummary: notes !== undefined ? notes : t.resolutionSummary,
                 resolvedAt: resolving
-                  ? new Date().toISOString()
+                  ? t.resolvedAt || new Date().toISOString()
                   : reopening
                   ? null
                   : t.resolvedAt,
@@ -1075,9 +1075,23 @@ export function TechDashboard({ admin }: { admin: Admin }) {
                                 </span>
 
                                 <span className="md:hidden text-border">•</span>
-                                <span className="md:hidden text-xs text-muted tabular-nums">
+                                <span
+                                  title={
+                                    [
+                                      ticket.createdAt
+                                        ? `Created: ${formatDateTime(ticket.createdAt)}`
+                                        : null,
+                                      ticket.resolvedAt
+                                        ? `Resolved: ${formatDateTime(ticket.resolvedAt)}`
+                                        : null,
+                                    ]
+                                      .filter(Boolean)
+                                      .join(" • ") || undefined
+                                  }
+                                  className="md:hidden text-xs text-muted tabular-nums"
+                                >
                                   {workspaceTab === "archive" && ticket.resolvedAt
-                                    ? formatRelativeTime(ticket.resolvedAt)
+                                    ? `Resolved ${formatRelativeTime(ticket.resolvedAt)}`
                                     : formatRelativeTime(ticket.createdAt)}
                                 </span>
 
@@ -1121,10 +1135,24 @@ export function TechDashboard({ admin }: { admin: Admin }) {
                             </span>
 
                             {/* Timestamp + Open Indicator */}
-                            <div className="flex items-center gap-2 text-xs text-muted min-w-[70px] justify-end">
+                            <div
+                              title={
+                                [
+                                  ticket.createdAt
+                                    ? `Created: ${formatDateTime(ticket.createdAt)}`
+                                    : null,
+                                  ticket.resolvedAt
+                                    ? `Resolved: ${formatDateTime(ticket.resolvedAt)}`
+                                    : null,
+                                ]
+                                  .filter(Boolean)
+                                  .join(" • ") || undefined
+                              }
+                              className="flex items-center gap-2 text-xs text-muted min-w-[70px] justify-end whitespace-nowrap"
+                            >
                               <span>
                                 {workspaceTab === "archive" && ticket.resolvedAt
-                                  ? formatRelativeTime(ticket.resolvedAt)
+                                  ? `Resolved ${formatRelativeTime(ticket.resolvedAt)}`
                                   : formatRelativeTime(ticket.createdAt)}
                               </span>
                               <ChevronRight className="w-4 h-4 text-muted/60 group-hover:text-brand-teal group-hover:translate-x-0.5 transition-all" />

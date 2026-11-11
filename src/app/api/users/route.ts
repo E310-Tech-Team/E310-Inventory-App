@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireSuperAdmin } from "@/lib/auth/permissions";
 import { dataStore } from "@/lib/data";
-import { cleanString, isUserRole, isUserStatus } from "@/lib/validation";
+import { cleanOptionalString, cleanString, isUserRole, isUserStatus } from "@/lib/validation";
 import { generateTemporaryPassword, hashPassword } from "@/lib/auth/password";
+import { formatStaffId, isValidStaffId } from "@/lib/staff-id";
 
 export async function GET() {
   const auth = await requireSuperAdmin();
@@ -20,6 +21,16 @@ export async function POST(request: NextRequest) {
   const email = cleanString(body.email).toLowerCase();
   const role = isUserRole(body.role) ? body.role : "team-member";
   const status = isUserStatus(body.status) ? body.status : "pending";
+  const rawStaffId = cleanOptionalString(body.staffId);
+  const staffId = rawStaffId ? formatStaffId(rawStaffId) : undefined;
+  const department = cleanOptionalString(body.department);
+
+  if (staffId && !isValidStaffId(staffId)) {
+    return NextResponse.json(
+      { error: "Staff ID must follow the E310-002 format (e.g. E310-001, E310-002)." },
+      { status: 400 }
+    );
+  }
 
   if (!name || !email) {
     return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
@@ -51,6 +62,8 @@ export async function POST(request: NextRequest) {
       role,
       status,
       invitedBy: auth.user.name,
+      staffId,
+      department,
       passwordHash,
     });
 

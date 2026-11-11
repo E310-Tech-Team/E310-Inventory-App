@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { ComplaintStatus, DeviceComplaint, StaffDevice } from "@/types";
 import { subscribeToTicketUpdates } from "@/lib/sync/ticket-broadcast";
+import { formatDateTime, formatCompactDateTime } from "@/lib/format-date";
 import { Badge } from "@/components/common/Badge";
 import { Button } from "@/components/common/Button";
 import { Modal } from "@/components/common/Modal";
@@ -28,11 +29,13 @@ import {
   ShieldCheck,
   ExternalLink,
   AppWindow,
+  X,
 } from "lucide-react";
 
 type LegacyDeviceComplaint = DeviceComplaint & {
   ticket_number?: string;
   created_at?: string;
+  resolved_at?: string | null;
 };
 
 interface TicketStatusTrackerProps {
@@ -162,35 +165,17 @@ function getPriorityConfig(priority: string) {
   }
 }
 
-function formatTicketDate(dateValue?: string | null): string {
-  if (!dateValue) return "Recently";
-  const d = new Date(dateValue);
-  return isNaN(d.getTime())
-    ? "Recently"
-    : d.toLocaleDateString(undefined, {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
-}
-
-function formatTicketDateTime(dateValue?: string | null): string {
-  if (!dateValue) return "Recently";
-  const d = new Date(dateValue);
-  return isNaN(d.getTime()) ? "Recently" : d.toLocaleString();
-}
-
 export function TicketStatusTracker({
   initialComplaints,
   devices = [],
 }: TicketStatusTrackerProps) {
   const [complaints, setComplaints] = useState<DeviceComplaint[]>(initialComplaints);
+  const [activeTab, setActiveTab] = useState<TabFilter>("active");
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<TabFilter>("all");
   const [selectedTicket, setSelectedTicket] = useState<DeviceComplaint | null>(null);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
-  const [copiedTicketId, setCopiedTicketId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [copiedTicketId, setCopiedTicketId] = useState<string | null>(null);
   const [mobileLimit, setMobileLimit] = useState(5);
 
   const refreshTickets = async () => {
@@ -199,7 +184,11 @@ export function TicketStatusTracker({
       const res = await fetch("/api/staff/complaints");
       if (res.ok) {
         const data = await res.json();
-        setComplaints(data.complaints || []);
+        const refreshed: DeviceComplaint[] = data.complaints || [];
+        setComplaints(refreshed);
+        setSelectedTicket((prev) =>
+          prev ? refreshed.find((item) => item.id === prev.id) ?? prev : null
+        );
       }
     } catch (err) {
       console.warn("Failed to refresh tickets:", err);
@@ -213,17 +202,24 @@ export function TicketStatusTracker({
     const unsubscribe = subscribeToTicketUpdates((payload) => {
       if (payload?.ticketId && payload?.status) {
         const nextStatus = payload.status as ComplaintStatus;
+        const isClosed = nextStatus === "resolved" || nextStatus === "closed";
+        const eventIso = new Date(payload.timestamp || Date.now()).toISOString();
+
+        const patchTicket = (t: DeviceComplaint): DeviceComplaint => ({
+          ...t,
+          status: nextStatus,
+          resolvedAt: isClosed
+            ? t.resolvedAt || eventIso
+            : t.status === "resolved" || t.status === "closed"
+            ? null
+            : t.resolvedAt,
+        });
+
         setComplaints((prev) =>
-          prev.map((t) =>
-            t.id === payload.ticketId
-              ? { ...t, status: nextStatus }
-              : t
-          )
+          prev.map((t) => (t.id === payload.ticketId ? patchTicket(t) : t))
         );
         setSelectedTicket((prev) =>
-          prev && prev.id === payload.ticketId
-            ? { ...prev, status: nextStatus }
-            : prev
+          prev && prev.id === payload.ticketId ? patchTicket(prev) : prev
         );
       }
       refreshTickets();
@@ -324,11 +320,11 @@ export function TicketStatusTracker({
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:flex items-center gap-2">
+        <div className="grid grid-cols-2 sm:flex items-center gap-2 shrink-0">
           <Button
             variant="outline"
             size="sm"
-            className="justify-center"
+            className="justify-center whitespace-nowrap"
             onClick={refreshTickets}
             disabled={isRefreshing}
             leftIcon={
@@ -343,7 +339,7 @@ export function TicketStatusTracker({
           <Button
             variant="primary"
             size="sm"
-            className="justify-center"
+            className="justify-center whitespace-nowrap"
             onClick={() => setIsReportModalOpen(true)}
             leftIcon={<Plus className="w-3.5 h-3.5" />}
           >
@@ -354,46 +350,91 @@ export function TicketStatusTracker({
 
       {/* ─── Summary Counter Cards ─── */}
       <div className="grid grid-cols-3 gap-2 sm:gap-4">
-        <div className="rounded-2xl border border-border/70 bg-surface p-3 sm:p-5 shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
-          <div className="flex items-center justify-between gap-1">
-            <span className="text-[11px] sm:text-xs font-medium text-muted truncate">
+        <div
+          className={`rounded-2xl border p-3 sm:p-5 flex flex-col justify-between transition-colors shadow-[0_1px_4px_rgba(0,0,0,0.02)] ${
+            activeTickets.length > 0
+              ? "border-amber-500/35 bg-amber-50/40 dark:bg-amber-950/15"
+              : "border-border/70 bg-surface"
+          }`}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <div
+              className={`w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center border shrink-0 ${
+                activeTickets.length > 0
+                  ? "bg-amber-500/15 border-amber-500/25 text-amber-600 dark:text-amber-400"
+                  : "bg-surface-hover/80 border-border/60 text-muted"
+              }`}
+            >
+              <LifeBuoy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </div>
+            <span
+              className={`hidden sm:inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border ${
+                activeTickets.length > 0
+                  ? "bg-surface border-amber-500/30 text-amber-700 dark:text-amber-300"
+                  : "bg-surface-hover/70 border-border/60 text-muted"
+              }`}
+            >
+              {activeTickets.length > 0 ? "Open" : "Clear"}
+            </span>
+          </div>
+          <div className="mt-2.5 sm:mt-4">
+            <p className="text-lg sm:text-2xl font-bold tracking-tight text-foreground tabular-nums">
+              {activeTickets.length}
+            </p>
+            <p className="text-[11px] sm:text-xs font-medium text-foreground mt-0.5 truncate">
               <span className="sm:hidden">Active</span>
               <span className="hidden sm:inline">Active Requests</span>
-            </span>
-            <span className="flex h-2 w-2 rounded-full bg-amber-500 shrink-0" />
+            </p>
+            <p className="hidden sm:block text-[11px] text-muted mt-0.5 truncate">
+              Awaiting or undergoing service
+            </p>
           </div>
-          <p className="text-lg sm:text-2xl font-bold tracking-tight text-foreground tabular-nums mt-1 sm:mt-2">
-            {activeTickets.length}
-          </p>
-          <p className="hidden sm:block text-[11px] text-muted mt-1">Awaiting or undergoing service</p>
         </div>
 
-        <div className="rounded-2xl border border-border/70 bg-surface p-3 sm:p-5 shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
-          <div className="flex items-center justify-between gap-1">
-            <span className="text-[11px] sm:text-xs font-medium text-muted truncate">
+        <div className="rounded-2xl border border-border/70 bg-surface p-3 sm:p-5 flex flex-col justify-between shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
+          <div className="flex items-center justify-between gap-2">
+            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center bg-sky-500/10 border border-sky-500/20 text-sky-600 dark:text-sky-400 shrink-0">
+              <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </div>
+            <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-surface-hover/70 border border-border/60 text-muted">
+              {inProgressTickets.length > 0 ? "In Service" : "Standby"}
+            </span>
+          </div>
+          <div className="mt-2.5 sm:mt-4">
+            <p className="text-lg sm:text-2xl font-bold tracking-tight text-foreground tabular-nums">
+              {inProgressTickets.length}
+            </p>
+            <p className="text-[11px] sm:text-xs font-medium text-foreground mt-0.5 truncate">
               <span className="sm:hidden">Bench</span>
               <span className="hidden sm:inline">In Bench / Triage</span>
-            </span>
-            <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-sky-500 shrink-0" />
+            </p>
+            <p className="hidden sm:block text-[11px] text-muted mt-0.5 truncate">
+              Assigned to IT specialist
+            </p>
           </div>
-          <p className="text-lg sm:text-2xl font-bold tracking-tight text-foreground tabular-nums mt-1 sm:mt-2">
-            {inProgressTickets.length}
-          </p>
-          <p className="hidden sm:block text-[11px] text-muted mt-1">Assigned to IT specialist</p>
         </div>
 
-        <div className="rounded-2xl border border-border/70 bg-surface p-3 sm:p-5 shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
-          <div className="flex items-center justify-between gap-1">
-            <span className="text-[11px] sm:text-xs font-medium text-muted truncate">
+        <div className="rounded-2xl border border-border/70 bg-surface p-3 sm:p-5 flex flex-col justify-between shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
+          <div className="flex items-center justify-between gap-2">
+            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 shrink-0">
+              <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </div>
+            <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-surface-hover/70 border border-border/60 text-muted">
+              Closed
+            </span>
+          </div>
+          <div className="mt-2.5 sm:mt-4">
+            <p className="text-lg sm:text-2xl font-bold tracking-tight text-foreground tabular-nums">
+              {resolvedTickets.length}
+            </p>
+            <p className="text-[11px] sm:text-xs font-medium text-foreground mt-0.5 truncate">
               <span className="sm:hidden">Resolved</span>
               <span className="hidden sm:inline">Resolved &amp; Returned</span>
-            </span>
-            <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-500 shrink-0" />
+            </p>
+            <p className="hidden sm:block text-[11px] text-muted mt-0.5 truncate">
+              Completed successfully
+            </p>
           </div>
-          <p className="text-lg sm:text-2xl font-bold tracking-tight text-foreground tabular-nums mt-1 sm:mt-2">
-            {resolvedTickets.length}
-          </p>
-          <p className="hidden sm:block text-[11px] text-muted mt-1">Completed successfully</p>
         </div>
       </div>
 
@@ -465,8 +506,21 @@ export function TicketStatusTracker({
               setSearchQuery(e.target.value);
               setMobileLimit(5);
             }}
-            className="w-full h-9 pl-8.5 pr-3 text-xs rounded-xl border border-border/70 bg-surface text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
+            className="w-full h-10 sm:h-9 pl-9 pr-8 text-xs rounded-xl border border-border/70 bg-surface text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery("");
+                setMobileLimit(5);
+              }}
+              aria-label="Clear search"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-md text-muted hover:text-foreground hover:bg-surface-elevated transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -477,14 +531,37 @@ export function TicketStatusTracker({
             <LifeBuoy className="w-5 h-5" />
           </div>
           <h3 className="text-sm font-semibold text-foreground">
-            {searchQuery ? "No matching tickets found" : "No Support Requests on File"}
+            {searchQuery
+              ? "No matching tickets found"
+              : activeTab === "active"
+              ? "No active support requests"
+              : activeTab === "resolved"
+              ? "No resolved tickets yet"
+              : "No Support Requests on File"}
           </h3>
           <p className="text-xs text-muted max-w-sm mx-auto mt-1">
             {searchQuery
               ? `No requests match "${searchQuery}". Clear your search query or tab filter.`
+              : activeTab === "active"
+              ? "All your equipment is running smoothly with no open support tickets."
+              : activeTab === "resolved"
+              ? "Completed and resolved IT requests will appear here once closed."
               : "All your equipment is in optimal health. If you experience any defect, file a service request."}
           </p>
-          <div className="mt-4">
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
+            {!searchQuery && activeTab === "active" && resolvedTickets.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("resolved");
+                  setMobileLimit(5);
+                }}
+                className="text-xs font-medium text-brand-teal hover:underline px-2 py-1.5"
+              >
+                View {resolvedTickets.length} resolved{" "}
+                {resolvedTickets.length === 1 ? "ticket" : "tickets"}
+              </button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -501,6 +578,8 @@ export function TicketStatusTracker({
             {filteredTickets.map((ticket, idx) => {
               const legacy = ticket as LegacyDeviceComplaint;
               const ticketNum = ticket.ticketNumber || legacy.ticket_number || "TKT";
+              const createdTimestamp = ticket.createdAt || legacy.created_at;
+              const resolvedTimestamp = ticket.resolvedAt || legacy.resolved_at;
               const currentStage = getStageIndex(ticket.status);
               const { cleanDescription, affectedApp } = parseTicketDescription(ticket.description);
               const { cleanType } = parseIssueType(ticket.issueType);
@@ -560,8 +639,9 @@ export function TicketStatusTracker({
                     </div>
 
                     {/* Right: Date & Action */}
-                    <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-muted shrink-0 pt-0.5 tabular-nums">
-                      <span>{formatTicketDate(ticket.createdAt || legacy.created_at)}</span>
+                    <div className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-muted shrink-0 pt-0.5 tabular-nums">
+                      <span className="sm:hidden">{formatCompactDateTime(createdTimestamp)}</span>
+                      <span className="hidden sm:inline">{formatDateTime(createdTimestamp)}</span>
                       <span className="text-muted/60 group-hover:text-accent group-hover:translate-x-0.5 transition-all hidden sm:inline-flex items-center gap-1 font-medium">
                         Details
                         <ArrowRight className="w-3.5 h-3.5" />
@@ -577,29 +657,36 @@ export function TicketStatusTracker({
                     </p>
                   )}
 
-                  {/* Context Tag: Device or Software (clean, subtle inline) */}
-                  {(ticket.itemName || affectedApp) && (
-                    <div className="flex items-center gap-2 text-[11px] text-muted">
+                  {/* Context Tag: Device, Software, and Resolved Timestamp */}
+                  {(ticket.itemName || affectedApp || resolvedTimestamp) && (
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted min-w-0">
                       {ticket.itemName ? (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-surface-elevated/60 border border-border/60 text-foreground/80">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-surface-elevated/60 border border-border/60 text-foreground/80 min-w-0 max-w-full">
                           <Laptop className="w-3 h-3 text-muted shrink-0" />
-                          <span className="truncate max-w-[160px] sm:max-w-[220px]">{ticket.itemName}</span>
+                          <span className="truncate max-w-[140px] sm:max-w-[220px]">{ticket.itemName}</span>
                           {ticket.itemSerial && (
-                            <span className="font-mono text-[10px] text-muted">
+                            <span className="font-mono text-[10px] text-muted truncate max-w-[90px] sm:max-w-none">
                               ({ticket.itemSerial})
                             </span>
                           )}
                         </span>
                       ) : affectedApp ? (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-surface-elevated/60 border border-border/60 text-foreground/80">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-surface-elevated/60 border border-border/60 text-foreground/80 min-w-0 max-w-full">
                           <AppWindow className="w-3 h-3 text-muted shrink-0" />
                           <span className="truncate max-w-[160px] sm:max-w-[220px]">{affectedApp}</span>
                         </span>
                       ) : null}
 
-                      <span className="text-muted/70 text-[11px] sm:hidden truncate">
+                      <span className="text-muted/70 text-[11px] sm:hidden truncate max-w-full">
                         • {cleanType}
                       </span>
+
+                      {resolvedTimestamp && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/8 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-medium tabular-nums">
+                          <CheckCircle2 className="w-3 h-3 shrink-0" />
+                          <span>Resolved {formatDateTime(resolvedTimestamp)}</span>
+                        </span>
+                      )}
                     </div>
                   )}
 
@@ -662,6 +749,10 @@ export function TicketStatusTracker({
         const selectedParsed = parseTicketDescription(selectedTicket.description);
         const { cleanType: modalCategory } = parseIssueType(selectedTicket.issueType);
         const ticketNum = selectedTicket.ticketNumber || selectedLegacy.ticket_number || "TKT";
+        const createdTimestamp = selectedTicket.createdAt || selectedLegacy.created_at;
+        const resolvedTimestamp = selectedTicket.resolvedAt || selectedLegacy.resolved_at;
+        const isResolvedTicket =
+          selectedTicket.status === "resolved" || selectedTicket.status === "closed";
 
         return (
           <Modal
@@ -671,10 +762,10 @@ export function TicketStatusTracker({
             description="Full diagnostic report and IT support resolution timeline."
             size="lg"
           >
-            <div className="space-y-5 animate-fade-in text-xs">
+            <div className="space-y-4 sm:space-y-5 animate-fade-in text-xs">
               {/* Ticket Header & Status Pills */}
-              <div className="flex items-center justify-between p-3.5 rounded-xl bg-surface-elevated/40 border border-border/70">
-                <div className="space-y-0.5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-3.5 rounded-xl bg-surface-elevated/40 border border-border/70">
+                <div className="space-y-0.5 min-w-0">
                   <span className="text-[11px] text-muted">Status &amp; Priority</span>
                   <div className="flex items-center gap-2 pt-0.5 flex-wrap">
                     <Badge
@@ -698,26 +789,39 @@ export function TicketStatusTracker({
                   </div>
                 </div>
 
-                <div className="text-right space-y-0.5 shrink-0">
-                  <span className="text-[11px] text-muted">Created On</span>
-                  <p className="font-mono text-foreground tabular-nums">
-                    {formatTicketDateTime(selectedTicket.createdAt || selectedLegacy.created_at)}
-                  </p>
+                <div className="flex flex-wrap items-start gap-x-5 gap-y-2 sm:text-right shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/50">
+                  <div className="space-y-0.5">
+                    <span className="text-[11px] text-muted block">Created On</span>
+                    <p className="font-mono text-foreground tabular-nums">
+                      {formatDateTime(createdTimestamp)}
+                    </p>
+                  </div>
+
+                  {(resolvedTimestamp || isResolvedTicket) && (
+                    <div className="space-y-0.5">
+                      <span className="text-[11px] text-emerald-700 dark:text-emerald-400 block">
+                        Resolved On
+                      </span>
+                      <p className="font-mono font-medium text-emerald-700 dark:text-emerald-300 tabular-nums">
+                        {resolvedTimestamp ? formatDateTime(resolvedTimestamp) : "Completed"}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Progress Pipeline inside Modal */}
-              <div className="p-3.5 rounded-xl bg-surface-elevated/40 border border-border/70 space-y-2">
+              <div className="p-3 sm:p-3.5 rounded-xl bg-surface-elevated/40 border border-border/70 space-y-2">
                 <span className="text-[11px] text-muted font-medium block">
                   Service Pipeline Progress
                 </span>
-                <div className="grid grid-cols-4 gap-2 pt-1">
+                <div className="grid grid-cols-4 gap-1.5 sm:gap-2 pt-1">
                   {STAGES.map((stg) => {
                     const isComplete = selectedStage > stg.step;
                     const isCurrent = selectedStage === stg.step;
 
                     return (
-                      <div key={stg.step} className="space-y-1.5">
+                      <div key={stg.step} className="space-y-1 sm:space-y-1.5">
                         <div
                           className={`h-1.5 rounded-full transition-colors ${
                             isComplete
@@ -729,7 +833,7 @@ export function TicketStatusTracker({
                         />
                         <div className="flex flex-col">
                           <span
-                            className={`text-[11px] font-medium leading-tight truncate ${
+                            className={`text-[10px] sm:text-[11px] font-medium leading-tight truncate ${
                               isComplete
                                 ? "text-emerald-600 dark:text-emerald-400"
                                 : isCurrent
@@ -737,7 +841,8 @@ export function TicketStatusTracker({
                                 : "text-muted"
                             }`}
                           >
-                            {stg.label}
+                            <span className="sm:hidden">{stg.compactLabel}</span>
+                            <span className="hidden sm:inline">{stg.label}</span>
                           </span>
                           <span className="text-[10px] text-muted hidden sm:block truncate">
                             {stg.sublabel}
@@ -751,42 +856,42 @@ export function TicketStatusTracker({
 
               {/* Affected Hardware Device OR Software App */}
               {selectedTicket.itemName ? (
-                <div className="p-3.5 rounded-xl bg-surface border border-border flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-surface-elevated border border-border flex items-center justify-center text-foreground/90">
+                <div className="p-3 sm:p-3.5 rounded-xl bg-surface border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-9 h-9 rounded-lg bg-surface-elevated border border-border flex items-center justify-center text-foreground/90 shrink-0">
                       <Laptop className="w-5 h-5" />
                     </div>
-                    <div>
-                      <h4 className="text-sm font-semibold text-foreground">
+                    <div className="min-w-0">
+                      <h4 className="text-sm font-semibold text-foreground truncate">
                         {selectedTicket.itemName}
                       </h4>
-                      <p className="text-[11px] text-muted font-mono">
+                      <p className="text-[11px] text-muted font-mono truncate">
                         Serial: {selectedTicket.itemSerial || "N/A"}
                       </p>
                     </div>
                   </div>
-                  <span className="text-[11px] text-muted bg-surface-elevated px-2.5 py-1 rounded-md border border-border">
+                  <span className="self-start sm:self-center shrink-0 text-[11px] text-muted bg-surface-elevated px-2.5 py-1 rounded-md border border-border">
                     Assigned Device
                   </span>
                 </div>
               ) : selectedParsed.affectedApp ? (
-                <div className="p-3.5 rounded-xl bg-surface border border-border flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-surface-elevated border border-border flex items-center justify-center text-foreground/90">
+                <div className="p-3 sm:p-3.5 rounded-xl bg-surface border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-9 h-9 rounded-lg bg-surface-elevated border border-border flex items-center justify-center text-foreground/90 shrink-0">
                       <AppWindow className="w-5 h-5 text-accent" />
                     </div>
-                    <div>
-                      <h4 className="text-sm font-semibold text-foreground">
+                    <div className="min-w-0">
+                      <h4 className="text-sm font-semibold text-foreground truncate">
                         {selectedParsed.affectedApp}
                       </h4>
                       {selectedParsed.osVersion && (
-                        <p className="text-[11px] text-muted">
+                        <p className="text-[11px] text-muted truncate">
                           OS / Environment: {selectedParsed.osVersion}
                         </p>
                       )}
                     </div>
                   </div>
-                  <span className="text-[11px] text-muted bg-surface-elevated px-2.5 py-1 rounded-md border border-border">
+                  <span className="self-start sm:self-center shrink-0 text-[11px] text-muted bg-surface-elevated px-2.5 py-1 rounded-md border border-border">
                     Software Application
                   </span>
                 </div>
@@ -890,25 +995,34 @@ export function TicketStatusTracker({
                     </p>
                   )}
 
-                  {selectedTicket.resolutionSummary && (
-                    <div className="space-y-1 pt-1">
-                      <span className="text-[10px] uppercase font-semibold text-emerald-600 dark:text-emerald-400">
-                        Final Resolution:
-                      </span>
-                      <p className="text-xs text-emerald-800 dark:text-emerald-300 bg-emerald-500/10 p-2.5 rounded-lg border border-emerald-500/20">
-                        {selectedTicket.resolutionSummary}
-                      </p>
+                  {(selectedTicket.resolutionSummary || resolvedTimestamp) && (
+                    <div className="space-y-1.5 pt-1">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-[10px] uppercase font-semibold text-emerald-600 dark:text-emerald-400">
+                          Final Resolution:
+                        </span>
+                        {resolvedTimestamp && (
+                          <span className="text-[11px] font-mono text-emerald-700 dark:text-emerald-300 tabular-nums">
+                            {formatDateTime(resolvedTimestamp)}
+                          </span>
+                        )}
+                      </div>
+                      {selectedTicket.resolutionSummary && (
+                        <p className="text-xs text-emerald-800 dark:text-emerald-300 bg-emerald-500/10 p-2.5 rounded-lg border border-emerald-500/20">
+                          {selectedTicket.resolutionSummary}
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Modal Actions */}
-              <div className="pt-3 flex items-center justify-between border-t border-border/60">
+              <div className="pt-3 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 border-t border-border/60">
                 <button
                   type="button"
                   onClick={() => handleCopy(ticketNum)}
-                  className="flex items-center gap-1.5 text-xs text-muted hover:text-foreground transition-colors"
+                  className="flex items-center justify-center sm:justify-start gap-1.5 py-1.5 text-xs text-muted hover:text-foreground transition-colors"
                 >
                   {copiedTicketId === ticketNum ? (
                     <Check className="w-3.5 h-3.5 text-emerald-500" />
@@ -921,6 +1035,7 @@ export function TicketStatusTracker({
                 <Button
                   variant="outline"
                   size="sm"
+                  className="w-full sm:w-auto justify-center"
                   onClick={() => setSelectedTicket(null)}
                 >
                   Close Details

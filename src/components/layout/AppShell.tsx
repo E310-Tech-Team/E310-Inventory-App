@@ -41,7 +41,6 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   const [searchOpen, setSearchOpen] = useState(false);
-  const [isStaffPreview, setIsStaffPreview] = useState(false);
 
   const sidebarCollapsed = useSyncExternalStore(
     subscribeSidebarCollapsed,
@@ -79,8 +78,6 @@ export function AppShell({
           admin={admin}
           collapsed={sidebarCollapsed}
           onToggle={toggleSidebar}
-          isStaffPreview={isStaffPreview}
-          onToggleStaffPreview={() => setIsStaffPreview((prev) => !prev)}
         />
       </div>
       <div className="flex-1 min-w-0 flex flex-col">
@@ -90,18 +87,13 @@ export function AppShell({
         <TopHeader
           admin={admin}
           onOpenSearch={() => setSearchOpen(true)}
-          isStaffPreview={isStaffPreview}
-          onToggleStaffPreview={() => setIsStaffPreview((prev) => !prev)}
           sidebarCollapsed={sidebarCollapsed}
         />
 
 
         <main className="flex-1 min-w-0 pb-20 md:pb-0">{children}</main>
       </div>
-      <MobileNav
-        admin={admin}
-        isStaffPreview={isStaffPreview}
-      />
+      <MobileNav admin={admin} />
 
       {/* Global Command Search Modal */}
       <CommandSearchModal

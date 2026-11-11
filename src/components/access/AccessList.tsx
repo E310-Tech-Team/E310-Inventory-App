@@ -313,6 +313,7 @@ function UserFormModal({
 
   const [name, setName] = useState(user?.name ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
+  const [staffId, setStaffId] = useState(user?.staffId ?? "");
   const [role, setRole] = useState<UserRole>(user?.role ?? "team-member");
   const [status, setStatus] = useState<UserStatus>(user?.status ?? "pending");
   const [saving, setSaving] = useState(false);
@@ -331,6 +332,7 @@ function UserFormModal({
       body: JSON.stringify({
         name,
         email,
+        staffId: staffId.trim() || (isEdit ? null : undefined),
         role,
         status,
       }),
@@ -374,6 +376,15 @@ function UserFormModal({
             onChange={(e) => setEmail(e.target.value)}
             placeholder="name@r4cglobal.org"
             required
+          />
+        </FormField>
+
+        <FormField label="Staff ID">
+          <input
+            className={`${inputClass} font-mono`}
+            value={staffId}
+            onChange={(e) => setStaffId(e.target.value)}
+            placeholder="e.g. E310-002 (auto-assigned if blank)"
           />
         </FormField>
 

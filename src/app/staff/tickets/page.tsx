@@ -1,12 +1,11 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { getSupabaseAdminClient, hasSupabaseConfig } from "@/lib/supabase/server";
+import { getStaffDevices } from "@/lib/data/staff-devices";
 import {
   DeviceComplaint,
   StaffDevice,
   ComplaintStatus,
-  ItemIdentifierType,
-  ItemCondition,
 } from "@/types";
 import { StaffHeader } from "@/components/staff/StaffHeader";
 import { TicketStatusTracker } from "@/components/staff/TicketStatusTracker";
@@ -36,25 +35,6 @@ interface SupabaseComplaintRow {
   } | null;
   assigned_tech?: {
     name?: string;
-  } | null;
-}
-
-interface SupabaseCheckoutRow {
-  id: string;
-  item_id: string;
-  date_collected: string;
-  due_date: string;
-  status: "active" | "overdue";
-  item?: {
-    id: string;
-    name: string;
-    serial_number: string | null;
-    identifier_type: ItemIdentifierType | null;
-    identifier_value: string | null;
-    condition: ItemCondition;
-    category?: {
-      name: string;
-    } | null;
   } | null;
 }
 
@@ -137,48 +117,7 @@ export default async function StaffTicketsPage() {
       }
 
       // Fetch assigned devices for filing new complaints
-      const { data: rawCheckoutRows } = await supabase
-        .from("checkouts")
-        .select(`
-          id,
-          item_id,
-          date_collected,
-          due_date,
-          status,
-          item:items (
-            id,
-            name,
-            serial_number,
-            identifier_type,
-            identifier_value,
-            condition,
-            category:categories (
-              name
-            )
-          )
-        `)
-        .ilike("assigned_to_email", user.email)
-        .in("status", ["active", "overdue"])
-        .order("date_collected", { ascending: false });
-
-      if (rawCheckoutRows) {
-        const checkoutRows = rawCheckoutRows as unknown as SupabaseCheckoutRow[];
-        devices = checkoutRows
-          .filter((row) => Boolean(row.item))
-          .map((row) => ({
-            checkoutId: row.id,
-            itemId: row.item_id,
-            name: row.item?.name ?? "Hardware Device",
-            categoryName: row.item?.category?.name ?? "General Equipment",
-            serialNumber: row.item?.serial_number ?? null,
-            identifierType: row.item?.identifier_type ?? null,
-            identifierValue: row.item?.identifier_value ?? null,
-            condition: row.item?.condition ?? "good",
-            dateCollected: row.date_collected,
-            dueDate: row.due_date,
-            status: row.status,
-          }));
-      }
+      devices = await getStaffDevices(user);
     } catch (err) {
       console.warn("Could not load complaints during SSR:", err);
     }
@@ -189,7 +128,7 @@ export default async function StaffTicketsPage() {
       <StaffHeader user={user} activePath="/staff/tickets" />
 
       {/* Main Content */}
-      <main className="mx-auto max-w-6xl px-4 sm:px-6 py-4 sm:py-7 pb-8">
+      <main className="mx-auto max-w-7xl px-3.5 sm:px-6 pt-6 sm:pt-10 lg:pt-12 pb-[max(2rem,env(safe-area-inset-bottom))] sm:pb-10">
         <TicketStatusTracker initialComplaints={complaints} devices={devices} />
       </main>
     </div>
