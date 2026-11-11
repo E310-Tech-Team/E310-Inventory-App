@@ -209,9 +209,9 @@ grant usage, select on sequence public.device_complaint_ticket_seq to service_ro
 
 insert into public.department_users (name, email, role, status, invited_by, staff_id, department)
 values
-  ('Department Lead', 'boss@r4cglobal.org', 'super-admin', 'active', null, 'R4C-001', 'Executive & Leadership'),
-  ('Goodness', 'ezekielgoodness@r4cglobal.org', 'super-admin', 'active', 'Department Lead', 'R4C-002', 'Software & Engineering'),
-  ('Admin 2', 'admin2@r4cglobal.org', 'team-member', 'active', 'Department Lead', 'R4C-003', 'Operations & Logistics')
+  ('Department Lead', 'boss@r4cglobal.org', 'super-admin', 'active', null, 'E310-001', 'Executive & Leadership'),
+  ('Goodness', 'ezekielgoodness@r4cglobal.org', 'super-admin', 'active', 'Department Lead', 'E310-002', 'Software & Engineering'),
+  ('Admin 2', 'admin2@r4cglobal.org', 'team-member', 'active', 'Department Lead', 'E310-003', 'Operations & Logistics')
 on conflict (email) do update set
   name = excluded.name,
   role = excluded.role,

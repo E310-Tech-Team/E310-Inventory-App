@@ -25,6 +25,7 @@ import {
   PriorityLowIcon,
 } from "@/components/common/Icons";
 import { Button } from "@/components/common/Button";
+import { formatDateTime } from "@/lib/format-date";
 
 interface TicketInspectorDrawerProps {
   ticket: DeviceComplaint | null;
@@ -81,19 +82,6 @@ function getStageNumber(status?: string): number {
     default:
       return 1;
   }
-}
-
-function formatDateTime(dateStr?: string | null): string {
-  if (!dateStr) return "Recently";
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return "Recently";
-  return d.toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
 }
 
 function TicketInspectorContent({

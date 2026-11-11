@@ -6,6 +6,10 @@ import { Badge } from "@/components/common/Badge";
 import { Button } from "@/components/common/Button";
 import { RegisterDeviceModal } from "@/components/staff/RegisterDeviceModal";
 import { ReportIssueModal } from "@/components/staff/ReportIssueModal";
+import {
+  DeleteDeviceModal,
+  getRegistrationBadgeMeta,
+} from "@/components/staff/DeleteDeviceModal";
 import { ShowMoreBar } from "@/components/ui/ShowMoreBar";
 import {
   Laptop,
@@ -18,6 +22,7 @@ import {
   AlertTriangle,
   Plus,
   Wrench,
+  Trash2,
 } from "lucide-react";
 
 interface MyDevicesListProps {
@@ -30,6 +35,7 @@ export function MyDevicesList({ devices, onRefresh }: MyDevicesListProps) {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [selectedDeviceForIssue, setSelectedDeviceForIssue] = useState<StaffDevice | null>(null);
+  const [deviceToDelete, setDeviceToDelete] = useState<StaffDevice | null>(null);
   const [mobileLimit, setMobileLimit] = useState(5);
 
   const copyToClipboard = (text: string) => {
@@ -120,6 +126,7 @@ export function MyDevicesList({ devices, onRefresh }: MyDevicesListProps) {
               const Icon = getDeviceIcon(device.name, device.categoryName);
               const isOverdue = device.status === "overdue";
               const hasActiveComplaint = Boolean(device.activeComplaint);
+              const registrationBadge = getRegistrationBadgeMeta(device);
 
               return (
                 <div
@@ -150,16 +157,25 @@ export function MyDevicesList({ devices, onRefresh }: MyDevicesListProps) {
                         </div>
                       </div>
 
-                      <Badge
-                        variant={isOverdue ? "overdue" : "active"}
-                        label={isOverdue ? "Overdue" : "In Custody"}
-                      />
+                      <div className="flex items-center gap-1.5 flex-wrap justify-end shrink-0">
+                        {registrationBadge && (
+                          <Badge
+                            variant={registrationBadge.variant}
+                            label={registrationBadge.label}
+                          />
+                        )}
+                        <Badge
+                          variant={isOverdue ? "overdue" : "active"}
+                          label={isOverdue ? "Overdue" : "In Custody"}
+                        />
+                      </div>
                     </div>
 
                     <div className="mt-2.5 sm:mt-4 pt-2.5 sm:pt-3 border-t border-border/50 grid grid-cols-2 gap-3 sm:gap-4 text-xs">
                       <div className="min-w-0">
                         <span className="text-[11px] text-muted block font-medium">Serial Number</span>
                         <button
+                          type="button"
                           onClick={() => copyToClipboard(device.serialNumber || "N/A")}
                           className="font-mono text-xs text-foreground hover:text-accent flex items-center gap-1.5 mt-0.5 sm:mt-1 transition-colors max-w-full"
                           title="Click to copy serial"
@@ -173,9 +189,9 @@ export function MyDevicesList({ devices, onRefresh }: MyDevicesListProps) {
                         </button>
                       </div>
 
-                      <div>
+                      <div className="min-w-0">
                         <span className="text-[11px] text-muted block font-medium">Assigned Date</span>
-                        <span className="text-xs text-foreground block mt-0.5 sm:mt-1 font-mono tabular-nums">
+                        <span className="text-xs text-foreground block mt-0.5 sm:mt-1 font-mono tabular-nums truncate">
                           {formatCustodyDate(device.dateCollected)}
                         </span>
                       </div>
@@ -185,7 +201,7 @@ export function MyDevicesList({ devices, onRefresh }: MyDevicesListProps) {
                       <div className="mt-2.5 sm:mt-3.5 p-2.5 sm:p-3 rounded-xl bg-amber-500/8 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-300 flex items-start gap-2">
                         <Wrench className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 shrink-0 mt-0.5" />
                         <div className="flex-1 min-w-0">
-                          <span className="font-semibold text-[11px]">
+                          <span className="font-semibold text-[11px] block truncate">
                             Ticket {device.activeComplaint.ticketNumber} · {device.activeComplaint.status}
                           </span>
                           <p className="text-foreground/80 text-xs truncate mt-0.5 font-medium">
@@ -196,15 +212,44 @@ export function MyDevicesList({ devices, onRefresh }: MyDevicesListProps) {
                     )}
                   </div>
 
-                  <div className="pt-2 sm:pt-3 border-t border-border/50 flex items-center justify-end">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      leftIcon={<AlertTriangle className="w-3.5 h-3.5 text-muted" />}
-                      onClick={() => handleReportIssue(device)}
-                    >
-                      Report Issue
-                    </Button>
+                  <div className="pt-2.5 sm:pt-3 border-t border-border/50 flex items-center justify-between gap-2">
+                    {device.dueDate ? (
+                      <span
+                        className={`text-[11px] font-medium tabular-nums truncate ${
+                          isOverdue ? "text-rose-500" : "text-muted"
+                        }`}
+                      >
+                        Due {formatCustodyDate(device.dueDate)}
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-muted hidden sm:inline">
+                        Active custody
+                      </span>
+                    )}
+                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                      {device.registeredByStaff && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="justify-center whitespace-nowrap"
+                          leftIcon={<Trash2 className="w-3.5 h-3.5" />}
+                          onClick={() => setDeviceToDelete(device)}
+                          aria-label={`Delete ${device.name}`}
+                          title="Delete registered device"
+                        >
+                          Delete
+                        </Button>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 sm:flex-initial justify-center whitespace-nowrap"
+                        leftIcon={<AlertTriangle className="w-3.5 h-3.5 text-amber-500" />}
+                        onClick={() => handleReportIssue(device)}
+                      >
+                        Report Issue
+                      </Button>
+                    </div>
                   </div>
                 </div>
               );
@@ -241,6 +286,14 @@ export function MyDevicesList({ devices, onRefresh }: MyDevicesListProps) {
         }}
         devices={devices}
         preselectedDevice={selectedDeviceForIssue}
+        onSuccess={() => {
+          onRefresh?.();
+        }}
+      />
+
+      <DeleteDeviceModal
+        device={deviceToDelete}
+        onClose={() => setDeviceToDelete(null)}
         onSuccess={() => {
           onRefresh?.();
         }}

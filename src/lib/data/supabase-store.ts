@@ -11,6 +11,7 @@ import {
   PortalOption,
 } from "@/types";
 import { getSupabaseAdminClient } from "@/lib/supabase/server";
+import { formatStaffId, generateNextStaffId } from "@/lib/staff-id";
 import { DataStore } from "./types";
 
 interface DepartmentUserRow {
@@ -154,7 +155,7 @@ function fromUserRow(row: DepartmentUserRow): DepartmentUser {
     role: row.role,
     status: row.status,
     invitedBy: row.invited_by,
-    staffId: row.staff_id,
+    staffId: formatStaffId(row.staff_id),
     phone: row.phone,
     department: row.department,
     createdAt: row.created_at,
@@ -172,7 +173,7 @@ function toUserInsertRow(
     role: data.role,
     status: data.status,
     invited_by: data.invitedBy,
-    staff_id: data.staffId ?? null,
+    staff_id: formatStaffId(data.staffId),
     phone: data.phone ?? null,
     department: data.department ?? null,
   };
@@ -186,7 +187,7 @@ function toUserUpdateRow(data: Partial<DepartmentUser>): Partial<DepartmentUserR
     ...(data.status !== undefined ? { status: data.status } : {}),
     ...(data.passwordHash !== undefined ? { password_hash: data.passwordHash } : {}),
     ...(data.invitedBy !== undefined ? { invited_by: data.invitedBy } : {}),
-    ...(data.staffId !== undefined ? { staff_id: data.staffId } : {}),
+    ...(data.staffId !== undefined ? { staff_id: formatStaffId(data.staffId) } : {}),
     ...(data.phone !== undefined ? { phone: data.phone } : {}),
     ...(data.department !== undefined ? { department: data.department } : {}),
     updated_at: new Date().toISOString(),
@@ -379,6 +380,8 @@ function toComplaintInsertRow(
   data: Omit<DeviceComplaint, "id" | "createdAt" | "updatedAt">
 ): Record<string, unknown> {
   const priority = data.severity || data.priority || "medium";
+  const nowIso = new Date().toISOString();
+  const isClosed = data.status === "resolved" || data.status === "closed";
   const row: Record<string, unknown> = {
     user_id: data.userId,
     item_id: data.itemId ?? null,
@@ -391,15 +394,18 @@ function toComplaintInsertRow(
     attachment_urls: data.attachmentUrls ?? [],
     assigned_tech_id: data.assignedTechId ?? null,
     resolution_notes: data.resolutionNotes ?? data.resolutionSummary ?? null,
-    resolved_at: data.resolvedAt ?? null,
+    resolved_at: data.resolvedAt ?? (isClosed ? nowIso : null),
+    created_at: nowIso,
+    updated_at: nowIso,
   };
   if (data.ticketNumber) row.ticket_number = data.ticketNumber;
   return row;
 }
 
 function toComplaintUpdateRow(data: Partial<DeviceComplaint>): Record<string, unknown> {
+  const nowIso = new Date().toISOString();
   const row: Record<string, unknown> = {
-    updated_at: new Date().toISOString(),
+    updated_at: nowIso,
   };
   if (data.ticketNumber !== undefined) row.ticket_number = data.ticketNumber;
   if (data.userId !== undefined) row.user_id = data.userId;
@@ -411,7 +417,12 @@ function toComplaintUpdateRow(data: Partial<DeviceComplaint>): Record<string, un
   if (data.severity !== undefined || data.priority !== undefined) {
     row.severity = data.severity ?? data.priority;
   }
-  if (data.status !== undefined) row.status = data.status;
+  if (data.status !== undefined) {
+    row.status = data.status;
+    if (data.resolvedAt === undefined && (data.status === "resolved" || data.status === "closed")) {
+      row.resolved_at = nowIso;
+    }
+  }
   if (data.attachmentUrls !== undefined) row.attachment_urls = data.attachmentUrls;
   if (data.assignedTechId !== undefined) row.assigned_tech_id = data.assignedTechId;
   if (data.resolutionNotes !== undefined || data.resolutionSummary !== undefined) {
@@ -558,9 +569,20 @@ export class SupabaseStore implements DataStore {
   async createUser(
     data: Omit<DepartmentUser, "id" | "createdAt" | "updatedAt">
   ): Promise<DepartmentUser> {
+    let resolvedStaffId = formatStaffId(data.staffId);
+    if (!resolvedStaffId) {
+      const { data: existingIds, error: idQueryError } = await this.supabase
+        .from("department_users")
+        .select("staff_id");
+      throwOnError(idQueryError);
+      resolvedStaffId = generateNextStaffId(
+        ((existingIds ?? []) as Array<{ staff_id: string | null }>).map((r) => r.staff_id)
+      );
+    }
+
     const response = await this.supabase
       .from("department_users")
-      .insert(toUserInsertRow(data))
+      .insert(toUserInsertRow({ ...data, staffId: resolvedStaffId }))
       .select("*")
       .single();
     throwOnError(response.error);

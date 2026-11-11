@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { getSupabaseAdminClient, hasSupabaseConfig } from "@/lib/supabase/server";
+import { getStaffDevices } from "@/lib/data/staff-devices";
 import { StaffDevice, DeviceComplaint } from "@/types";
 import { StaffHeader } from "@/components/staff/StaffHeader";
 import { StaffDashboard } from "@/components/staff/StaffDashboard";
@@ -31,47 +32,7 @@ export default async function StaffPortalPage({
       const supabase = getSupabaseAdminClient();
 
       // Fetch active devices in custody
-      const { data: checkoutRows } = await supabase
-        .from("checkouts")
-        .select(`
-          id,
-          item_id,
-          date_collected,
-          due_date,
-          status,
-          item:items (
-            id,
-            name,
-            serial_number,
-            identifier_type,
-            identifier_value,
-            condition,
-            category:categories (
-              name
-            )
-          )
-        `)
-        .ilike("assigned_to_email", user.email)
-        .in("status", ["active", "overdue"])
-        .order("date_collected", { ascending: false });
-
-      if (checkoutRows) {
-        initialDevices = checkoutRows
-          .filter((row: any) => row.item)
-          .map((row: any) => ({
-            checkoutId: row.id,
-            itemId: row.item_id,
-            name: row.item?.name ?? "Hardware Device",
-            categoryName: row.item?.category?.name ?? "General Equipment",
-            serialNumber: row.item?.serial_number ?? null,
-            identifierType: row.item?.identifier_type ?? null,
-            identifierValue: row.item?.identifier_value ?? null,
-            condition: row.item?.condition ?? "good",
-            dateCollected: row.date_collected,
-            dueDate: row.due_date,
-            status: row.status,
-          }));
-      }
+      initialDevices = await getStaffDevices(user, { includeComplaints: true });
 
       // Fetch staff complaints
       const { data: complaintRows } = await supabase
@@ -88,6 +49,8 @@ export default async function StaffPortalPage({
           severity,
           status,
           attachment_urls,
+          resolution_notes,
+          resolved_at,
           created_at,
           updated_at
         `)
@@ -110,6 +73,9 @@ export default async function StaffPortalPage({
           severity: c.severity || "medium",
           status: c.status,
           attachmentUrls: c.attachment_urls ?? [],
+          techNotes: c.resolution_notes ?? null,
+          resolutionSummary: c.resolution_notes ?? null,
+          resolvedAt: c.resolved_at ?? null,
           createdAt: c.created_at,
           updatedAt: c.updated_at,
         }));
@@ -123,7 +89,7 @@ export default async function StaffPortalPage({
     <div className="min-h-screen bg-background text-foreground">
       {/* 403 Forbidden Access Restricted Banner */}
       {isForbidden && (
-        <div className="bg-amber-500/10 border-b border-amber-500/20 px-6 py-2 text-center text-xs text-amber-700 dark:text-amber-300">
+        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 sm:px-6 py-2 text-center text-xs text-amber-700 dark:text-amber-300">
           <AlertCircle className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5 text-amber-600 dark:text-amber-400" />
           Access Restricted: The Tech Portal is reserved for IT specialists.
         </div>
@@ -132,7 +98,7 @@ export default async function StaffPortalPage({
       <StaffHeader user={user} activePath="/staff" />
 
       {/* Main Content */}
-      <main className="mx-auto max-w-6xl px-4 sm:px-6 py-4 sm:py-7 pb-8">
+      <main className="mx-auto max-w-7xl px-3.5 sm:px-6 pt-6 sm:pt-10 lg:pt-12 pb-[max(2rem,env(safe-area-inset-bottom))] sm:pb-10">
         <StaffDashboard
           user={user}
           initialDevices={initialDevices}

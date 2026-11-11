@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireSuperAdmin } from "@/lib/auth/permissions";
 import { dataStore } from "@/lib/data";
-import { cleanString, isUserRole, isUserStatus } from "@/lib/validation";
+import { cleanOptionalString, cleanString, isUserRole, isUserStatus } from "@/lib/validation";
+import { formatStaffId, isValidStaffId } from "@/lib/staff-id";
 
 async function isLastActiveSuperAdmin(userId: string): Promise<boolean> {
   const users = await dataStore.getUsers();
@@ -38,6 +39,17 @@ export async function PATCH(
     body.email !== undefined ? cleanString(body.email).toLowerCase() : undefined;
   const nextRole = isUserRole(body.role) ? body.role : target.role;
   const nextStatus = isUserStatus(body.status) ? body.status : target.status;
+  const hasStaffIdField = body.staffId !== undefined;
+  const staffId = hasStaffIdField ? formatStaffId(cleanOptionalString(body.staffId)) : undefined;
+  const department =
+    body.department !== undefined ? cleanOptionalString(body.department) : undefined;
+
+  if (staffId && !isValidStaffId(staffId)) {
+    return NextResponse.json(
+      { error: "Staff ID must follow the E310-002 format (e.g. E310-001, E310-002)." },
+      { status: 400 }
+    );
+  }
 
   if (name !== undefined && name.length === 0) {
     return NextResponse.json({ error: "Name is required" }, { status: 400 });
@@ -83,6 +95,8 @@ export async function PATCH(
       ...(email !== undefined ? { email } : {}),
       ...(isUserRole(body.role) ? { role: nextRole } : {}),
       ...(isUserStatus(body.status) ? { status: nextStatus } : {}),
+      ...(hasStaffIdField ? { staffId } : {}),
+      ...(department !== undefined ? { department } : {}),
     });
     return NextResponse.json(updated);
   } catch (error) {

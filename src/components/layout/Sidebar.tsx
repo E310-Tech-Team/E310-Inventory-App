@@ -94,7 +94,7 @@ const DEFAULT_MOCK_USER: Admin = {
   email: "alex.morgan@e310.io",
   role: "super-admin",
   status: "active",
-  staffId: "E310-8492",
+  staffId: "E310-001",
   department: "Tech Operations",
   invitedBy: null,
   createdAt: "2026-01-01T00:00:00.000Z",
@@ -373,41 +373,33 @@ export function Sidebar({
         })}
       </nav>
 
-      {/* Super Admin Preview Toggle */}
-      {currentUser.role === "super-admin" && onToggleStaffPreview && (
+      {/* Super Admin Switch to Staff Portal */}
+      {currentUser.role === "super-admin" && (
         <div className={`border-t border-border ${isCollapsed ? "p-2 flex justify-center" : "p-3"}`}>
           {isCollapsed ? (
-            <button
-              type="button"
-              onClick={onToggleStaffPreview}
-              title={isStaffPreview ? "Exit Staff Preview" : "Preview Staff View"}
-              aria-label={isStaffPreview ? "Exit Staff Preview" : "Preview Staff View"}
-              className={`pressable p-2 rounded-lg text-xs transition-colors border ${
-                isStaffPreview
-                  ? "bg-amber-500/20 text-amber-600 border-amber-500/40"
-                  : "text-muted hover:bg-background hover:text-foreground border-transparent"
-              }`}
+            <Link
+              href="/staff"
+              prefetch
+              title="Switch to Staff View"
+              aria-label="Switch to Staff View"
+              className="pressable p-2 rounded-lg text-xs transition-colors border text-muted hover:bg-background hover:text-foreground border-transparent"
             >
               <Eye className="w-4 h-4" />
-            </button>
+            </Link>
           ) : (
-            <button
-              type="button"
-              onClick={onToggleStaffPreview}
-              className={`pressable w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-colors border ${
-                isStaffPreview
-                  ? "bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400"
-                  : "bg-surface hover:bg-background border-border text-muted hover:text-foreground"
-              }`}
+            <Link
+              href="/staff"
+              prefetch
+              className="pressable w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-colors border bg-surface hover:bg-background border-border text-muted hover:text-foreground"
             >
               <div className="flex items-center gap-2">
                 <Eye className="w-3.5 h-3.5" />
-                <span>{isStaffPreview ? "Exit Preview" : "Staff View Preview"}</span>
+                <span>Staff View Preview</span>
               </div>
               <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300">
                 Admin
               </span>
-            </button>
+            </Link>
           )}
         </div>
       )}
@@ -419,8 +411,8 @@ export function Sidebar({
           <div className="relative group">
             <div
               className="w-9 h-9 rounded-full bg-emerald-600 dark:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm cursor-default"
-              title={`${currentUser.name} (${currentUser.staffId || "E310-8492"})`}
-              aria-label={`${currentUser.name} (${currentUser.staffId || "E310-8492"})`}
+              title={`${currentUser.name} (${currentUser.staffId || "E310-001"})`}
+              aria-label={`${currentUser.name} (${currentUser.staffId || "E310-001"})`}
             >
               {userInitials}
             </div>
@@ -430,7 +422,7 @@ export function Sidebar({
             >
               <span className="font-semibold">{currentUser.name}</span>
               <span className="text-[10px] opacity-80 font-mono">
-                ID: {currentUser.staffId || "E310-8492"}
+                ID: {currentUser.staffId || "E310-001"}
               </span>
             </div>
           </div>

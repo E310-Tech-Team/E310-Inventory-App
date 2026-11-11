@@ -38,11 +38,12 @@ export function RoleContextBadge({
 
       {canSwitchPortal && (
         <Link
-          href={isWorkingAsTech ? "/staff" : "/tech"}
-          className="inline-flex items-center gap-1.5 text-xs text-muted hover:text-foreground transition-colors font-medium"
+          href={isWorkingAsTech ? "/staff" : "/dashboard"}
+          prefetch
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-border/70 bg-surface-elevated/70 hover:bg-surface-elevated text-xs font-medium text-foreground transition-colors"
           title={`Switch to ${isWorkingAsTech ? "Staff Portal" : "Tech Portal"}`}
         >
-          <ArrowRightLeft className="w-3.5 h-3.5 text-muted" />
+          <ArrowRightLeft className="w-3 h-3 text-accent" />
           <span>{isWorkingAsTech ? "Staff Portal" : "Tech Ops"}</span>
         </Link>
       )}

@@ -430,7 +430,7 @@ export function ReportIssueModal({
           </div>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
           {error && (
             <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-2.5 text-xs text-rose-600 dark:text-rose-400 animate-fade-in">
               <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
@@ -439,43 +439,45 @@ export function ReportIssueModal({
           )}
 
           {/* ─── Domain Switcher: Hardware vs Software ─── */}
-          <div className="grid grid-cols-2 p-1 rounded-xl bg-surface-elevated/70 border border-border/80 gap-1">
+          <div className="grid grid-cols-2 p-1 rounded-xl bg-surface-elevated/80 border border-border/80 gap-1">
             <button
               type="button"
               onClick={() => handleDomainChange("hardware")}
-              className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-semibold text-xs transition-all ${
+              className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2 px-2 sm:px-3 rounded-lg font-semibold text-xs transition-all whitespace-nowrap ${
                 issueDomain === "hardware"
-                  ? "bg-surface text-foreground shadow-xs border border-border/70"
-                  : "text-muted hover:text-foreground"
+                  ? "bg-surface text-foreground shadow-xs border border-border/80"
+                  : "text-muted hover:text-foreground border border-transparent"
               }`}
             >
-              <Laptop className="w-4 h-4 text-brand-teal shrink-0" />
-              <span>Hardware Device</span>
+              <Laptop className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-teal shrink-0" />
+              <span className="sm:hidden">Hardware</span>
+              <span className="hidden sm:inline">Hardware Device</span>
             </button>
 
             <button
               type="button"
               onClick={() => handleDomainChange("software")}
-              className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-semibold text-xs transition-all ${
+              className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2 px-2 sm:px-3 rounded-lg font-semibold text-xs transition-all whitespace-nowrap ${
                 issueDomain === "software"
-                  ? "bg-surface text-foreground shadow-xs border border-border/70"
-                  : "text-muted hover:text-foreground"
+                  ? "bg-surface text-foreground shadow-xs border border-border/80"
+                  : "text-muted hover:text-foreground border border-transparent"
               }`}
             >
-              <AppWindow className="w-4 h-4 text-brand-teal shrink-0" />
-              <span>Software & Systems</span>
+              <AppWindow className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-teal shrink-0" />
+              <span className="sm:hidden">Software</span>
+              <span className="hidden sm:inline">Software &amp; Systems</span>
             </button>
           </div>
 
           {/* ─── 1. Affected Target (Device vs Software) ─── */}
           {issueDomain === "hardware" ? (
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <label className="text-xs font-semibold text-foreground">
                   Affected Hardware Device <span className="text-rose-500">*</span>
                 </label>
                 {selectedDevice && (
-                  <span className="text-[11px] text-muted font-mono">
+                  <span className="text-[11px] text-muted font-mono truncate max-w-[45%]">
                     SN: {selectedDevice.serialNumber || "N/A"}
                   </span>
                 )}
@@ -557,7 +559,7 @@ export function ReportIssueModal({
               <label className="block text-xs font-semibold text-foreground mb-1.5">
                 Urgency & Severity Level
               </label>
-              <div className="grid grid-cols-2 gap-1.5">
+              <div className="grid grid-cols-2 gap-2">
                 {SEVERITY_LEVELS.map((lvl) => {
                   const Icon = lvl.icon;
                   const isSelected = priority === lvl.value;
@@ -566,7 +568,7 @@ export function ReportIssueModal({
                       key={lvl.value}
                       type="button"
                       onClick={() => setPriority(lvl.value)}
-                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-medium transition-all text-left ${
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-medium transition-all text-left ${
                         isSelected ? lvl.activeClass : lvl.badgeClass
                       } hover:border-accent/40`}
                     >
@@ -580,7 +582,7 @@ export function ReportIssueModal({
           </div>
 
           {/* ─── 3. Title & Location / OS ─── */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-3">
             <div className="sm:col-span-2">
               <Input
                 label="Brief Summary of Issue"
@@ -637,7 +639,7 @@ export function ReportIssueModal({
                   ? "Describe physical damage, error symptoms, unusual sounds, and when the issue started..."
                   : "Describe what occurred, exact error messages displayed, steps to reproduce, and what you expected..."
               }
-              className="w-full rounded-xl border border-border bg-surface p-2.5 text-xs text-foreground placeholder:text-muted focus:outline-hidden focus:border-accent transition-colors resize-none"
+              className="w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-xs text-foreground placeholder:text-muted focus:outline-hidden focus:border-accent focus:ring-1 focus:ring-accent/40 transition-colors resize-none"
               disabled={submitting}
               required
             />
@@ -645,7 +647,7 @@ export function ReportIssueModal({
 
           {/* ─── 5. Evidence / Photo Attachments (Compulsory) ─── */}
           <div className="space-y-2.5">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
               <label className="block text-xs font-semibold text-foreground">
                 {issueDomain === "hardware"
                   ? "Evidence / Photo Attachments"
@@ -655,12 +657,12 @@ export function ReportIssueModal({
               <span className="text-[11px]">
                 {attachmentUrls.length === 0 ? (
                   <span className="text-rose-500 font-semibold flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3 inline" />
+                    <AlertCircle className="w-3 h-3 inline shrink-0" />
                     Compulsory: At least 1 {issueDomain === "hardware" ? "photo" : "screenshot"} required
                   </span>
                 ) : (
                   <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3 inline" />
+                    <CheckCircle2 className="w-3 h-3 inline shrink-0" />
                     {attachmentUrls.length} {issueDomain === "hardware" ? "photo" : "screenshot"}
                     {attachmentUrls.length > 1 ? "s" : ""} attached
                   </span>
@@ -669,30 +671,32 @@ export function ReportIssueModal({
             </div>
 
             {/* Mode Selector Tabs */}
-            <div className="flex items-center gap-1 p-1 rounded-xl bg-surface-elevated border border-border w-fit text-xs">
+            <div className="grid grid-cols-2 sm:inline-flex items-center gap-1 p-1 rounded-xl bg-surface-elevated/80 border border-border/80 w-full sm:w-fit text-xs">
               <button
                 type="button"
                 onClick={() => setActiveTab("upload")}
-                className={`px-3 py-1 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+                className={`justify-center px-2.5 sm:px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 whitespace-nowrap ${
                   activeTab === "upload"
-                    ? "bg-surface text-foreground shadow-xs border border-border"
-                    : "text-muted hover:text-foreground"
+                    ? "bg-surface text-foreground shadow-xs border border-border/80"
+                    : "text-muted hover:text-foreground border border-transparent"
                 }`}
               >
-                <Camera className="w-3.5 h-3.5" />
-                Upload Photo / Screenshot
+                <Camera className="w-3.5 h-3.5 shrink-0" />
+                <span className="sm:hidden">Upload Photo</span>
+                <span className="hidden sm:inline">Upload Photo / Screenshot</span>
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab("url")}
-                className={`px-3 py-1 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+                className={`justify-center px-2.5 sm:px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 whitespace-nowrap ${
                   activeTab === "url"
-                    ? "bg-surface text-foreground shadow-xs border border-border"
-                    : "text-muted hover:text-foreground"
+                    ? "bg-surface text-foreground shadow-xs border border-border/80"
+                    : "text-muted hover:text-foreground border border-transparent"
                 }`}
               >
-                <LinkIcon className="w-3.5 h-3.5" />
-                Paste Image Link
+                <LinkIcon className="w-3.5 h-3.5 shrink-0" />
+                <span className="sm:hidden">Paste Link</span>
+                <span className="hidden sm:inline">Paste Image Link</span>
               </button>
             </div>
 
@@ -752,8 +756,8 @@ export function ReportIssueModal({
                 )}
               </div>
             ) : (
-              <div className="flex gap-2">
-                <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <div className="flex-1 min-w-0">
                   <Input
                     placeholder="Paste image / screenshot URL (e.g. https://...)"
                     value={attachmentInput}
@@ -771,6 +775,7 @@ export function ReportIssueModal({
                   type="button"
                   variant="outline"
                   size="sm"
+                  className="shrink-0 whitespace-nowrap"
                   onClick={handleAddAttachment}
                   disabled={!attachmentInput.trim() || submitting}
                   leftIcon={<Plus className="w-3.5 h-3.5" />}
@@ -837,15 +842,16 @@ export function ReportIssueModal({
           </div>
 
           {/* ─── Footer Controls ─── */}
-          <div className="pt-3 flex items-center justify-between border-t border-border">
-            <div className="text-[11px] text-muted">
+          <div className="pt-3 flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-2.5 border-t border-border">
+            <div className="text-[11px] text-muted text-center sm:text-left">
               Tickets are routed directly to the on-duty IT engineering queue.
             </div>
-            <div className="flex items-center gap-2">
+            <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
+                className="justify-center"
                 onClick={handleClose}
                 disabled={submitting}
               >
@@ -855,9 +861,13 @@ export function ReportIssueModal({
                 type="submit"
                 variant="primary"
                 size="sm"
+                className="justify-center whitespace-nowrap"
                 isLoading={submitting}
               >
-                {issueDomain === "hardware" ? "Submit Hardware Ticket" : "Submit Bug Report"}
+                <span className="sm:hidden">Submit Ticket</span>
+                <span className="hidden sm:inline">
+                  {issueDomain === "hardware" ? "Submit Hardware Ticket" : "Submit Bug Report"}
+                </span>
               </Button>
             </div>
           </div>

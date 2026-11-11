@@ -30,6 +30,8 @@ export function AccessDetailsModal({
           </div>
           <div className="mt-3 space-y-1">
             <DetailRow label="Name" value={user.name} />
+            <DetailRow label="Staff ID" value={user.staffId} />
+            <DetailRow label="Department" value={user.department} />
             <DetailRow label="Email" value={user.email} />
             <DetailRow label="Role" value={user.role.replace("-", " ")} />
             <DetailRow label="Status" value={user.status} />

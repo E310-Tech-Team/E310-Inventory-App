@@ -180,7 +180,7 @@ export function RegisterDeviceModal({
           </p>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4">
           {error && (
             <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-2.5 text-xs text-rose-600 dark:text-rose-400">
               <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
@@ -267,11 +267,12 @@ export function RegisterDeviceModal({
             />
           </div>
 
-          <div className="pt-3 flex items-center justify-end gap-2 border-t border-border">
+          <div className="pt-3 grid grid-cols-2 sm:flex items-center justify-end gap-2 border-t border-border">
             <Button
               type="button"
               variant="ghost"
               size="sm"
+              className="justify-center"
               onClick={onClose}
               disabled={submitting}
             >
@@ -281,6 +282,7 @@ export function RegisterDeviceModal({
               type="submit"
               variant="primary"
               size="sm"
+              className="justify-center whitespace-nowrap"
               isLoading={submitting}
             >
               Register Device
